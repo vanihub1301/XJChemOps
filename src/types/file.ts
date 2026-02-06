@@ -9,6 +9,7 @@ export const mimeTypeMap: { [key: string]: string } = {
     'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'xls': 'application/vnd.ms-excel',
     'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'mp4': 'video/mp4',
 };
 
 export interface FileItem {

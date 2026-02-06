@@ -50,6 +50,7 @@ export const normalizeFileUri = (fileUri: string): string => {
 };
 
 export const getFileInfo = (fileUri: string, customFileName?: string, customMimeType?: string) => {
+    console.log('LOG : getFileInfo : fileUri:', fileUri)
     const fileName = customFileName || fileUri.split('/').pop();
     const extension = fileUri.split('.').pop()?.toLowerCase() || '';
     const mimeType = customMimeType || mimeTypeMap[extension] || 'application/octet-stream';

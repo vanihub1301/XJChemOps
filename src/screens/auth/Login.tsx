@@ -98,7 +98,7 @@ const Login = ({ navigation }: AuthNavigationProps<'Login'>) => {
             lastDetectionTime.current = currentTime;
             handleCapture(face);
         } else {
-            showToast(qualityResult.message);
+            // showToast(qualityResult.message);
         }
     });
 

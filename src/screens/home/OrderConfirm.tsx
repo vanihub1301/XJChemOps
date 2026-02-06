@@ -52,32 +52,33 @@ const OrderConfirm = ({ navigation, route }: AppNavigationProps<'OrderConfirm'>)
     const handleConfirm = async () => {
         try {
             if (orderData) {
-                const resInit = await postData(`portal/inject/initProject?fid=${orderData.id}&employee=NGUYỄN THỊ THOẢNG`);
-                if (resInit.code === 0) {
+                const resRunning = await getData('portal/inject/getRunning', { drumNo: orderData.drumNo }, false);
+                if (resRunning.code === 0 && resRunning?.data?.process) {
+                    const { dtl, ...processWithoutDtl } = resRunning.data.process;
+
                     await Promise.all([
-                        setOrderStore(resInit.data.process),
-                        setBatchsStore(resInit.data.process.dtl),
+                        setOrderStore({
+                            process: processWithoutDtl,
+                            currentTime: resRunning.data?.curentTime,
+                            appInjectPause: resRunning.data?.appInjectPause,
+                        }),
+                        setBatchsStore(dtl),
                     ]);
                     navigation.navigate('Operation', {
                         order: orderData,
                     });
-                }
-
-                if (resInit.code === -1 && resInit.msg === 'Đơn này đã chạy rồi') {
-                    const resRunning = await getData('portal/inject/getRunning', { drumNo: orderData.drumNo }, false);
-                    if (resRunning.code === 0 && resRunning?.data?.process) {
+                } else {
+                    const resInit = await postData(`portal/inject/initProject?fid=${orderData.id}&employee=NGUYỄN THỊ THOẢNG`);
+                    if (resInit.code === 0) {
                         await Promise.all([
-                            setOrderStore(resRunning.data.process),
-                            setBatchsStore(resRunning.data.process.dtl),
+                            setOrderStore(resInit.data.process),
+                            setBatchsStore(resInit.data.process.dtl),
                         ]);
                         navigation.navigate('Operation', {
                             order: orderData,
                         });
                     } else {
-                        showToast(resRunning.msg);
-                        navigation.navigate('Operation', {
-                            order: orderData,
-                        });
+                        showToast(resInit.msg);
                     }
                 }
             }

@@ -25,16 +25,15 @@ import { SplashScreen } from '../../components/app/SplashScreen';
 import HistoryBatch from './HistoryBatch';
 import { uploadFile } from '../../service/axios';
 import { getFileInfo } from '../../utils/file';
+import { unlink } from 'react-native-fs';
 
 const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
     const { order } = route.params;
-    const [now, setNow] = React.useState(Date.now());
-    const [fakeLoading, setFakeLoading] = React.useState(false);
     const [modalVisible, setModalVisible] = React.useState(false);
     const [alertedTimes, setAlertedTimes] = React.useState<Set<string>>(new Set());
 
     const { videoStatus, videoPath } = useVideoStore();
-    const { batchsStore, groupedChemicals, isPause, setBatchsStore, setIsAlert, setGroupedChemicals, setCurrentChemicals, setIsPause } = useOperationStore();
+    const { orderStore, batchsStore, groupedChemicals, currentChemicals, isPause, setBatchsStore, setOrderStore, setIsAlert, setGroupedChemicals, setCurrentChemicals, setIsPause } = useOperationStore();
     const { checkInterval } = useSettingStore();
     const { getData, postData } = useAPI();
 
@@ -52,29 +51,38 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
 
     const handleUploadVideo = useCallback(async () => {
         try {
-            const fileInfo = getFileInfo(videoPath);
-            const videoFile = await uploadFile(videoPath, fileInfo.fileName, fileInfo.mimeType);
-            console.log('LOG : Operation : videoFile:', videoFile)
-            const batchUpdate = await getData('portal/inject/update', {
+            const chemicals = groupedChemicals?.[0]?.chemicals ?? [];
+            const fentryid = chemicals.map((i) => i.id).join(',');
+            const { code, data, msg } = await uploadFile(videoPath, `video_${Date.now()}.mp4`, 'video/mp4');
+            console.log(`LOG : Operation : { code, data, msg }:`, { code, data, msg })
+
+            if (code !== 0) {
+                return showToast(msg);
+            }
+
+            const res = await getData('portal/inject/update', {
                 employee: 'NGUYỄN THỊ THOẢNG',
-                videoFk: videoFile.data,
-                fentryid: []
+                videoFk: data,
+                fentryid,
             });
-            console.log('LOG : Operation : batchUpdate:', batchUpdate)
 
-            // showToast('Video đã được ghi thành công');
+            if (res.code !== 0) {
+                return showToast(res.msg);
+            }
 
-        } catch (error) {
-
+            showToast('Video đã được ghi thành công');
+        } catch {
+            showToast('Video đã được ghi thất bại');
+        } finally {
+            await unlink(videoPath.replace('content://', ''));
         }
-
-    }, []);
+    }, [groupedChemicals, videoPath]);
 
     const handleStopPress = () => {
-        navigation.navigate('FormStopOperation', {
-            operation: order,
-        });
-        // handleModalRecord();
+        // navigation.navigate('FormStopOperation', {
+        //     operation: order,
+        // });
+        handleModalRecord();
     };
 
     const handlePausePress = async () => {
@@ -88,8 +96,12 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
                 {
                     text: 'Xác nhận',
                     onPress: async () => {
+                        const serverNowMs = orderStore?.currentTime
+                            ? parseDateTime(orderStore.currentTime)
+                            : Date.now();
+
                         const nextChemical = batchsStore.findIndex(
-                            (item) => new Date(item.confirmTime.replace(' ', 'T')).getTime() > Date.now()
+                            (item) => new Date(item.confirmTime.replace(' ', 'T')).getTime() > serverNowMs
                         );
                         let result: any;
 
@@ -165,15 +177,13 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
             return;
         }
 
-        const pendingChemicals = batchsStore.filter((chemical: any) => !chemical.isAppend);
-
-        if (pendingChemicals.length === 0) {
+        if (batchsStore.length === 0) {
             setGroupedChemicals([]);
             return;
         }
 
         const groupedByTime: { [key: string]: any[] } = {};
-        pendingChemicals.forEach((chemical: any) => {
+        batchsStore.forEach((chemical: any) => {
             const confirmTime = chemical.confirmTime;
             if (!groupedByTime[confirmTime]) {
                 groupedByTime[confirmTime] = [];
@@ -197,13 +207,19 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
             return;
         }
 
+        if (!orderStore?.currentTime) {
+            return;
+        }
+
+        const serverNowMs = parseDateTime(orderStore.currentTime);
+
         for (const group of groupedChemicals) {
             if (alertedTimes.has(group.time)) {
                 continue;
             }
 
             const confirmTimeMs = parseDateTime(group.time);
-            const timeUntilConfirm = confirmTimeMs - now;
+            const timeUntilConfirm = confirmTimeMs - serverNowMs;
             const secondsUntilConfirm = Math.floor(timeUntilConfirm / 1000);
 
             if (secondsUntilConfirm <= 15 && secondsUntilConfirm > 0) {
@@ -215,7 +231,7 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
                 break;
             }
         }
-    }, [now, groupedChemicals, alertedTimes, play, setIsAlert, setCurrentChemicals]);
+    }, [groupedChemicals, alertedTimes, play, setIsAlert, setCurrentChemicals, orderStore]);
 
     useEffect(() => {
         const handler = async () => {
@@ -229,16 +245,6 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
     }, [videoStatus, setIsAlert, handleUploadVideo, videoPath]);
 
     useEffect(() => {
-        setNow(Date.now());
-
-        const interval = setInterval(() => {
-            setNow(Date.now());
-        }, 30_000);
-
-        return () => clearInterval(interval);
-    }, []);
-
-    useEffect(() => {
         if (!order?.drumNo || isFistMount.current) {
             isFistMount.current = false;
             return;
@@ -248,7 +254,16 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
             try {
                 const res = await getData('portal/inject/getRunning', { drumNo: order.drumNo });
                 if (res.code === 0 && res.data?.process?.dtl) {
-                    setBatchsStore(res.data.process.dtl);
+                    const { dtl, ...processWithoutDtl } = res.data.process;
+
+                    await Promise.all([
+                        setOrderStore({
+                            process: processWithoutDtl,
+                            currentTime: res.data?.curentTime,
+                            appInjectPause: res.data?.appInjectPause,
+                        }),
+                        setBatchsStore(dtl),
+                    ]);
                 }
             } catch (error) {
                 showToast('Lỗi khi tải dữ liệu');
@@ -315,8 +330,6 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
                         onStopPress={handleStopPress}
                         onPausePress={handlePausePress}
                         onChangeOperator={handleOperatorChange}
-                        loading={fakeLoading}
-                        disabled={fakeLoading}
                     />
                     <HistoryBatch />
                 </ViewBox>

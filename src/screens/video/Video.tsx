@@ -39,12 +39,12 @@ const Video = ({ navigation, route }: VideoProps) => {
     const [cameraKey, setCameraKey] = useState(0);
     const [zoom, setZoom] = useState(1);
 
-    const { batchsStore, setBatchsStore, orderStore, } = useOperationStore();
+    const { groupedChemicals, batchsStore, setBatchsStore, orderStore, setOrderStore } = useOperationStore();
     const { showHUD } = useHUDStore();
     const { checkInterval } = useSettingStore();
     const { getData } = useAPI();
 
-    const currentChemicals = batchsStore.slice(0, 15);
+    const currentChemicals = groupedChemicals?.[0]?.chemicals || [];
 
     const mapIcon = {
         flask: <MaterialCommunityIcons name="flask" size={28} color="#26F073" />,
@@ -245,7 +245,16 @@ const Video = ({ navigation, route }: VideoProps) => {
             try {
                 const res = await getData('portal/inject/getRunning', { drumNo: orderStore.drumNo });
                 if (res.code === 0 && res.data?.process?.dtl) {
-                    setBatchsStore(res.data.process.dtl);
+                    const { dtl, ...processWithoutDtl } = res.data.process;
+
+                    await Promise.all([
+                        setOrderStore({
+                            process: processWithoutDtl,
+                            currentTime: res.data?.curentTime,
+                            appInjectPause: res.data?.appInjectPause,
+                        }),
+                        setBatchsStore(dtl),
+                    ]);
                 }
             } catch (error) {
                 console.log('Error fetching running data:', error);
@@ -258,7 +267,7 @@ const Video = ({ navigation, route }: VideoProps) => {
         const interval = setInterval(fetchRunningData, intervalMs);
 
         return () => clearInterval(interval);
-    }, [orderStore?.drumNo, checkInterval, getData, setBatchsStore]);
+    }, [orderStore?.drumNo, checkInterval, getData, setBatchsStore, setOrderStore]);
 
     if (device == null) {
         return (

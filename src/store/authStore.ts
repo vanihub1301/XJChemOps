@@ -37,6 +37,11 @@ export const useAuthStore = create<AuthState>((set) => ({
         });
     },
 
+    setName: async ({ fullName }) => {
+        set({ fullName: fullName });
+        await AsyncStorage.setItem('full_name', fullName);
+    },
+
     setRotatingTank: async ({ rotatingTank }) => {
         await Promise.all([
             AsyncStorage.setItem('rotating_tank', rotatingTank.name),

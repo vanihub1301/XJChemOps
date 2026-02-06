@@ -135,13 +135,13 @@ export const uploadToEndpoint = async (
     } as any);
 
     try {
-        const token = await AsyncStorage.getItem('access_token');
+        // const token = await AsyncStorage.getItem('access_token');
         const response = await fetch(endpoint, {
             method: 'POST',
             body: formData,
             headers: {
-                Accept: 'application/json',
-                Authorization: token ? `Bearer ${token}` : '',
+                Accept: 'multipart/form-data',
+                // Authorization: token ? `Bearer ${token}` : '',
             },
         });
 

@@ -113,7 +113,7 @@ const FirstRunningScreen = () => {
 
     const renderItem = useCallback((item: any) => {
         return (
-            <Card background={'white'} border={'gray'} key={item.id} className="mx-6 flex-1 mt-6 flex-row items-center shadow-2xl">
+            <Card background={'white'} border={'gray'} className="flex-1 flex-row items-center shadow-2xl">
                 <ViewBox gap={'md'} className="flex-1 flex-row items-center">
                     <ViewBox background={'lightLavender'} radius={'full'} className="w-12 h-12 items-center justify-center">
                         <Text variant={'labelLargeStrong'} color={'crayola'}>{item.code}</Text>

@@ -23,6 +23,7 @@ import { validateFaceQuality, detectFacesInImage } from '../../modules/faceDetec
 import RNFS from 'react-native-fs';
 import { showToast } from '../../service/toast';
 import ImageEditor from '@react-native-community/image-editor';
+import { useAuthStore } from '../../store/authStore';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -37,6 +38,7 @@ const FaceRegister = ({ navigation }: AuthNavigationProps<'FaceRegister'>) => {
     const [isModalVisible, setIsModalVisible] = useState(false);
 
     const { checkCameraPermission } = usePermissions();
+    const { setName } = useAuthStore();
     const scanLinePosition = useSharedValue(0);
     const device = useCameraDevice('front');
     const format = useCameraFormat(device, [{ videoStabilizationMode: 'cinematic-extended' }]);
@@ -109,9 +111,9 @@ const FaceRegister = ({ navigation }: AuthNavigationProps<'FaceRegister'>) => {
                 maxPitchAngle: 20,
                 allowMultipleFaces: false,
             });
-            showToast(qualityResult.message);
 
             if (!qualityResult.isGood) {
+                showToast(qualityResult.message);
                 await RNFS.unlink(photo.path);
                 return;
             }
@@ -137,6 +139,7 @@ const FaceRegister = ({ navigation }: AuthNavigationProps<'FaceRegister'>) => {
 
     const handleComplete = useCallback(async () => {
         try {
+            setName({ fullName: user.name });
             showToast('Đăng ký thành công!');
             navigation.navigate('Login');
         } catch (error) {

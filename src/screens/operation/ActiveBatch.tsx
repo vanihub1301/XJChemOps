@@ -15,16 +15,12 @@ import { formatDateCustom } from '../../utils/dateTime';
 interface ActiveBatchProps {
     onStopPress: () => void;
     onPausePress: () => void;
-    loading?: boolean;
-    disabled?: boolean;
     onChangeOperator?: () => void;
 }
 
 const ActiveBatch: React.FC<ActiveBatchProps> = ({
     onStopPress,
     onPausePress,
-    loading = false,
-    disabled = false,
     onChangeOperator,
 }) => {
     const { batchsStore, isPause } = useOperationStore();
@@ -107,7 +103,6 @@ const ActiveBatch: React.FC<ActiveBatchProps> = ({
                     radius="xl"
                     size="lg"
                     onPress={onChangeOperator}
-                    disabled={disabled}
                     className="items-center flex-row"
                     iconPosition="left"
                 >
@@ -123,8 +118,6 @@ const ActiveBatch: React.FC<ActiveBatchProps> = ({
                         radius="xl"
                         size="lg"
                         onPress={onStopPress}
-                        loading={loading}
-                        disabled={disabled}
                         className="flex-row items-center"
                         iconPosition="left"
                     >
@@ -137,7 +130,6 @@ const ActiveBatch: React.FC<ActiveBatchProps> = ({
                     radius="xl"
                     size="lg"
                     onPress={onPausePress}
-                    disabled={disabled}
                     className="flex-row items-center"
                     iconPosition="left"
                 >

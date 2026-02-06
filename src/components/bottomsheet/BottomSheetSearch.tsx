@@ -89,7 +89,6 @@ const BottomSheetSearch = forwardRef<BottomSheetMethods, BottomSheetSearchProps>
 
     const renderCustomItem = useCallback(({ item, index }: { item: any, index: number }) => (
         <Pressable
-            key={item.id}
             onPress={() => onDataSelect(item)}
             className={'py-2 px-2'}
             style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
@@ -117,7 +116,6 @@ const BottomSheetSearch = forwardRef<BottomSheetMethods, BottomSheetSearchProps>
             </ViewBox>
         ) : null,
         [dataLoading, data.length]);
-
 
     const renderBackdrop = React.useCallback(
         (props: any) => (
