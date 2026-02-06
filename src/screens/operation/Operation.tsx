@@ -4,7 +4,7 @@ import ViewContainer from '../../components/common/ViewContainer';
 import { AppNavigationProps } from '../../types/navigation';
 import ViewHeader from '../../components/common/ViewHeader';
 import React, { useCallback, useEffect, useRef } from 'react';
-import { formatDateCustom, parseDateTime } from '../../utils/dateTime';
+import { parseDateTime } from '../../utils/dateTime';
 import { useVideoStore } from '../../store/videoStore';
 import { useAPI } from '../../service/api';
 import { useSettingStore } from '../../store/settingStore';
@@ -24,7 +24,6 @@ import { showToast } from '../../service/toast';
 import { SplashScreen } from '../../components/app/SplashScreen';
 import HistoryBatch from './HistoryBatch';
 import { uploadFile } from '../../service/axios';
-import { getFileInfo } from '../../utils/file';
 import { unlink } from 'react-native-fs';
 
 const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
@@ -33,7 +32,7 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
     const [alertedTimes, setAlertedTimes] = React.useState<Set<string>>(new Set());
 
     const { videoStatus, videoPath } = useVideoStore();
-    const { orderStore, batchsStore, groupedChemicals, currentChemicals, isPause, setBatchsStore, setOrderStore, setIsAlert, setGroupedChemicals, setCurrentChemicals, setIsPause } = useOperationStore();
+    const { orderStore, batchsStore, groupedChemicals, isPause, setBatchsStore, setOrderStore, setIsAlert, setGroupedChemicals, setCurrentChemicals, setIsPause } = useOperationStore();
     const { checkInterval } = useSettingStore();
     const { getData, postData } = useAPI();
 
@@ -110,16 +109,15 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
                                 processFk: batchsStore[nextChemical - 1]?.processFk,
                                 orderBill: order?.orderNo,
                                 bomNo: order?.bomNo,
-                                continueTime: formatDateCustom(new Date().toISOString(), { format: 'yyyy-MM-dd HH:mm:ss' }),
+                                continueTime: orderStore?.currentTime,
                             });
-                            console.log('LOG : handlePausePress : result:', result);
                             setIsPause(false);
                         } else {
                             result = await postData('portal/inject/pause', {
                                 processFk: batchsStore[nextChemical - 1]?.processFk,
                                 orderBill: order?.orderNo,
                                 bomNo: order?.bomNo,
-                                pauseTime: formatDateCustom(new Date().toISOString(), { format: 'yyyy-MM-dd HH:mm:ss' }),
+                                pauseTime: orderStore?.currentTime,
                             });
                         }
 
@@ -128,7 +126,6 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
                         } else {
                             showToast(result.msg);
                         }
-                        console.log('LOG : handlePausePress : result:', result);
                     },
                 },
             ]);
@@ -139,7 +136,7 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
     };
 
     const handleOperatorChange = () => {
-        navigation.navigate('Authentication');
+        navigation.navigate('OperatorLogin');
     };
 
     const handleModalRecord = () => {

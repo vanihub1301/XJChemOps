@@ -27,6 +27,7 @@ export type AppRoutes = {
     OrderConfirm: { code: string };
     Video: { autoRecord?: boolean; currentChemicals?: any } | undefined;
     ScanQR: { nextScreen?: string, reset?: boolean };
+    OperatorLogin: undefined;
 };
 
 export type AuthRoutes = {

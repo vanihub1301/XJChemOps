@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ViewContainer from '../../components/common/ViewContainer';
 import ViewHeader from '../../components/common/ViewHeader';
 import { AppNavigationProps } from '../../types/navigation';
@@ -16,7 +16,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { showToast } from '../../service/toast';
 import { useAPI } from '../../service/api';
 import { useOperationStore } from '../../store/operationStore';
-import { formatDateCustom } from '../../utils/dateTime';
+import { formatDateCustom, formatWithPattern } from '../../utils/dateTime';
 
 const FormChangeStartTime = ({ navigation }: AppNavigationProps<'FormChangeStartTime'>) => {
     const [startTime, setStartTime] = useState<Date>(new Date());
@@ -24,10 +24,11 @@ const FormChangeStartTime = ({ navigation }: AppNavigationProps<'FormChangeStart
     const [selectedReasonLabel, setSelectedReasonLabel] = useState<string>('');
     const [otherReason, setOtherReason] = useState<string>('');
     const [openDatePicker, setOpenDatePicker] = useState(false);
+    const [reasons, setReasons] = useState<any[]>([]);
 
     const reasonBottomSheetRef = useRef<BottomSheet>(null);
 
-    const { postData, loading } = useAPI();
+    const { postData, getData, loading } = useAPI();
     const { batchsStore, orderStore } = useOperationStore();
 
     const orderFields = [
@@ -56,16 +57,6 @@ const FormChangeStartTime = ({ navigation }: AppNavigationProps<'FormChangeStart
         reasonBottomSheetRef.current?.close();
     };
 
-    const formatDateTime = (date: Date): string => {
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-
-        return `${day}/${month}/${year} ${hours}:${minutes}`;
-    };
-
     const isFormValid = () => {
         if (!selectedReason) {
             return false;
@@ -91,7 +82,7 @@ const FormChangeStartTime = ({ navigation }: AppNavigationProps<'FormChangeStart
                 bomNo: orderStore.bomNo,
                 reason: selectedReason,
                 remarks: otherReason,
-                actualTime: formatDateTime(startTime),
+                actualTime: formatWithPattern(startTime, 'dd/MM/yyyy HH:mm'),
                 registor: staff,
             }, true);
 
@@ -105,6 +96,17 @@ const FormChangeStartTime = ({ navigation }: AppNavigationProps<'FormChangeStart
             showToast('Cập nhật thất bại');
         }
     };
+
+    const getReason = async () => {
+        const res = await getData('portal/inject/reference', { group: 'EDIT_TIME' });
+        if (res?.code === 0) {
+            setReasons(res?.data);
+        }
+    };
+
+    useEffect(() => {
+        getReason();
+    }, []);
 
     return (
         <>
@@ -149,7 +151,7 @@ const FormChangeStartTime = ({ navigation }: AppNavigationProps<'FormChangeStart
                             </ViewBox>
                             <SelectBox
                                 label="Thời gian được chọn"
-                                selectedChoice={formatDateTime(startTime)}
+                                selectedChoice={formatWithPattern(startTime, 'dd/MM/yyyy HH:mm')}
                                 placeholder="Chọn thời gian"
                                 handleChoicePress={() => setOpenDatePicker(true)}
                             />
@@ -218,7 +220,7 @@ const FormChangeStartTime = ({ navigation }: AppNavigationProps<'FormChangeStart
                 onSelection={handleReasonSelection}
                 onClose={handleReasonClose}
                 sheetType="changeTimeReasons"
-            // customData={reasons.map((item) => ({ label: item.nameVi, value: item.sn }))}
+                customData={reasons.map((item) => ({ label: item.nameVi, value: item.sn }))}
             >
                 <></>
             </BottomSheetSelect>

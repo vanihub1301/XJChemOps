@@ -19,7 +19,11 @@ import { Worklets } from 'react-native-worklets-core';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const Login = ({ navigation }: AuthNavigationProps<'Login'>) => {
+interface LoginProps extends AuthNavigationProps<'Login'> {
+    isReAuthentication?: boolean;
+}
+
+const Login = ({ navigation, isReAuthentication = false }: LoginProps) => {
     const [isCameraActive, setIsCameraActive] = useState(true);
     const [scanBoxHeight, setScanBoxHeight] = useState(0);
     const [isDetecting, setIsDetecting] = useState(false);
@@ -66,14 +70,20 @@ const Login = ({ navigation }: AuthNavigationProps<'Login'>) => {
 
             if (croppedUri) {
                 showToast('Đã phát hiện khuôn mặt!');
-                handlePasswordLogin();
+                if (navigation.canGoBack()) {
+                    navigation.goBack();
+                } else {
+                    await useAuthStore.getState().setAuth({
+                        isSignedIn: true,
+                    });
+                }
             }
         } catch (error) {
             showToast('Lỗi khi chụp ảnh!');
         } finally {
             setTimeout(() => setIsDetecting(false), 2000);
         }
-    }, [isDetecting, cropFaceImage]);
+    }, [isDetecting, cropFaceImage, navigation]);
 
     const handleDetectedFaces = Worklets.createRunOnJS((faces: DetectedFace[]) => {
         if (faces.length === 0) {
@@ -136,10 +146,14 @@ const Login = ({ navigation }: AuthNavigationProps<'Login'>) => {
     }, [navigation]);
 
     const handlePasswordLogin = useCallback(async () => {
-        await useAuthStore.getState().setAuth({
-            isSignedIn: true,
-        });
-    }, []);
+        if (navigation.canGoBack()) {
+            navigation.goBack();
+        } else {
+            await useAuthStore.getState().setAuth({
+                isSignedIn: true,
+            });
+        }
+    }, [navigation]);
 
     useEffect(() => {
         const checkPermission = async () => {
@@ -235,22 +249,26 @@ const Login = ({ navigation }: AuthNavigationProps<'Login'>) => {
                         </ViewBox>
 
                     </ViewBox>
-                    <ViewBox className="items-center mt-5">
-                        <TouchableOpacity onPress={handlePasswordLogin}>
-                            <Text color={'blueViolet'} variant={'sectionTitleSemibold'} >
-                                Sử dụng mật khẩu
+                    {!isReAuthentication && (
+                        <ViewBox className="items-center mt-5">
+                            <TouchableOpacity onPress={handlePasswordLogin}>
+                                <Text color={'blueViolet'} variant={'sectionTitleSemibold'} >
+                                    Sử dụng mật khẩu
+                                </Text>
+                            </TouchableOpacity>
+                        </ViewBox>
+                    )}
+                </ViewBox>
+
+                {!isReAuthentication && (
+                    <ViewBox gap={'xs'} className="pb-8 pt-4">
+                        <TouchableOpacity onPress={handleFaceRegister} activeOpacity={0.7}>
+                            <Text variant={'sectionTitleRegular'} className="text-center">
+                                Chưa có tài khoản? <Text color={'blueViolet'} variant={'sectionTitleSemibold'}>Đăng ký ngay</Text>
                             </Text>
                         </TouchableOpacity>
                     </ViewBox>
-                </ViewBox>
-
-                <ViewBox gap={'xs'} className="pb-8 pt-4">
-                    <TouchableOpacity onPress={handleFaceRegister} activeOpacity={0.7}>
-                        <Text variant={'sectionTitleRegular'} className="text-center">
-                            Chưa có tài khoản? <Text color={'blueViolet'} variant={'sectionTitleSemibold'}>Đăng ký ngay</Text>
-                        </Text>
-                    </TouchableOpacity>
-                </ViewBox>
+                )}
             </ViewBox>
         </ViewContainer>
     );

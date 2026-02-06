@@ -13,6 +13,7 @@ import Setting from '../screens/setting/Setting';
 import FinishConfirm from '../screens/home/FinishConfirm';
 import VideoPlayback from '../screens/video/VideoPlayback';
 import NearBill from '../screens/home/NearBill';
+import OperatorLogin from '../screens/auth/OperatorLogin';
 
 const AppStack = createStackNavigator<AppRoutes>();
 
@@ -55,6 +56,15 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
                             presentation: 'modal',
                             animationTypeForReplace: 'pop',
                             animation: 'slide_from_right',
+                            gestureEnabled: true,
+                        }}
+                    />
+                    <AppStack.Screen
+                        name="OperatorLogin"
+                        component={OperatorLogin}
+                        options={{
+                            presentation: 'modal',
+                            animation: 'slide_from_bottom',
                             gestureEnabled: true,
                         }}
                     />

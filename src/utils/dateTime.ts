@@ -81,7 +81,7 @@ const parseDate = (dateString: string): Date | null => {
     return null;
 };
 
-const formatWithPattern = (date: Date, pattern: string, locale: string = 'vi'): string => {
+export const formatWithPattern = (date: Date, pattern: string, locale: string = 'vi'): string => {
     const pad = (num: number, size: number = 2) =>
         String(num).padStart(size, '0');
 
