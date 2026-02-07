@@ -11,6 +11,8 @@ import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 import { AppNavigationProps } from '../../types/navigation';
 import PillBadge from '../../components/common/PillBadge';
 import { StyleSheet } from 'react-native';
+import { useOperationStore } from '../../store/operationStore';
+import { formatDateCustom } from '../../utils/dateTime';
 
 const FinishConfirm = ({ navigation }: AppNavigationProps<'FinishConfirm'>) => {
     const handleFinish = () => {
@@ -18,11 +20,14 @@ const FinishConfirm = ({ navigation }: AppNavigationProps<'FinishConfirm'>) => {
             index: 0,
             routes: [{ name: 'Home' }],
         });
+        reset();
     };
 
     const handleViewVideo = () => {
         navigation.navigate('VideoPlayback');
     };
+
+    const { orderStore, batchsStore, reset } = useOperationStore();
 
     return (
         <ViewContainer background="white" hasScrollableContent={true}>
@@ -72,7 +77,7 @@ const FinishConfirm = ({ navigation }: AppNavigationProps<'FinishConfirm'>) => {
                                 <ViewBox gap="sm" className="flex-row items-center">
                                     <MaterialCommunityIcons name="file-document" size={20} color="#9B95EF" />
                                     <Text variant="labelStrong" color="black">
-                                        PD-2024-001
+                                        {orderStore?.process?.orderNo}
                                     </Text>
                                 </ViewBox>
                             </ViewBox>
@@ -84,7 +89,7 @@ const FinishConfirm = ({ navigation }: AppNavigationProps<'FinishConfirm'>) => {
                                 <ViewBox gap="sm" className="flex-row items-center">
                                     <FontAwesome6 name="box-archive" size={20} color="#9B95EF" />
                                     <Text variant="labelStrong" color="black">
-                                        12 / 12
+                                        {batchsStore?.filter((c: any) => c.isAppend)?.length || 0}/{batchsStore?.length || 0}
                                     </Text>
                                 </ViewBox>
                             </ViewBox>
@@ -96,7 +101,7 @@ const FinishConfirm = ({ navigation }: AppNavigationProps<'FinishConfirm'>) => {
                                 <ViewBox gap="sm" className="flex-row items-center">
                                     <MaterialCommunityIcons name="clock" size={20} color="#9B95EF" />
                                     <Text variant="labelStrong" color="black">
-                                        16:45
+                                        {formatDateCustom(orderStore?.currentTime, { format: 'HH:mm' })}
                                     </Text>
                                 </ViewBox>
                             </ViewBox>

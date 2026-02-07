@@ -50,7 +50,6 @@ const FirstRunningScreen = () => {
                 const res = await postData(`portal/inject/activeDrum?id=${rotatingTank.id}`, {});
                 if (res.code === 0) {
                     useAuthStore.getState().setRotatingTank({ rotatingTank: rotatingTank });
-                    showToast('Đã chọn vị trí bồn quay');
                 } else {
                     showToast(res.msg);
                 }

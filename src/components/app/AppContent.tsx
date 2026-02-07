@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { AppNavigator } from '../../navigation/AppNavigator';
-import HUDContainer from './HUDContainer';
 import { useAuthStore } from '../../store/authStore';
 import { usePermissions } from '../../hooks/usePermissions';
 import FirstRunningScreen from '../../screens/auth/FirstRunningScreen';
@@ -26,7 +25,6 @@ export const AppContent: React.FC = () => {
         return (
             <>
                 <FirstRunningScreen />
-                <HUDContainer />
             </>
         );
     }
@@ -34,7 +32,6 @@ export const AppContent: React.FC = () => {
     return (
         <>
             <AppNavigator isSignedIn={isSignedIn} />
-            <HUDContainer />
         </>
     );
 };

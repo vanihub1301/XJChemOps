@@ -1,15 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View, Text, Dimensions, TouchableOpacity } from 'react-native';
 import { Camera, useCameraDevice, useCodeScanner } from 'react-native-vision-camera';
-import Animated, {
-    useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, cancelAnimation,
-} from 'react-native-reanimated';
-import { ChevronLeftIcon } from 'react-native-heroicons/outline';
+import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, cancelAnimation } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useFocusEffect } from '@react-navigation/native';
 import KeepAwake from 'react-native-keep-awake';
 import { AppNavigationProps } from '../../types/navigation';
+import Entypo from 'react-native-vector-icons/Entypo';
 
 const { width } = Dimensions.get('window');
 const BOX_SIZE = width * 0.7;
@@ -108,7 +106,7 @@ const ScanQR = ({ navigation, route }: AppNavigationProps<'ScanQR'>) => {
                     onPress={() => navigation.goBack()}
                     className={'bg-black/50 p-3 rounded-[25px]'}
                 >
-                    <ChevronLeftIcon size={20} color={'white'} />
+                    <Entypo name="chevron-thin-left" size={30} color={'white'} />
                 </TouchableOpacity>
             </View>
             <Camera

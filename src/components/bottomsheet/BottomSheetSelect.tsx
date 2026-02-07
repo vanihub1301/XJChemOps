@@ -1,11 +1,11 @@
 import React, { useCallback, forwardRef, useMemo } from 'react';
 import { Dimensions, TouchableOpacity, View } from 'react-native';
-import { XMarkIcon } from 'react-native-heroicons/outline';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetProps, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { languages, settings, stopReasons, changeTimeReasons, checkIntervals } from '../../constants/ui';
 import { Text } from '../common/Text';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 const { height } = Dimensions.get('window');
 
 interface SelectionItem {
@@ -122,7 +122,7 @@ const BottomSheetSelect = forwardRef<BottomSheetMethods, CustomBottomSheetProps>
                         {config.title}
                     </Text>
                     <TouchableOpacity onPress={onClose} className="absolute right-5 top-2">
-                        <XMarkIcon size={24} color="black" />
+                        <MaterialIcons name="close" size={24} color="black" />
                     </TouchableOpacity>
                 </View>
 

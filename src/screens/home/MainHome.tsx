@@ -8,7 +8,6 @@ import Header from './Header.tsx';
 import { Dimensions, StyleSheet, TouchableOpacity } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import { useAuthStore } from '../../store/authStore.ts';
-import { useHUDStore } from '../../store/hudStore.ts';
 import ViewHeader from '../../components/common/ViewHeader.tsx';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
@@ -29,14 +28,10 @@ const MainHome = ({ navigation }: AppNavigationProps<'Home'>) => {
 
   const { getData, postData } = useAPI();
   const { rotatingTank } = useAuthStore();
-  const { showHUD } = useHUDStore();
 
   const handleCodeScanned = (code: string) => {
     if (!rotatingTank?.name) {
-      showHUD({
-        message: 'Vui lòng chọn bồn quay trước khi quét mã QR',
-        type: 'error',
-      });
+      showToast('Vui lòng chọn bồn quay trước khi quét mã QR');
       return;
     }
 
@@ -65,7 +60,7 @@ const MainHome = ({ navigation }: AppNavigationProps<'Home'>) => {
 
   const fetchData = async () => {
     try {
-      const res = await getData('portal/inject/nearBill', { drum: rotatingTank?.id, rows: numberOrder }, true);
+      const res = await getData('portal/inject/nearBill', { drum: rotatingTank?.name, rows: numberOrder }, true);
       setListOrder(res.data.records);
     } catch (error: any) {
       showToast(error);
@@ -93,7 +88,7 @@ const MainHome = ({ navigation }: AppNavigationProps<'Home'>) => {
         </ViewBox>
         <ViewBox gap={'xs'}>
           <Text color={'black'} variant={'labelLargeStrong'}>{item.code}</Text>
-          <Text variant={'label'}>{formatDateCustom(item.createdAt, { format: 'HH:mm' })} | {item.color} | {item.thickness}mm | {item.quantity}{item.unit}</Text>
+          <Text variant={'label'}>{formatDateCustom(item.finishTime, { format: 'HH:mm' })} | {item.color} | {item.thickness ? item.thickness + 'mm' : 'N/A'} | {item.actualWeight ? item.actualWeight + 'kg' : 'N/A'}</Text>
         </ViewBox>
       </ViewBox>
       <ViewBox background={'blurGreen'} radius={'full'} className="w-8 h-8 justify-center items-center">

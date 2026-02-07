@@ -12,7 +12,6 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useFocusEffect } from '@react-navigation/native';
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 import { usePermissions } from '../../hooks/usePermissions';
-import { useHUDStore } from '../../store/hudStore';
 import KeepAwake from 'react-native-keep-awake';
 import RNFS from 'react-native-fs';
 import { useVideoStore } from '../../store/videoStore';
@@ -39,7 +38,6 @@ const Video = ({ navigation, route }: VideoProps) => {
     const [zoom, setZoom] = useState(1);
 
     const { groupedChemicals, batchsStore, setBatchsStore, orderStore, setOrderStore } = useOperationStore();
-    const { showHUD } = useHUDStore();
     const { getData } = useAPI();
 
     const currentChemicals = groupedChemicals?.[0]?.chemicals || [];
@@ -107,11 +105,7 @@ const Video = ({ navigation, route }: VideoProps) => {
             useVideoStore.getState().markSaved(asset);
             navigation.goBack();
         } catch (error) {
-            showHUD({
-                type: 'error',
-                message: 'Lỗi khi lưu video',
-                duration: 2000,
-            });
+            showToast('Lỗi khi lưu video');
         }
     };
 
@@ -120,12 +114,7 @@ const Video = ({ navigation, route }: VideoProps) => {
             const fs = await RNFS.getFSInfo();
             if (fs.freeSpace < MIN_FREE_SPACE_STOP) {
                 stopRecord();
-                showHUD({
-                    type: 'warning',
-                    message: 'Không đủ dung lượng bộ nhớ',
-                    duration: 50000,
-                    showCloseButton: true,
-                });
+                showToast('Không đủ dung lượng bộ nhớ');
             }
         }, 30_000);
 
@@ -137,12 +126,7 @@ const Video = ({ navigation, route }: VideoProps) => {
         try {
             const fsInfo = await RNFS.getFSInfo();
             if (fsInfo.freeSpace < MIN_FREE_SPACE) {
-                showHUD({
-                    type: 'error',
-                    message: 'Không đủ dung lượng bộ nhớ',
-                    duration: 50000,
-                    showCloseButton: true,
-                });
+                showToast('Không đủ dung lượng bộ nhớ');
                 return;
             }
             await camera.current?.startRecording({
@@ -170,11 +154,7 @@ const Video = ({ navigation, route }: VideoProps) => {
             setIsRecording(false);
             setIsPaused(false);
         } catch (error) {
-            showHUD({
-                type: 'error',
-                message: 'Lỗi khi dừng quay video',
-                duration: 2000,
-            });
+            showToast('Lỗi khi dừng quay video');
         }
     };
 

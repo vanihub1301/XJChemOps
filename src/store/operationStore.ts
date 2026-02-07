@@ -15,6 +15,7 @@ interface OperationState {
     setCurrentChemicals: (chemicals: any[]) => void;
     setIsPause: (isPause: boolean) => void;
     setRemainingMinutes: (remainingMinutes: number) => void;
+    reset: () => void;
 }
 
 export const useOperationStore = create<OperationState>((set) => ({
@@ -36,5 +37,13 @@ export const useOperationStore = create<OperationState>((set) => ({
     setCurrentChemicals: (chemicals) => set({ currentChemicals: chemicals }),
     setIsPause: (isPause: boolean) => set({ isPause }),
     setRemainingMinutes: (remainingMinutes: number) => set({ remainingMinutes }),
+    reset: () => set({
+        remainingMinutes: 0,
+        orderStore: null,
+        batchsStore: [],
+        groupedChemicals: [],
+        currentChemicals: [],
+        isPause: false,
+    }),
 }));
 

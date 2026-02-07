@@ -1,5 +1,4 @@
 import { TextInput, TextInputProps, TouchableOpacity, View } from 'react-native';
-import { XCircleIcon } from 'react-native-heroicons/mini';
 import React from 'react';
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { ViewBox } from '../common/ViewBox';
@@ -70,7 +69,7 @@ const InputSearch = ({
                             onPress={() => onChangeText && onChangeText('')}
                             className={'pl-3 py-2'}
                         >
-                            <XCircleIcon color={'#6b7280'} size={20} />
+                            <MaterialIcons name="close" size={20} color="black" />
                         </TouchableOpacity>
                     )}
                 </View>

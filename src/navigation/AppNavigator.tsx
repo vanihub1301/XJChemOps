@@ -13,6 +13,7 @@ import Setting from '../screens/setting/Setting';
 import FinishConfirm from '../screens/home/FinishConfirm';
 import VideoPlayback from '../screens/video/VideoPlayback';
 import NearBill from '../screens/home/NearBill';
+import BillDetail from '../screens/home/BillDetail';
 import OperatorLogin from '../screens/auth/OperatorLogin';
 
 const AppStack = createStackNavigator<AppRoutes>();
@@ -35,6 +36,7 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
                     <AppStack.Screen name="OrderConfirm" component={OrderConfirm} />
                     <AppStack.Screen name="Operation" component={Operation} />
                     <AppStack.Screen name="NearBill" component={NearBill} />
+                    <AppStack.Screen name="BillDetail" component={BillDetail} />
                     <AppStack.Screen name="FinishConfirm" component={FinishConfirm} />
                     <AppStack.Screen name="VideoPlayback" component={VideoPlayback} />
                     <AppStack.Screen name="FormStopOperation" component={FormStopOperation} />

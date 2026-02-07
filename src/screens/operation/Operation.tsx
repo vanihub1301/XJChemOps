@@ -93,18 +93,15 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
                 {
                     text: 'Xác nhận',
                     onPress: async () => {
-                        const serverNowMs = orderStore?.currentTime
-                            ? parseDateTime(orderStore.currentTime)
-                            : Date.now();
+                        const now = new Date(orderStore.currentTime.replace(' ', 'T')).getTime();
 
-                        const nextChemical = batchsStore.findIndex(
-                            (item) => new Date(item.confirmTime.replace(' ', 'T')).getTime() > serverNowMs
-                        );
+                        const nextChemical = groupedChemicals.findIndex(item => new Date(item.time.replace(' ', 'T')).getTime() > now);
+
                         let result: any;
 
                         if (isPause) {
                             result = await postData('portal/inject/pause', {
-                                processFk: batchsStore[nextChemical - 1]?.processFk,
+                                processFk: groupedChemicals[nextChemical - 1]?.chemicals[0].processFk,
                                 orderBill: order?.orderNo,
                                 bomNo: order?.bomNo,
                                 continueTime: orderStore?.currentTime,
@@ -268,7 +265,7 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
 
         fetchRunningData();
 
-        const intervalMs = (parseInt(orderStore.config?.inspectionTime, 10) || 30) * 1000;
+        const intervalMs = (parseInt(orderStore?.config?.inspectionTime, 10) || 30) * 1000;
         const interval = setInterval(fetchRunningData, intervalMs);
 
         return () => clearInterval(interval);

@@ -20,6 +20,7 @@ export type AppRoutes = {
     Setting: undefined;
     Operation: { order?: any; };
     NearBill: undefined;
+    BillDetail: { order: any; };
     FinishConfirm: undefined;
     VideoPlayback: undefined;
     FormStopOperation: { operation?: any; };
