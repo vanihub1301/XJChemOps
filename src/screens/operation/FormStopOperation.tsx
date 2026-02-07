@@ -26,7 +26,7 @@ const FormStopOperation = ({ navigation }: AppNavigationProps<'FormStopOperation
     const reasonBottomSheetRef = useRef<BottomSheet>(null);
 
     const { postData, getData, loading } = useAPI();
-    const { batchsStore, orderStore } = useOperationStore();
+    const { batchsStore, orderStore, groupedChemicals } = useOperationStore();
 
     const orderFields = [
         { label: 'Mã đơn', value: orderStore?.orderNo, icon: <MaterialCommunityIcons name="fingerprint" size={24} color="#6266F1" /> },
@@ -35,7 +35,7 @@ const FormStopOperation = ({ navigation }: AppNavigationProps<'FormStopOperation
         { label: 'Độ dày', value: orderStore?.thickness ? orderStore?.thickness + 'mm' : '', icon: <MaterialCommunityIcons name="format-line-weight" size={24} color="#6266F1" /> },
         { label: 'Thời gian bắt đầu', value: formatDateCustom(orderStore?.startDrum, { format: 'HH:mm' }), icon: <MaterialCommunityIcons name="clock-outline" size={24} color="#6266F1" /> },
     ];
-    const staff = 'Nguyễn Hưng';
+    const staff = 'NGUYỄN THỊ THOẢNG';
 
     const handleReasonPress = () => {
         reasonBottomSheetRef.current?.expand();
@@ -69,14 +69,16 @@ const FormStopOperation = ({ navigation }: AppNavigationProps<'FormStopOperation
             showToast('Vui lòng điền đầy đủ thông tin');
             return;
         }
-        const nextChemical = batchsStore.findIndex(
-            (item) => new Date(item.confirmTime.replace(' ', 'T')).getTime() > Date.now()
-        );
+
+        const now = new Date(orderStore.currentTime.replace(' ', 'T')).getTime();
+
+        const nextChemical = groupedChemicals.findIndex(item => new Date(item.time.replace(' ', 'T')).getTime() > now);
+
         const res = await postData('portal/inject/finish', {
-            processFk: batchsStore[nextChemical - 1]?.processFk,
-            orderBill: orderStore.orderNo,
-            bomNo: orderStore.bomNo,
-            reason: selectedReason,
+            processFk: groupedChemicals[nextChemical - 1]?.chemicals[0].processFk,
+            orderBill: orderStore.process.orderNo,
+            bomNo: orderStore.process.bomNo,
+            reason: +selectedReason,
             remarks: otherReason,
             finishTime: formatDateCustom(new Date(Date.now()).toUTCString(), { format: 'yyyy-MM-dd HH:mm' }),
             registor: staff,
@@ -201,7 +203,7 @@ const FormStopOperation = ({ navigation }: AppNavigationProps<'FormStopOperation
                 onSelection={handleReasonSelection}
                 onClose={handleReasonClose}
                 sheetType="reason"
-                customData={reasons.map((item) => ({ label: item.nameVi, value: item.sn }))}
+                customData={reasons.map((item) => ({ label: item.nameVi, value: item.code }))}
             >
                 <></>
             </BottomSheetSelect>

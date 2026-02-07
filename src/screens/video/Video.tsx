@@ -20,7 +20,6 @@ import { useOperationStore } from '../../store/operationStore';
 import { MIN_FREE_SPACE, MIN_FREE_SPACE_STOP } from '../../constants/ui';
 import { showToast } from '../../service/toast';
 import { useAPI } from '../../service/api';
-import { useSettingStore } from '../../store/settingStore';
 
 interface VideoProps {
     navigation: any;
@@ -41,7 +40,6 @@ const Video = ({ navigation, route }: VideoProps) => {
 
     const { groupedChemicals, batchsStore, setBatchsStore, orderStore, setOrderStore } = useOperationStore();
     const { showHUD } = useHUDStore();
-    const { checkInterval } = useSettingStore();
     const { getData } = useAPI();
 
     const currentChemicals = groupedChemicals?.[0]?.chemicals || [];
@@ -219,6 +217,7 @@ const Video = ({ navigation, route }: VideoProps) => {
     useFocusEffect(
         useCallback(() => {
             KeepAwake.activate();
+            setIsCameraActive(true);
 
             const autoRecord = route?.params?.autoRecord;
             if (autoRecord && !isRecording && device) {
@@ -229,6 +228,7 @@ const Video = ({ navigation, route }: VideoProps) => {
 
             return () => {
                 KeepAwake.deactivate();
+                setIsCameraActive(false);
                 if (isRecording) {
                     cancelRecord();
                 }
@@ -251,6 +251,7 @@ const Video = ({ navigation, route }: VideoProps) => {
                         setOrderStore({
                             process: processWithoutDtl,
                             currentTime: res.data?.curentTime,
+                            config: res.data?.config,
                             appInjectPause: res.data?.appInjectPause,
                         }),
                         setBatchsStore(dtl),
@@ -263,11 +264,11 @@ const Video = ({ navigation, route }: VideoProps) => {
 
         fetchRunningData();
 
-        const intervalMs = (parseInt(checkInterval, 10) || 30) * 1000;
+        const intervalMs = 10 * 1000;
         const interval = setInterval(fetchRunningData, intervalMs);
 
         return () => clearInterval(interval);
-    }, [orderStore?.drumNo, checkInterval, getData, setBatchsStore, setOrderStore]);
+    }, [orderStore?.drumNo, getData, setBatchsStore, setOrderStore]);
 
     if (device == null) {
         return (

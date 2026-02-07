@@ -47,8 +47,13 @@ const FirstRunningScreen = () => {
     const handlePressConfirm = async () => {
         try {
             if (rotatingTank) {
-                useAuthStore.getState().setRotatingTank({ rotatingTank: rotatingTank });
-                await postData('portal/inject/activeDrum', { id: rotatingTank.id });
+                const res = await postData(`portal/inject/activeDrum?id=${rotatingTank.id}`, {});
+                if (res.code === 0) {
+                    useAuthStore.getState().setRotatingTank({ rotatingTank: rotatingTank });
+                    showToast('Đã chọn vị trí bồn quay');
+                } else {
+                    showToast(res.msg);
+                }
             } else {
                 showToast('Vui lòng chọn vị trí bồn quay');
                 return;
@@ -113,7 +118,7 @@ const FirstRunningScreen = () => {
 
     const renderItem = useCallback((item: any) => {
         return (
-            <Card background={'white'} border={'gray'} className="flex-1 flex-row items-center shadow-2xl">
+            <Card background={'white'} border={'gray'} className="flex-row items-center mt-4 mx-6">
                 <ViewBox gap={'md'} className="flex-1 flex-row items-center">
                     <ViewBox background={'lightLavender'} radius={'full'} className="w-12 h-12 items-center justify-center">
                         <Text variant={'labelLargeStrong'} color={'crayola'}>{item.code}</Text>

@@ -84,7 +84,7 @@ const List = <T extends { id: string | number }>({
         <FlatList
             data={list}
             renderItem={renderMeasuredItem}
-            style={[listHeight ? { height: listHeight } : maxItem ? { height: 30 } : null, styles.paddingBottom]}
+            style={[listHeight ? { height: listHeight } : maxItem ? styles.height : null, styles.paddingBottom]}
             keyExtractor={keyExtractor}
             ListHeaderComponent={renderListHeader}
             stickyHeaderIndices={[0]}
@@ -114,6 +114,9 @@ const List = <T extends { id: string | number }>({
 };
 
 const styles = StyleSheet.create({
+    height: {
+        height: 30,
+    },
     paddingBottom: {
         paddingBottom: 30,
     },

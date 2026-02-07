@@ -2,7 +2,6 @@ import { create } from 'zustand';
 
 interface OperationState {
     remainingMinutes: number;
-    isAlert: boolean;
     orderStore: any;
     batchsStore: any[];
     groupedChemicals: { time: string; chemicals: any[] }[];
@@ -14,14 +13,12 @@ interface OperationState {
     ) => void;
     setGroupedChemicals: (groups: { time: string; chemicals: any[] }[]) => void;
     setCurrentChemicals: (chemicals: any[]) => void;
-    setIsAlert: (isAlert: boolean) => void;
     setIsPause: (isPause: boolean) => void;
     setRemainingMinutes: (remainingMinutes: number) => void;
 }
 
 export const useOperationStore = create<OperationState>((set) => ({
     remainingMinutes: 0,
-    isAlert: false,
     orderStore: null,
     batchsStore: [],
     groupedChemicals: [],
@@ -38,7 +35,6 @@ export const useOperationStore = create<OperationState>((set) => ({
     setGroupedChemicals: (groups) => set({ groupedChemicals: groups }),
     setCurrentChemicals: (chemicals) => set({ currentChemicals: chemicals }),
     setIsPause: (isPause: boolean) => set({ isPause }),
-    setIsAlert: (isAlert: boolean) => set({ isAlert }),
     setRemainingMinutes: (remainingMinutes: number) => set({ remainingMinutes }),
 }));
 

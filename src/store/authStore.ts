@@ -12,7 +12,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     initialize: async () => {
         set({ isLoading: true });
         try {
-            const [firstRunning, rotatingTank] = await AsyncStorage.multiGet([
+            const [fullName, firstRunning, rotatingTank] = await AsyncStorage.multiGet([
+                'full_name',
                 'first_running',
                 'rotating_tank',
             ]);
@@ -23,7 +24,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
             await new Promise(resolve => setTimeout(resolve, 2000));
 
-            set({ isLoading: false, rotatingTank: { name: rotatingTank[1] } });
+            set({ isLoading: false, fullName: fullName[1], rotatingTank: { name: rotatingTank[1] } });
         } catch (error) {
             await new Promise(resolve => setTimeout(resolve, 2000));
             set({ isLoading: false });

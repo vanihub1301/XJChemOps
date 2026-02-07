@@ -118,7 +118,7 @@ const BottomSheetSelect = forwardRef<BottomSheetMethods, CustomBottomSheetProps>
                 className="flex-1"
             >
                 <View className="relative px-4 py-2 items-center justify-center">
-                    <Text color={'white'} variant={'labelStrong'} className="text-center mb-4">
+                    <Text color={'black'} variant={'labelLarge'} className="text-center mb-4">
                         {config.title}
                     </Text>
                     <TouchableOpacity onPress={onClose} className="absolute right-5 top-2">

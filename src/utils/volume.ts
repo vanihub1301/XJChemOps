@@ -1,0 +1,19 @@
+import { VolumeManager } from 'react-native-volume-manager';
+import { showToast } from '../service/toast';
+
+export const setVolumeToMax = async (): Promise<void> => {
+    try {
+        await VolumeManager.setVolume(1.0);
+    } catch (error: any) {
+        showToast(error);
+    }
+};
+
+export const getCurrentVolume = async (): Promise<number> => {
+    try {
+        const { volume } = await VolumeManager.getVolume();
+        return volume;
+    } catch (error) {
+        return 0.5;
+    }
+};

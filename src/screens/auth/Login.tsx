@@ -69,7 +69,6 @@ const Login = ({ navigation, isReAuthentication = false }: LoginProps) => {
             const croppedUri = await cropFaceImage(photoUri, face);
 
             if (croppedUri) {
-                showToast('Đã phát hiện khuôn mặt!');
                 if (navigation.canGoBack()) {
                     navigation.goBack();
                 } else {
@@ -190,8 +189,10 @@ const Login = ({ navigation, isReAuthentication = false }: LoginProps) => {
     useFocusEffect(
         useCallback(() => {
             KeepAwake.activate();
+            setIsCameraActive(true);
             return () => {
                 KeepAwake.deactivate();
+                setIsCameraActive(false);
             };
         }, [])
     );

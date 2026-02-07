@@ -1,6 +1,5 @@
 import React, { useMemo, useCallback, forwardRef } from 'react';
-import { ActivityIndicator, Dimensions, Keyboard } from 'react-native';
-import { Pressable } from 'react-native-gesture-handler';
+import { ActivityIndicator, Dimensions, Keyboard, TouchableOpacity } from 'react-native';
 import BottomSheet, { BottomSheetFlatList, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 import { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -57,11 +56,11 @@ const BottomSheetSearch = forwardRef<BottomSheetMethods, BottomSheetSearchProps>
             <ViewBox background={'white'} className="px-6">
                 <ViewBox className="mb-5 relative py-2 items-center justify-between flex-row">
                     <Text color={'black'} variant={'sectionTitle'}>{label}</Text>
-                    <Pressable onPress={handleClose} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
+                    <TouchableOpacity activeOpacity={0.7} onPress={handleClose}>
                         <ViewBox background={'blurLavender'} padding={'sm'} radius={'full'} className="items-center justify-center">
                             <MaterialIcons name="close" size={20} color="black" />
                         </ViewBox>
-                    </Pressable>
+                    </TouchableOpacity>
                 </ViewBox>
                 <InputSearch
                     InputValue={searchText}
@@ -74,7 +73,7 @@ const BottomSheetSearch = forwardRef<BottomSheetMethods, BottomSheetSearchProps>
     );
 
     const keyExtractor = useCallback((item: any, index: number) =>
-        item.id?.toString() || item.departmentId?.toString() || index.toString(),
+        item.id?.toString() || index.toString(),
         []);
 
     const handleEndReached = useCallback(() => {
@@ -87,17 +86,24 @@ const BottomSheetSearch = forwardRef<BottomSheetMethods, BottomSheetSearchProps>
         ({ paddingBottom: bottomInset }),
         [bottomInset]);
 
-    const renderCustomItem = useCallback(({ item, index }: { item: any, index: number }) => (
-        <Pressable
-            onPress={() => onDataSelect(item)}
-            className={'py-2 px-2'}
-            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
-        >
-            {renderItemBody ? renderItemBody(item, index) : (
+    const renderCustomItem = useCallback(({ item, index }: { item: any, index: number }) => {
+        if (renderItemBody) {
+            return (
+                <TouchableOpacity activeOpacity={0.7} onPress={() => onDataSelect(item)}>
+                    {renderItemBody(item, index)}
+                </TouchableOpacity>
+            );
+        }
+
+        return (
+            <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => onDataSelect(item)}
+            >
                 <Text>{item.name || 'Không xác định'}</Text>
-            )}
-        </Pressable>
-    ), [onDataSelect, renderItemBody]);
+            </TouchableOpacity>
+        );
+    }, [onDataSelect, renderItemBody]);
 
     const ListEmptyComponent = useMemo(() =>
         dataLoading ? (
@@ -153,10 +159,11 @@ const BottomSheetSearch = forwardRef<BottomSheetMethods, BottomSheetSearchProps>
                     keyExtractor={keyExtractor}
                     onEndReached={handleEndReached}
                     onEndReachedThreshold={0.7}
-                    showsVerticalScrollIndicator={true}
+                    showsVerticalScrollIndicator={false}
                     contentContainerStyle={contentContainerStyle}
                     ListEmptyComponent={ListEmptyComponent}
                     ListFooterComponent={ListFooterComponent}
+                    removeClippedSubviews={false}
                 />
             )}
         </BottomSheet>

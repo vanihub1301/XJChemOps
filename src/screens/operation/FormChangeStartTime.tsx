@@ -35,7 +35,7 @@ const FormChangeStartTime = ({ navigation }: AppNavigationProps<'FormChangeStart
         { label: 'Mã đơn', value: orderStore?.orderNo, icon: <MaterialCommunityIcons name="fingerprint" size={24} color="#6266F1" /> },
         { label: 'Màu sắc', value: orderStore?.color, icon: <Ionicons name="color-palette-outline" size={24} color="#6266F1" /> },
         { label: 'Trọng lượng', value: orderStore?.actualWeight ? orderStore?.actualWeight + 'kg' : '', icon: <MaterialCommunityIcons name="weight" size={24} color="#6266F1" /> },
-        { label: 'Độ dày', value: orderStore?.thickness + 'mm', icon: <MaterialCommunityIcons name="format-line-weight" size={24} color="#6266F1" /> },
+        { label: 'Độ dày', value: orderStore?.thickness ? orderStore?.thickness + 'mm' : '', icon: <MaterialCommunityIcons name="format-line-weight" size={24} color="#6266F1" /> },
         { label: 'Thời gian bắt đầu', value: formatDateCustom(orderStore?.startDrum, { format: 'HH:mm' }), icon: <MaterialCommunityIcons name="clock-outline" size={24} color="#6266F1" /> },
     ];
     const staff = 'Nguyễn Hưng';
@@ -76,6 +76,7 @@ const FormChangeStartTime = ({ navigation }: AppNavigationProps<'FormChangeStart
             const nextChemical = batchsStore.findIndex(
                 (item) => new Date(item.confirmTime.replace(' ', 'T')).getTime() > Date.now()
             );
+            console.log('LOG : handleSubmit : nextChemical:', nextChemical)
             const res = await postData('portal/inject/updateTime', {
                 processFk: batchsStore[nextChemical - 1]?.processFk,
                 orderBill: orderStore.orderNo,
@@ -85,6 +86,7 @@ const FormChangeStartTime = ({ navigation }: AppNavigationProps<'FormChangeStart
                 actualTime: formatWithPattern(startTime, 'dd/MM/yyyy HH:mm'),
                 registor: staff,
             }, true);
+            console.log('LOG : handleSubmit : res:', res)
 
             if (res?.code === 0) {
                 showToast('Đã cập nhật thời gian bắt đầu');
@@ -220,7 +222,7 @@ const FormChangeStartTime = ({ navigation }: AppNavigationProps<'FormChangeStart
                 onSelection={handleReasonSelection}
                 onClose={handleReasonClose}
                 sheetType="changeTimeReasons"
-                customData={reasons.map((item) => ({ label: item.nameVi, value: item.sn }))}
+                customData={reasons.map((item) => ({ label: item.nameVi, value: item.code }))}
             >
                 <></>
             </BottomSheetSelect>

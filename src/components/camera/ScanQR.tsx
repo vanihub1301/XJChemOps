@@ -20,6 +20,7 @@ const ScanQR = ({ navigation, route }: AppNavigationProps<'ScanQR'>) => {
     const reset = route?.params?.reset || false;
 
     const [scanned, setScanned] = useState(false);
+    const [isCameraActive, setIsCameraActive] = useState(true);
 
     const inset = useSafeAreaInsets();
     const { requestCameraPermission, goToSettings } = usePermissions();
@@ -80,10 +81,12 @@ const ScanQR = ({ navigation, route }: AppNavigationProps<'ScanQR'>) => {
     useFocusEffect(
         useCallback(() => {
             setScanned(false);
+            setIsCameraActive(true);
 
             KeepAwake.activate();
             return () => {
                 KeepAwake.deactivate();
+                setIsCameraActive(false);
             };
         }, [])
     );
@@ -111,7 +114,7 @@ const ScanQR = ({ navigation, route }: AppNavigationProps<'ScanQR'>) => {
             <Camera
                 style={StyleSheet.absoluteFill}
                 device={device}
-                isActive={!scanned}
+                isActive={isCameraActive && !scanned}
                 codeScanner={codeScanner}
             />
 

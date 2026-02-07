@@ -21,7 +21,7 @@ const OrderConfirm = ({ navigation, route }: AppNavigationProps<'OrderConfirm'>)
         { label: 'Mã đơn', value: orderData?.orderNo, icon: <MaterialCommunityIcons name="fingerprint" size={24} color="#6266F1" /> },
         { label: 'Màu sắc', value: orderData?.color, icon: <Ionicons name="color-palette-outline" size={24} color="#6266F1" /> },
         { label: 'Trọng lượng', value: orderData?.actualWeight ? orderData?.actualWeight + 'kg' : '', icon: <MaterialCommunityIcons name="weight" size={24} color="#6266F1" /> },
-        { label: 'Độ dày', value: orderData?.thickness + 'mm', icon: <MaterialCommunityIcons name="format-line-weight" size={24} color="#6266F1" /> },
+        { label: 'Độ dày', value: orderData?.thickness ? orderData?.thickness + 'mm' : '', icon: <MaterialCommunityIcons name="format-line-weight" size={24} color="#6266F1" /> },
         { label: 'Thời gian bắt đầu', value: formatDateCustom(orderData?.startDrum, { format: 'HH:mm' }), icon: <MaterialCommunityIcons name="clock-outline" size={24} color="#6266F1" /> },
     ];
 
@@ -60,6 +60,7 @@ const OrderConfirm = ({ navigation, route }: AppNavigationProps<'OrderConfirm'>)
                         setOrderStore({
                             process: processWithoutDtl,
                             currentTime: resRunning.data?.curentTime,
+                            config: resRunning.data?.config,
                             appInjectPause: resRunning.data?.appInjectPause,
                         }),
                         setBatchsStore(dtl),
@@ -69,6 +70,9 @@ const OrderConfirm = ({ navigation, route }: AppNavigationProps<'OrderConfirm'>)
                     });
                 } else {
                     const resInit = await postData(`portal/inject/initProject?fid=${orderData.id}&employee=NGUYỄN THỊ THOẢNG`);
+                    navigation.navigate('Operation', {
+                        order: orderData,
+                    });
                     if (resInit.code === 0) {
                         await Promise.all([
                             setOrderStore(resInit.data.process),

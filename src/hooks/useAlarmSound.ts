@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react';
 import Sound from 'react-native-sound';
 import { showToast } from '../service/toast';
+import { setVolumeToMax } from '../utils/volume';
 
-export const useAlarmSound = () => {
+export const useAlarmSound = (enableSound?: boolean) => {
     const soundRef = useRef<Sound | null>(null);
 
     useEffect(() => {
@@ -16,7 +17,11 @@ export const useAlarmSound = () => {
         };
     }, []);
 
-    const play = () => {
+    const play = async () => {
+        if (enableSound) {
+            await setVolumeToMax();
+        }
+
         soundRef.current?.stop(() => {
             soundRef.current?.play();
         });

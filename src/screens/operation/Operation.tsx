@@ -7,7 +7,6 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import { parseDateTime } from '../../utils/dateTime';
 import { useVideoStore } from '../../store/videoStore';
 import { useAPI } from '../../service/api';
-import { useSettingStore } from '../../store/settingStore';
 import { Alert, TouchableOpacity } from 'react-native';
 import BottomSheet from '@gorhom/bottom-sheet';
 import BottomSheetSelect from '../../components/bottomsheet/BottomSheetSelect';
@@ -32,11 +31,10 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
     const [alertedTimes, setAlertedTimes] = React.useState<Set<string>>(new Set());
 
     const { videoStatus, videoPath } = useVideoStore();
-    const { orderStore, batchsStore, groupedChemicals, isPause, setBatchsStore, setOrderStore, setIsAlert, setGroupedChemicals, setCurrentChemicals, setIsPause } = useOperationStore();
-    const { checkInterval } = useSettingStore();
+    const { orderStore, batchsStore, groupedChemicals, isPause, setBatchsStore, setOrderStore, setGroupedChemicals, setCurrentChemicals, setIsPause } = useOperationStore();
     const { getData, postData } = useAPI();
 
-    const { play } = useAlarmSound();
+    const { play } = useAlarmSound(orderStore?.config?.enableSound);
 
     const settingBottomSheetRef = useRef<BottomSheet>(null);
     const isFistMount = useRef(true);
@@ -53,6 +51,7 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
             const chemicals = groupedChemicals?.[0]?.chemicals ?? [];
             const fentryid = chemicals.map((i) => i.id).join(',');
             const { code, data, msg } = await uploadFile(videoPath, `video_${Date.now()}.mp4`, 'video/mp4');
+            console.log('LOG : Operation : videoPath:', videoPath)
             console.log(`LOG : Operation : { code, data, msg }:`, { code, data, msg })
 
             if (code !== 0) {
@@ -68,7 +67,6 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
             if (res.code !== 0) {
                 return showToast(res.msg);
             }
-
             showToast('Video đã được ghi thành công');
         } catch {
             showToast('Video đã được ghi thất bại');
@@ -77,11 +75,11 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
         }
     }, [groupedChemicals, videoPath]);
 
-    const handleStopPress = () => {
-        // navigation.navigate('FormStopOperation', {
-        //     operation: order,
-        // });
-        handleModalRecord();
+    const handleStopPress = async () => {
+        navigation.navigate('FormStopOperation', {
+            operation: order,
+        });
+        // // handleModalRecord();
     };
 
     const handlePausePress = async () => {
@@ -194,7 +192,9 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
                 time,
                 chemicals: groupedByTime[time],
             }));
-        console.log('LOG : Operation : grouped:', grouped)
+        console.log('LOG : Operation : grouped:', grouped);
+        console.log('LOG : Operation : config:', orderStore.config);
+        console.log('LOG : Operation : currentTime:', orderStore.currentTime);
 
         setGroupedChemicals(grouped);
     }, [batchsStore, setGroupedChemicals]);
@@ -223,23 +223,21 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
                 setCurrentChemicals(group.chemicals);
                 setModalVisible(true);
                 play();
-                setIsAlert(true);
                 setAlertedTimes(prev => new Set(prev).add(group.time));
                 break;
             }
         }
-    }, [groupedChemicals, alertedTimes, play, setIsAlert, setCurrentChemicals, orderStore]);
+    }, [groupedChemicals, alertedTimes, play, setCurrentChemicals, orderStore]);
 
     useEffect(() => {
         const handler = async () => {
             if (videoStatus === 'saved' && videoPath) {
                 handleUploadVideo();
                 useVideoStore.getState().markIdle();
-                setIsAlert(false);
             }
         };
         handler();
-    }, [videoStatus, setIsAlert, handleUploadVideo, videoPath]);
+    }, [videoStatus, handleUploadVideo, videoPath]);
 
     useEffect(() => {
         if (!order?.drumNo || isFistMount.current) {
@@ -257,6 +255,7 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
                         setOrderStore({
                             process: processWithoutDtl,
                             currentTime: res.data?.curentTime,
+                            config: res.data?.config,
                             appInjectPause: res.data?.appInjectPause,
                         }),
                         setBatchsStore(dtl),
@@ -269,11 +268,11 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
 
         fetchRunningData();
 
-        const intervalMs = (parseInt(checkInterval, 10) || 30) * 1000;
+        const intervalMs = (parseInt(orderStore.config?.inspectionTime, 10) || 30) * 1000;
         const interval = setInterval(fetchRunningData, intervalMs);
 
         return () => clearInterval(interval);
-    }, [order?.drumNo, checkInterval, getData, setBatchsStore]);
+    }, [order?.drumNo, getData, setBatchsStore]);
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('beforeRemove', (e) => {
@@ -289,11 +288,14 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
 
     useFocusEffect(
         useCallback(() => {
-            KeepAwake.activate();
+            if (orderStore?.config?.lockScreen === false) {
+                KeepAwake.activate();
+            }
+
             return () => {
                 KeepAwake.deactivate();
             };
-        }, [])
+        }, [orderStore?.config?.lockScreen])
     );
 
     if (!batchsStore) {
@@ -303,7 +305,7 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
     return (
         <>
             <ViewContainer background="bg-[#F9F8FC]" hasScrollableContent={true}>
-                <ViewHeader background="white" title={'Đang Vận Hành'} border={true} >
+                <ViewHeader background="white" title={'Đang Vận Hành'} border={true} enableBack={false}>
                     <TouchableOpacity onPress={handleSettingPress}>
                         <MaterialCommunityIcons name="cog" size={30} color="#6165EE" />
                     </TouchableOpacity>
