@@ -80,6 +80,7 @@ const OrderConfirm = ({ navigation, route }: AppNavigationProps<'OrderConfirm'>)
                         ]);
                         navigation.navigate('Operation', {
                             order: orderData,
+                            init: true,
                         });
                     } else {
                         showToast(resInit.msg);

@@ -18,7 +18,7 @@ export type AppRoutes = {
     Authentication: undefined;
     Home: undefined;
     Setting: undefined;
-    Operation: { order?: any; };
+    Operation: { order?: any; init?: boolean; };
     NearBill: undefined;
     BillDetail: { order: any; };
     FinishConfirm: undefined;

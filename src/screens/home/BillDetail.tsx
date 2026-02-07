@@ -8,7 +8,6 @@ import Card from '../../components/common/Card';
 import { AppNavigationProps } from '../../types/navigation';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 import PillBadge from '../../components/common/PillBadge';
 import { formatDateCustom } from '../../utils/dateTime';
 

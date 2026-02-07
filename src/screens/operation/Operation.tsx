@@ -26,7 +26,7 @@ import { uploadFile } from '../../service/axios';
 import { unlink } from 'react-native-fs';
 
 const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
-    const { order } = route.params;
+    const { order, init } = route.params;
     const [modalVisible, setModalVisible] = React.useState(false);
     const [alertedTimes, setAlertedTimes] = React.useState<Set<string>>(new Set());
 
@@ -235,6 +235,15 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
         };
         handler();
     }, [videoStatus, handleUploadVideo, videoPath]);
+
+    useEffect(() => {
+        if (init && groupedChemicals && groupedChemicals.length > 0) {
+            const firstGroup = groupedChemicals[0];
+            setCurrentChemicals(firstGroup.chemicals);
+            setModalVisible(true);
+            play();
+        }
+    }, [init]);
 
     useEffect(() => {
         if (!order?.drumNo || isFistMount.current) {
