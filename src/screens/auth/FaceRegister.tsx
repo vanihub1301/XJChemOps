@@ -16,7 +16,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import KeepAwake from 'react-native-keep-awake';
 import Card from '../../components/common/Card';
 import EmployeeSelectModal from './EmployeeSelectModal';
-import { employeeMockData } from './data';
 import ImageViewing from 'react-native-image-viewing';
 import type { DetectedFace, FaceDetectorOptions } from '../../modules/faceDetector';
 import { validateFaceQuality, detectFacesInImage } from '../../modules/faceDetector';
@@ -24,6 +23,7 @@ import RNFS from 'react-native-fs';
 import { showToast } from '../../service/toast';
 import ImageEditor from '@react-native-community/image-editor';
 import { useAuthStore } from '../../store/authStore';
+import { useAPI } from '../../service/api';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -34,8 +34,9 @@ const FaceRegister = ({ navigation }: AuthNavigationProps<'FaceRegister'>) => {
     const [isCapturing, setIsCapturing] = useState(false);
     const [isImageViewingVisible, setIsImageViewingVisible] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
-    const [user, setUser] = useState({ name: '', code: '123456' });
+    const [user, setUser] = useState({ name: '', code: '' });
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [listEmployee, setListEmployee] = useState<any[]>([]);
 
     const { checkCameraPermission } = usePermissions();
     const { setName } = useAuthStore();
@@ -43,6 +44,7 @@ const FaceRegister = ({ navigation }: AuthNavigationProps<'FaceRegister'>) => {
     const device = useCameraDevice('front');
     const format = useCameraFormat(device, [{ videoStabilizationMode: 'cinematic-extended' }]);
     const frameProcessor = useFrameProcessor((frame) => { 'worklet'; }, []);
+    const { getData } = useAPI();
 
     const camera = useRef<Camera>(null);
 
@@ -150,6 +152,23 @@ const FaceRegister = ({ navigation }: AuthNavigationProps<'FaceRegister'>) => {
     const handlePressItem = useCallback((item: any) => {
         setUser(item);
         setIsModalVisible(false);
+    }, []);
+
+    const fetchData = async () => {
+        try {
+            const res = await getData('portal/inject/employee');
+            if (res?.code === 0) {
+                setListEmployee(res.data);
+            } else {
+                showToast(res.msg);
+            }
+        } catch (error: any) {
+            showToast(error);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
     }, []);
 
     useEffect(() => {
@@ -371,7 +390,7 @@ const FaceRegister = ({ navigation }: AuthNavigationProps<'FaceRegister'>) => {
                 visible={isModalVisible}
                 onClose={() => setIsModalVisible(false)}
                 onSelect={handlePressItem}
-                data={employeeMockData}
+                data={listEmployee}
                 selectedCode={user.code}
                 title="Chọn nhân viên"
                 placeholder="Nhập mã nhân viên..."

@@ -1,13 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Modal, View, TouchableOpacity } from 'react-native';
 import { Text } from '../../components/common/Text';
 import { ViewBox } from '../../components/common/ViewBox';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import Octicons from 'react-native-vector-icons/Octicons';
-import Card from '../../components/common/Card';
 import List from '../../components/common/List';
 import InputSearch from '../../components/input/InputSearch';
+import { EmployeeItem } from './EmployeeItem';
 
 interface EmployeeSelectModalProps {
     visible: boolean;
@@ -42,50 +40,25 @@ const EmployeeSelectModal = ({
         );
     }, [data, searchText]);
 
-    const handleSelect = (item: any) => {
+    const handleSelect = useCallback((item: any) => {
         onSelect(item);
         setSearchText('');
-    };
+    }, [onSelect]);
 
-    const handleClose = () => {
+    const handleClose = useCallback(() => {
         setSearchText('');
         onClose();
-    };
+    }, [onClose]);
 
-    const renderItem = ({ item }: { item: any }) => (
-        <TouchableOpacity onPress={() => handleSelect(item)}>
-            <Card
-                padding={'lg'}
-                background={selectedCode === item.code ? 'lavender' : 'white'}
-                border={selectedCode === item.code ? 'signal' : 'none'}
-                key={item.id}
-                className="flex-1 flex-row items-center"
-            >
-                <ViewBox gap={'md'} className="flex-1 flex-row items-center">
-                    <ViewBox
-                        background={'gray'}
-                        radius={'full'}
-                        className="w-14 h-14 items-center justify-center"
-                    >
-                        {selectedCode === item.code ? (
-                            <FontAwesome5 name="user-check" size={20} color="#5B25EA" />
-                        ) : (
-                            <FontAwesome5 name="user-alt" size={20} color="gray" />
-                        )}
-                    </ViewBox>
-                    <ViewBox gap={'sm'} className="">
-                        <Text color={'black'} variant={'sectionTitleSemibold'}>
-                            {item.name}
-                        </Text>
-                        <Text color={selectedCode === item.code ? 'blueViolet' : 'primary'} variant={'labelSemibold'}>ID: {item.code}</Text>
-                    </ViewBox>
-                </ViewBox>
-                {selectedCode === item.code && (
-                    <Octicons name="check-circle-fill" size={25} color="#5B25EA" />
-                )}
-            </Card>
-        </TouchableOpacity>
-    );
+    const renderItem = useCallback(({ item }: { item: any }) => (
+        <EmployeeItem
+            item={item}
+            selectedCode={selectedCode}
+            onPress={handleSelect}
+        />
+    ), [selectedCode, handleSelect]);
+
+    const keyExtractor = useCallback((item: any) => item.code, []);
 
     return (
         <Modal
@@ -123,11 +96,13 @@ const EmployeeSelectModal = ({
                     </ViewBox>
                     <List
                         list={filteredData}
-                        renderListHeader={() => (<></>)}
+                        renderListHeader={<></>}
                         renderItem={renderItem}
-                        refreshing={false}
-                        onRefresh={() => { }}
+                        enableRefresh={false}
                         maxItem={3}
+                        keyExtractor={keyExtractor}
+                        estimatedItemHeight={90}
+                        initialNumToRender={30}
                     />
                 </ViewBox>
             </View>

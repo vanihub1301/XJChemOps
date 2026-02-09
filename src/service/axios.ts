@@ -135,21 +135,19 @@ export const uploadToEndpoint = async (
     } as any);
 
     try {
-        // const token = await AsyncStorage.getItem('access_token');
         const response = await fetch(endpoint, {
-            method: 'POST',
+            method: 'PUT',
             body: formData,
             headers: {
                 Accept: 'multipart/form-data',
-                // Authorization: token ? `Bearer ${token}` : '',
             },
         });
 
-        if (!response.ok) {
+        if (response.status === 200) {
+            return response;
+        } else {
             throw new Error(`Upload failed: ${response.status}`);
         }
-
-        return await response.json();
     } catch (err) {
         return {
             code: -1,
@@ -159,14 +157,8 @@ export const uploadToEndpoint = async (
     }
 };
 
-export const uploadFileResize = async (imageUri: string, resizeSize: number = 800) => {
-    return uploadToEndpoint(imageUri, `${BASE_URL}generalPicture/resize?size=${resizeSize}`);
-};
-
-
-export const uploadFile = async (fileUri: string, fileName?: string, mimeType?: string, baseUrl?: string) => {
-    const url = baseUrl ? `${baseUrl}/api/v1/generalPicture` : `${BASE_URL}/api/v1/generalPicture`;
-    return uploadToEndpoint(fileUri, url, fileName, mimeType);
+export const uploadFile = async (fileUri: string, baseUrl: string, fileName?: string, mimeType?: string) => {
+    return uploadToEndpoint(fileUri, baseUrl, fileName, mimeType);
 };
 
 export const uploadFaceDetection = async (imageUri: string) => {

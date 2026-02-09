@@ -22,8 +22,8 @@ import ChemicalAlertModal from './ChemicalAlertModal';
 import { showToast } from '../../service/toast';
 import { SplashScreen } from '../../components/app/SplashScreen';
 import HistoryBatch from './HistoryBatch';
-import { uploadFile } from '../../service/axios';
 import { unlink } from 'react-native-fs';
+import { uploadFile } from '../../service/axios';
 
 const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
     const { order, init } = route.params;
@@ -31,8 +31,8 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
     const [alertedTimes, setAlertedTimes] = React.useState<Set<string>>(new Set());
 
     const { videoStatus, videoPath } = useVideoStore();
-    const { orderStore, batchsStore, groupedChemicals, isPause, setBatchsStore, setOrderStore, setGroupedChemicals, setCurrentChemicals, setIsPause } = useOperationStore();
-    const { getData, postData } = useAPI();
+    const { currentChemicals, orderStore, batchsStore, groupedChemicals, isPause, setBatchsStore, setOrderStore, setGroupedChemicals, setCurrentChemicals, setIsPause } = useOperationStore();
+    const { getData, postData, putData } = useAPI();
 
     const { play } = useAlarmSound(orderStore?.config?.enableSound);
 
@@ -48,38 +48,50 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
 
     const handleUploadVideo = useCallback(async () => {
         try {
-            const chemicals = groupedChemicals?.[0]?.chemicals ?? [];
-            const fentryid = chemicals.map((i) => i.id).join(',');
-            const { code, data, msg } = await uploadFile(videoPath, `video_${Date.now()}.mp4`, 'video/mp4', orderStore?.config?.serverIp + ':' + orderStore?.config?.port);
-            console.log('LOG : Operation : videoPath:', videoPath)
-            console.log(`LOG : Operation : { code, data, msg }:`, { code, data, msg })
+            const fentryid = currentChemicals.map(i => i.id);
 
-            if (code !== 0) {
-                return showToast(msg);
+            const presignedUrl = await getData('portal/inject/video-url');
+            if (!presignedUrl) {
+                showToast('Không lấy được link upload');
+                return;
             }
 
-            const res = await getData('portal/inject/update', {
-                employee: 'NGUYỄN THỊ THOẢNG',
-                videoFk: data,
-                fentryid,
-            }, true, orderStore?.config?.serverIp + ':' + orderStore?.config?.port);
+            const uploadRes = await uploadFile(videoPath, presignedUrl);
 
-            if (res.code !== 0) {
-                return showToast(res.msg);
+            if (uploadRes?.status !== 200) {
+                showToast('Video đã được ghi thất bại');
+                return;
             }
+
             showToast('Video đã được ghi thành công');
-        } catch {
-            showToast('Video đã được ghi thất bại');
+
+            const videoPathOnServer = presignedUrl.split('/videos/')[1].split('?')[0];
+
+            const updateRes = await putData('portal/inject/updateBatch', {
+                employee: 'NGUYỄN THỊ THOẢNG',
+                videoFk: videoPathOnServer,
+                fentryid: fentryid,
+            });
+            console.log('LOG : Operation : updateRes:', updateRes)
+
+            if (updateRes?.code === 0) {
+                showToast('Cập nhật video thành công');
+            } else {
+                showToast('Cập nhật video thất bại ' + updateRes?.msg);
+            }
+        } catch (err) {
+            showToast('Cập nhật video thất bại');
         } finally {
-            await unlink(videoPath.replace('content://', ''));
+            await unlink(videoPath);
         }
-    }, [groupedChemicals, videoPath, getData]);
+    }, [groupedChemicals, videoPath, getData, putData]);
+
 
     const handleStopPress = async () => {
         navigation.navigate('FormStopOperation', {
             operation: order,
         });
-        // // handleModalRecord();
+        // handleModalRecord();
     };
 
     const handlePausePress = async () => {
@@ -105,7 +117,7 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
                                 orderBill: order?.orderNo,
                                 bomNo: order?.bomNo,
                                 continueTime: orderStore?.currentTime,
-                            }, false, orderStore?.config?.serverIp + ':' + orderStore?.config?.port);
+                            }, true, orderStore?.config?.serverIp + ':' + orderStore?.config?.port);
                             setIsPause(false);
                         } else {
                             result = await postData('portal/inject/pause', {
@@ -113,7 +125,7 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
                                 orderBill: order?.orderNo,
                                 bomNo: order?.bomNo,
                                 pauseTime: orderStore?.currentTime,
-                            }, false, orderStore?.config?.serverIp + ':' + orderStore?.config?.port);
+                            }, true, orderStore?.config?.serverIp + ':' + orderStore?.config?.port);
                         }
 
                         if (result.code === 0) {
@@ -189,12 +201,26 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
                 time,
                 chemicals: groupedByTime[time],
             }));
+
+        const currentTime = parseDateTime(orderStore.currentTime);
+
+        const currentGroup = grouped.find((group, index) => {
+            const startTime = parseDateTime(group.time);
+            const endTime = grouped[index + 1]
+                ? parseDateTime(grouped[index + 1].time)
+                : Infinity;
+
+            return currentTime >= startTime && currentTime < endTime;
+        });
+
+        console.log('LOG : Operation : currentGroup:', currentGroup)
         console.log('LOG : Operation : grouped:', grouped);
         console.log('LOG : Operation : config:', orderStore.config);
         console.log('LOG : Operation : currentTime:', orderStore.currentTime);
 
         setGroupedChemicals(grouped);
-    }, [batchsStore, setGroupedChemicals]);
+        setCurrentChemicals(currentGroup?.chemicals || []);
+    }, [batchsStore, setGroupedChemicals, setCurrentChemicals]);
 
     useEffect(() => {
         if (groupedChemicals.length === 0) {
@@ -217,14 +243,13 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
             const secondsUntilConfirm = Math.floor(timeUntilConfirm / 1000);
 
             if (secondsUntilConfirm <= 15 && secondsUntilConfirm > 0) {
-                setCurrentChemicals(group.chemicals);
                 setModalVisible(true);
                 play();
                 setAlertedTimes(prev => new Set(prev).add(group.time));
                 break;
             }
         }
-    }, [groupedChemicals, alertedTimes, play, setCurrentChemicals, orderStore]);
+    }, [groupedChemicals, alertedTimes, play, orderStore]);
 
     useEffect(() => {
         const handler = async () => {
@@ -241,7 +266,6 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
             const firstGroup = groupedChemicals[0];
             setCurrentChemicals(firstGroup.chemicals);
             setModalVisible(true);
-            play();
         }
     }, [init]);
 
@@ -253,7 +277,7 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
 
         const fetchRunningData = async () => {
             try {
-                const res = await getData('portal/inject/getRunning', { drumNo: order.drumNo }, false, orderStore?.config?.serverIp + ':' + orderStore?.config?.port);
+                const res = await getData('portal/inject/getRunning', { drumNo: order.drumNo }, true, orderStore?.config?.serverIp + ':' + orderStore?.config?.port);
                 if (res.code === 0 && res.data?.process?.dtl) {
                     const { dtl, ...processWithoutDtl } = res.data.process;
 

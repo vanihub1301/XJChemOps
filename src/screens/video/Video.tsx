@@ -37,10 +37,9 @@ const Video = ({ navigation, route }: VideoProps) => {
     const [cameraKey, setCameraKey] = useState(0);
     const [zoom, setZoom] = useState(1);
 
-    const { groupedChemicals, batchsStore, setBatchsStore, orderStore, setOrderStore } = useOperationStore();
+    const { currentChemicals, batchsStore, setBatchsStore, orderStore, setOrderStore } = useOperationStore();
     const { getData } = useAPI();
 
-    const currentChemicals = groupedChemicals?.[0]?.chemicals || [];
 
     const mapIcon = {
         flask: <MaterialCommunityIcons name="flask" size={28} color="#26F073" />,
@@ -81,8 +80,6 @@ const Video = ({ navigation, route }: VideoProps) => {
         }
     }, []);
 
-
-
     const handleDownloadAndCallback = useCallback(async (videoPath: string) => {
         try {
             const asset = await CameraRoll.save(`file://${videoPath}`, {
@@ -95,9 +92,6 @@ const Video = ({ navigation, route }: VideoProps) => {
             showToast('Lỗi khi lưu video');
         }
     }, [navigation]);
-
-
-
 
     const startRecord = useCallback(async () => {
         try {
@@ -148,7 +142,7 @@ const Video = ({ navigation, route }: VideoProps) => {
         return () => {
             subscription.remove();
         };
-    }, [stopRecord]);
+    }, []);
 
     useEffect(() => {
         const id = setInterval(async () => {
@@ -160,7 +154,7 @@ const Video = ({ navigation, route }: VideoProps) => {
         }, 30_000);
 
         return () => clearInterval(id);
-    }, [stopRecord]);
+    }, []);
 
     useEffect(() => {
         const checkPermission = async () => {
@@ -217,7 +211,7 @@ const Video = ({ navigation, route }: VideoProps) => {
                     cancelRecord();
                 }
             };
-        }, [route?.params?.autoRecord, isRecording, device, startRecord, cancelRecord])
+        }, [route?.params?.autoRecord])
     );
 
     useEffect(() => {
@@ -227,7 +221,7 @@ const Video = ({ navigation, route }: VideoProps) => {
 
         const fetchRunningData = async () => {
             try {
-                const res = await getData('portal/inject/getRunning', { drumNo: orderStore.drumNo }, false, orderStore?.config?.serverIp + ':' + orderStore?.config?.port);
+                const res = await getData('portal/inject/getRunning', { drumNo: orderStore.drumNo }, true, orderStore?.config?.serverIp + ':' + orderStore?.config?.port);
                 if (res.code === 0 && res.data?.process?.dtl) {
                     const { dtl, ...processWithoutDtl } = res.data.process;
 

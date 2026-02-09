@@ -26,7 +26,7 @@ const FormStopOperation = ({ navigation }: AppNavigationProps<'FormStopOperation
     const reasonBottomSheetRef = useRef<BottomSheet>(null);
 
     const { postData, getData, loading } = useAPI();
-    const { batchsStore, orderStore, groupedChemicals } = useOperationStore();
+    const { orderStore } = useOperationStore();
 
     const orderFields = [
         { label: 'Mã đơn', value: orderStore?.orderNo, icon: <MaterialCommunityIcons name="fingerprint" size={24} color="#6266F1" /> },
@@ -70,17 +70,13 @@ const FormStopOperation = ({ navigation }: AppNavigationProps<'FormStopOperation
             return;
         }
 
-        const now = new Date(orderStore.currentTime.replace(' ', 'T')).getTime();
-
-        const nextChemical = groupedChemicals.findIndex(item => new Date(item.time.replace(' ', 'T')).getTime() > now);
-
         const res = await postData('portal/inject/finish', {
-            processFk: groupedChemicals[nextChemical - 1]?.chemicals[0].processFk,
+            processFk: orderStore?.process?.id,
             orderBill: orderStore.process.orderNo,
             bomNo: orderStore.process.bomNo,
             reason: +selectedReason,
             remarks: otherReason,
-            finishTime: formatDateCustom(new Date(Date.now()).toUTCString(), { format: 'yyyy-MM-dd HH:mm' }),
+            finishTime: orderStore.currentTime,
             registor: staff,
         }, true);
 

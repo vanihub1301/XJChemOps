@@ -28,8 +28,8 @@ const FormChangeStartTime = ({ navigation }: AppNavigationProps<'FormChangeStart
 
     const reasonBottomSheetRef = useRef<BottomSheet>(null);
 
-    const { postData, getData, loading } = useAPI();
-    const { batchsStore, orderStore } = useOperationStore();
+    const { putData, getData, loading } = useAPI();
+    const { orderStore } = useOperationStore();
 
     const orderFields = [
         { label: 'Mã đơn', value: orderStore?.orderNo, icon: <MaterialCommunityIcons name="fingerprint" size={24} color="#6266F1" /> },
@@ -38,7 +38,7 @@ const FormChangeStartTime = ({ navigation }: AppNavigationProps<'FormChangeStart
         { label: 'Độ dày', value: orderStore?.thickness ? orderStore?.thickness + 'mm' : '', icon: <MaterialCommunityIcons name="format-line-weight" size={24} color="#6266F1" /> },
         { label: 'Thời gian bắt đầu', value: formatDateCustom(orderStore?.startDrum, { format: 'HH:mm' }), icon: <MaterialCommunityIcons name="clock-outline" size={24} color="#6266F1" /> },
     ];
-    const staff = 'Nguyễn Hưng';
+    const staff = 'NGUYỄN THỊ THOẢNG';
 
     const handleReasonPress = () => {
         reasonBottomSheetRef.current?.expand();
@@ -73,20 +73,16 @@ const FormChangeStartTime = ({ navigation }: AppNavigationProps<'FormChangeStart
                 showToast('Vui lòng điền đầy đủ thông tin');
                 return;
             }
-            const nextChemical = batchsStore.findIndex(
-                (item) => new Date(item.confirmTime.replace(' ', 'T')).getTime() > Date.now()
-            );
-            console.log('LOG : handleSubmit : nextChemical:', nextChemical)
-            const res = await postData('portal/inject/updateTime', {
-                processFk: batchsStore[nextChemical - 1]?.processFk,
-                orderBill: orderStore.orderNo,
-                bomNo: orderStore.bomNo,
-                reason: selectedReason,
+
+            const res = await putData('portal/inject/updateTime', {
+                processFk: orderStore?.process?.id,
+                orderBill: orderStore?.process?.orderNo,
+                bomNo: orderStore?.process?.bomNo,
+                reason: +selectedReason,
                 remarks: otherReason,
-                actualTime: formatWithPattern(startTime, 'dd/MM/yyyy HH:mm'),
+                actualTime: formatWithPattern(startTime, 'yyyy-MM-dd HH:mm:ss'),
                 registor: staff,
-            }, true);
-            console.log('LOG : handleSubmit : res:', res)
+            });
 
             if (res?.code === 0) {
                 showToast('Đã cập nhật thời gian bắt đầu');

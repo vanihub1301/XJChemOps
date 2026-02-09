@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, View, ListRenderItem, StyleSheet } from 'react-native';
 import { Text } from './Text';
 
@@ -17,7 +17,10 @@ interface ListProps<T> {
     scrollEnabled?: boolean;
     nestedScrollEnabled?: boolean;
     maxItem?: number | null;
+    estimatedItemHeight?: number;
     enableRefresh?: boolean;
+    initialNumToRender?: number;
+    maxToRenderPerBatch?: number;
 }
 
 const List = <T extends { id: string | number }>({
@@ -35,59 +38,38 @@ const List = <T extends { id: string | number }>({
     scrollEnabled = true,
     nestedScrollEnabled = false,
     maxItem = null,
+    estimatedItemHeight,
     enableRefresh = true,
+    initialNumToRender = 10,
+    maxToRenderPerBatch = 10,
 }: ListProps<T>) => {
-    const [itemHeight, setItemHeight] = React.useState<number | null>(null);
-    const listHeight = (maxItem && itemHeight)
-        ? itemHeight * maxItem
-        : null;
+
+    const listHeight = useMemo(() =>
+        maxItem && estimatedItemHeight ? estimatedItemHeight * maxItem : null
+        , [maxItem, estimatedItemHeight]);
 
     const renderEmpty = useCallback(() => {
-        if (apiLoading) {
-            return null;
-        }
+        if (apiLoading) { return null; }
         return (
             <View>
-                <Text style={styles.emptyText}>
-                    {emptyText}
-                </Text>
+                <Text style={styles.emptyText}>{emptyText}</Text>
             </View>
         );
     }, [apiLoading, emptyText]);
 
     const renderFooter = useCallback(() => {
-        if (!loadingMore && !apiLoading) return null;
+        if (!loadingMore && !apiLoading) { return null; }
         return <ActivityIndicator color={primaryColor} />;
     }, [loadingMore, apiLoading, primaryColor]);
-
-    const renderMeasuredItem: ListRenderItem<T> = (info) => {
-        const { index } = info;
-
-        if (index === 0) {
-            return (
-                <View
-                    onLayout={(e) => {
-                        if (!itemHeight) {
-                            setItemHeight(e.nativeEvent.layout.height);
-                        }
-                    }}
-                >
-                    {renderItem(info)}
-                </View>
-            );
-        }
-
-        return renderItem(info);
-    };
 
     return (
         <FlatList
             data={list}
-            renderItem={renderMeasuredItem}
-            style={[listHeight ? { height: listHeight } : maxItem ? styles.height : null, styles.paddingBottom]}
+            renderItem={renderItem}
+            style={[listHeight && { height: listHeight }, styles.paddingBottom]}
             keyExtractor={keyExtractor}
             ListHeaderComponent={renderListHeader}
-            stickyHeaderIndices={[0]}
+            stickyHeaderIndices={renderListHeader ? [0] : undefined}
             ListEmptyComponent={renderEmpty}
             ListFooterComponent={renderFooter}
             onEndReached={loadMore}
@@ -99,24 +81,22 @@ const List = <T extends { id: string | number }>({
                     <RefreshControl
                         refreshing={refreshing || false}
                         onRefresh={onRefresh}
-                        colors={[primaryColor]} // Android
-                        tintColor={primaryColor} // iOS
+                        colors={[primaryColor]}
+                        tintColor={primaryColor}
                     />
                 ) : undefined
             }
-            initialNumToRender={10}
-            maxToRenderPerBatch={10}
+            initialNumToRender={initialNumToRender}
+            maxToRenderPerBatch={maxToRenderPerBatch}
             windowSize={5}
             showsVerticalScrollIndicator={false}
             removeClippedSubviews={false}
+            updateCellsBatchingPeriod={100}
         />
     );
 };
 
 const styles = StyleSheet.create({
-    height: {
-        height: 30,
-    },
     paddingBottom: {
         paddingBottom: 30,
     },
