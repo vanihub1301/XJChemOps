@@ -60,7 +60,7 @@ const MainHome = ({ navigation }: AppNavigationProps<'Home'>) => {
 
   const fetchData = async () => {
     try {
-      const res = await getData('portal/inject/nearBill', { drum: rotatingTank?.name, rows: numberOrder }, true);
+      const res = await getData('portal/inject/nearBill', { drum: rotatingTank?.name, rows: numberOrder });
       setListOrder(res.data.records);
     } catch (error: any) {
       showToast(error);
@@ -87,7 +87,7 @@ const MainHome = ({ navigation }: AppNavigationProps<'Home'>) => {
           <Feather name="package" size={24} color="#9AA0B6" />
         </ViewBox>
         <ViewBox gap={'xs'}>
-          <Text color={'black'} variant={'labelLargeStrong'}>{item.code}</Text>
+          <Text color={'black'} variant={'labelLargeStrong'}>{item.orderNo}</Text>
           <Text variant={'label'}>{formatDateCustom(item.finishTime, { format: 'HH:mm' })} | {item.color} | {item.thickness ? item.thickness + 'mm' : 'N/A'} | {item.actualWeight ? item.actualWeight + 'kg' : 'N/A'}</Text>
         </ViewBox>
       </ViewBox>
@@ -151,7 +151,7 @@ const MainHome = ({ navigation }: AppNavigationProps<'Home'>) => {
               renderItem={renderOrderItem}
               renderListHeader={renderListHeader}
               refreshing={false}
-              onRefresh={() => { }}
+              onRefresh={fetchData}
             />
           </ViewBox>
         </ViewBox>

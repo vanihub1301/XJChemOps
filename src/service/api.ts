@@ -37,33 +37,37 @@ export const useAPI = () => {
     const getData = useCallback(<T = any>(
         endpoint: string,
         params?: Record<string, any>,
-        silent: boolean = true
+        silent: boolean = true,
+        baseUrl?: string
     ): Promise<T> => {
-        return apiCall(() => get<T>(endpoint, params), silent);
+        return apiCall(() => get<T>(endpoint, params, baseUrl), silent);
     }, [apiCall]);
 
     const postData = useCallback(<T = any>(
         endpoint: string,
         body?: any,
-        silent: boolean = true
+        silent: boolean = true,
+        baseUrl?: string
     ): Promise<T> => {
-        return apiCall(() => post<T>(endpoint, body), silent);
+        return apiCall(() => post<T>(endpoint, body, baseUrl), silent);
     }, [apiCall]);
 
     const putData = useCallback(<T = any>(
         endpoint: string,
         body?: any,
-        silent: boolean = true
+        silent: boolean = true,
+        baseUrl?: string
     ): Promise<T> => {
-        return apiCall(() => put<T>(endpoint, body), silent);
+        return apiCall(() => put<T>(endpoint, body, baseUrl), silent);
     }, [apiCall]);
 
     const deleteData = useCallback(<T = any>(
         endpoint: string,
         id: string,
-        silent: boolean = true
+        silent: boolean = true,
+        baseUrl?: string
     ): Promise<T> => {
-        return apiCall(() => del<T>(endpoint, id), silent);
+        return apiCall(() => del<T>(endpoint, id, baseUrl), silent);
     }, [apiCall]);
 
     return {

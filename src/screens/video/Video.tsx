@@ -81,22 +81,9 @@ const Video = ({ navigation, route }: VideoProps) => {
         }
     }, []);
 
-    useEffect(() => {
-        const subscription = AppState.addEventListener('change', (nextAppState) => {
-            if (nextAppState === 'active') {
-                setIsCameraActive(true);
-            } else if (nextAppState === 'background' || nextAppState === 'inactive') {
-                stopRecord();
-                setIsCameraActive(false);
-            }
-        });
 
-        return () => {
-            subscription.remove();
-        };
-    }, []);
 
-    const handleDownloadAndCallback = async (videoPath: string) => {
+    const handleDownloadAndCallback = useCallback(async (videoPath: string) => {
         try {
             const asset = await CameraRoll.save(`file://${videoPath}`, {
                 type: 'video',
@@ -107,22 +94,12 @@ const Video = ({ navigation, route }: VideoProps) => {
         } catch (error) {
             showToast('Lỗi khi lưu video');
         }
-    };
-
-    useEffect(() => {
-        const id = setInterval(async () => {
-            const fs = await RNFS.getFSInfo();
-            if (fs.freeSpace < MIN_FREE_SPACE_STOP) {
-                stopRecord();
-                showToast('Không đủ dung lượng bộ nhớ');
-            }
-        }, 30_000);
-
-        return () => clearInterval(id);
-    }, []);
+    }, [navigation]);
 
 
-    const startRecord = async () => {
+
+
+    const startRecord = useCallback(async () => {
         try {
             const fsInfo = await RNFS.getFSInfo();
             if (fsInfo.freeSpace < MIN_FREE_SPACE) {
@@ -146,9 +123,9 @@ const Video = ({ navigation, route }: VideoProps) => {
         } catch (error: any) {
             showToast(error);
         }
-    };
+    }, [handleDownloadAndCallback]);
 
-    const stopRecord = async () => {
+    const stopRecord = useCallback(async () => {
         try {
             await camera.current?.stopRecording();
             setIsRecording(false);
@@ -156,7 +133,34 @@ const Video = ({ navigation, route }: VideoProps) => {
         } catch (error) {
             showToast('Lỗi khi dừng quay video');
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        const subscription = AppState.addEventListener('change', (nextAppState) => {
+            if (nextAppState === 'active') {
+                setIsCameraActive(true);
+            } else if (nextAppState === 'background' || nextAppState === 'inactive') {
+                stopRecord();
+                setIsCameraActive(false);
+            }
+        });
+
+        return () => {
+            subscription.remove();
+        };
+    }, [stopRecord]);
+
+    useEffect(() => {
+        const id = setInterval(async () => {
+            const fs = await RNFS.getFSInfo();
+            if (fs.freeSpace < MIN_FREE_SPACE_STOP) {
+                stopRecord();
+                showToast('Không đủ dung lượng bộ nhớ');
+            }
+        }, 30_000);
+
+        return () => clearInterval(id);
+    }, [stopRecord]);
 
     useEffect(() => {
         const checkPermission = async () => {
@@ -168,7 +172,7 @@ const Video = ({ navigation, route }: VideoProps) => {
         };
 
         checkPermission();
-    }, []);
+    }, [checkCameraPermission, goToSettings, navigation]);
 
     useEffect(() => {
         const subscription = AppState.addEventListener('change', async (nextAppState) => {
@@ -192,7 +196,7 @@ const Video = ({ navigation, route }: VideoProps) => {
         return () => {
             subscription.remove();
         };
-    }, []);
+    }, [checkCameraPermission, navigation]);
 
     useFocusEffect(
         useCallback(() => {
@@ -213,7 +217,7 @@ const Video = ({ navigation, route }: VideoProps) => {
                     cancelRecord();
                 }
             };
-        }, [route?.params?.autoRecord])
+        }, [route?.params?.autoRecord, isRecording, device, startRecord, cancelRecord])
     );
 
     useEffect(() => {
@@ -223,7 +227,7 @@ const Video = ({ navigation, route }: VideoProps) => {
 
         const fetchRunningData = async () => {
             try {
-                const res = await getData('portal/inject/getRunning', { drumNo: orderStore.drumNo });
+                const res = await getData('portal/inject/getRunning', { drumNo: orderStore.drumNo }, false, orderStore?.config?.serverIp + ':' + orderStore?.config?.port);
                 if (res.code === 0 && res.data?.process?.dtl) {
                     const { dtl, ...processWithoutDtl } = res.data.process;
 
@@ -248,7 +252,7 @@ const Video = ({ navigation, route }: VideoProps) => {
         const interval = setInterval(fetchRunningData, intervalMs);
 
         return () => clearInterval(interval);
-    }, [orderStore?.drumNo, getData, setBatchsStore, setOrderStore]);
+    }, [getData, setBatchsStore, setOrderStore]);
 
     if (device == null) {
         return (

@@ -163,8 +163,10 @@ export const uploadFileResize = async (imageUri: string, resizeSize: number = 80
     return uploadToEndpoint(imageUri, `${BASE_URL}generalPicture/resize?size=${resizeSize}`);
 };
 
-export const uploadFile = async (fileUri: string, fileName?: string, mimeType?: string) => {
-    return uploadToEndpoint(fileUri, `${BASE_URL}generalPicture`, fileName, mimeType);
+
+export const uploadFile = async (fileUri: string, fileName?: string, mimeType?: string, baseUrl?: string) => {
+    const url = baseUrl ? `${baseUrl}/api/v1/generalPicture` : `${BASE_URL}/api/v1/generalPicture`;
+    return uploadToEndpoint(fileUri, url, fileName, mimeType);
 };
 
 export const uploadFaceDetection = async (imageUri: string) => {
@@ -173,34 +175,42 @@ export const uploadFaceDetection = async (imageUri: string) => {
 
 export const get = async <T = any>(
     url: string,
-    params?: Record<string, any>
+    params?: Record<string, any>,
+    baseUrl?: string
 ): Promise<T> => {
     const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
-    const response = await api.get<T>(url + queryString);
+    const config = baseUrl ? { baseURL: baseUrl + '/api/v1' } : {};
+    const response = await api.get<T>(url + queryString, config);
     return response.data;
 };
 
 export const post = async <T = any>(
     url: string,
-    data?: any
+    data?: any,
+    baseUrl?: string
 ): Promise<T> => {
-    const response = await api.post<T>(url, data);
+    const config = baseUrl ? { baseURL: baseUrl + '/api/v1' } : {};
+    const response = await api.post<T>(url, data, config);
     return response.data;
 };
 
 export const put = async <T = any>(
     url: string,
-    data?: any
+    data?: any,
+    baseUrl?: string
 ): Promise<T> => {
-    const response = await api.put<T>(url, data);
+    const config = baseUrl ? { baseURL: baseUrl + '/api/v1' } : {};
+    const response = await api.put<T>(url, data, config);
     return response.data;
 };
 
 export const del = async <T = any>(
     url: string,
-    id: string
+    id: string,
+    baseUrl?: string
 ): Promise<T> => {
-    const response = await api.delete<T>(url, { params: { id } });
+    const config = baseUrl ? { baseURL: baseUrl + '/api/v1' } : {};
+    const response = await api.delete<T>(url, { ...config, params: { id } });
     return response.data;
 };
 

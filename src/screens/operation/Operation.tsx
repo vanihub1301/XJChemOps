@@ -50,7 +50,7 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
         try {
             const chemicals = groupedChemicals?.[0]?.chemicals ?? [];
             const fentryid = chemicals.map((i) => i.id).join(',');
-            const { code, data, msg } = await uploadFile(videoPath, `video_${Date.now()}.mp4`, 'video/mp4');
+            const { code, data, msg } = await uploadFile(videoPath, `video_${Date.now()}.mp4`, 'video/mp4', orderStore?.config?.serverIp + ':' + orderStore?.config?.port);
             console.log('LOG : Operation : videoPath:', videoPath)
             console.log(`LOG : Operation : { code, data, msg }:`, { code, data, msg })
 
@@ -62,7 +62,7 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
                 employee: 'NGUYỄN THỊ THOẢNG',
                 videoFk: data,
                 fentryid,
-            });
+            }, true, orderStore?.config?.serverIp + ':' + orderStore?.config?.port);
 
             if (res.code !== 0) {
                 return showToast(res.msg);
@@ -73,7 +73,7 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
         } finally {
             await unlink(videoPath.replace('content://', ''));
         }
-    }, [groupedChemicals, videoPath]);
+    }, [groupedChemicals, videoPath, getData]);
 
     const handleStopPress = async () => {
         navigation.navigate('FormStopOperation', {
@@ -105,7 +105,7 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
                                 orderBill: order?.orderNo,
                                 bomNo: order?.bomNo,
                                 continueTime: orderStore?.currentTime,
-                            });
+                            }, false, orderStore?.config?.serverIp + ':' + orderStore?.config?.port);
                             setIsPause(false);
                         } else {
                             result = await postData('portal/inject/pause', {
@@ -113,7 +113,7 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
                                 orderBill: order?.orderNo,
                                 bomNo: order?.bomNo,
                                 pauseTime: orderStore?.currentTime,
-                            });
+                            }, false, orderStore?.config?.serverIp + ':' + orderStore?.config?.port);
                         }
 
                         if (result.code === 0) {
@@ -253,7 +253,7 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
 
         const fetchRunningData = async () => {
             try {
-                const res = await getData('portal/inject/getRunning', { drumNo: order.drumNo });
+                const res = await getData('portal/inject/getRunning', { drumNo: order.drumNo }, false, orderStore?.config?.serverIp + ':' + orderStore?.config?.port);
                 if (res.code === 0 && res.data?.process?.dtl) {
                     const { dtl, ...processWithoutDtl } = res.data.process;
 
@@ -278,7 +278,7 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
         const interval = setInterval(fetchRunningData, intervalMs);
 
         return () => clearInterval(interval);
-    }, [order?.drumNo, getData, setBatchsStore]);
+    }, [getData, setBatchsStore, setOrderStore, orderStore?.config?.inspectionTime]);
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('beforeRemove', (e) => {
