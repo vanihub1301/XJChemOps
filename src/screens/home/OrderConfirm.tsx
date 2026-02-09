@@ -84,10 +84,6 @@ const OrderConfirm = ({ navigation, route }: AppNavigationProps<'OrderConfirm'>)
                         });
                     } else {
                         showToast(resInit.msg);
-                        navigation.navigate('Operation', {
-                            order: orderData,
-                            init: true,
-                        });
                     }
                 }
             }

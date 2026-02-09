@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, View, ListRenderItem, StyleSheet } from 'react-native';
 import { Text } from './Text';
 
@@ -16,11 +16,10 @@ interface ListProps<T> {
     primaryColor?: string;
     scrollEnabled?: boolean;
     nestedScrollEnabled?: boolean;
-    maxItem?: number | null;
-    estimatedItemHeight?: number;
     enableRefresh?: boolean;
     initialNumToRender?: number;
     maxToRenderPerBatch?: number;
+    removeClippedSubviews?: boolean;
 }
 
 const List = <T extends { id: string | number }>({
@@ -32,22 +31,16 @@ const List = <T extends { id: string | number }>({
     refreshing,
     onRefresh,
     loadMore,
-    keyExtractor = (item) => String(item.id),
+    keyExtractor,
     emptyText = 'Hiện tại chưa có dữ liệu',
     primaryColor = '#3D8417',
     scrollEnabled = true,
     nestedScrollEnabled = false,
-    maxItem = null,
-    estimatedItemHeight,
     enableRefresh = true,
     initialNumToRender = 10,
     maxToRenderPerBatch = 10,
+    removeClippedSubviews = false,
 }: ListProps<T>) => {
-
-    const listHeight = useMemo(() =>
-        maxItem && estimatedItemHeight ? estimatedItemHeight * maxItem : null
-        , [maxItem, estimatedItemHeight]);
-
     const renderEmpty = useCallback(() => {
         if (apiLoading) { return null; }
         return (
@@ -66,7 +59,7 @@ const List = <T extends { id: string | number }>({
         <FlatList
             data={list}
             renderItem={renderItem}
-            style={[listHeight && { height: listHeight }, styles.paddingBottom]}
+            style={styles.paddingBottom}
             keyExtractor={keyExtractor}
             ListHeaderComponent={renderListHeader}
             stickyHeaderIndices={renderListHeader ? [0] : undefined}
@@ -90,8 +83,8 @@ const List = <T extends { id: string | number }>({
             maxToRenderPerBatch={maxToRenderPerBatch}
             windowSize={5}
             showsVerticalScrollIndicator={false}
-            removeClippedSubviews={false}
             updateCellsBatchingPeriod={100}
+            removeClippedSubviews={removeClippedSubviews}
         />
     );
 };

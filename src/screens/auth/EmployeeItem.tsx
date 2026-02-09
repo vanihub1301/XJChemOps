@@ -6,19 +6,26 @@ import { Text } from '../../components/common/Text';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Octicons from 'react-native-vector-icons/Octicons';
 
+export interface ItemProps {
+    code: string;
+    name: string;
+}
+
 export const EmployeeItem = React.memo(({
     item,
     selectedCode,
     onPress,
 }: {
-    item: any;
+    item: ItemProps;
     selectedCode?: string;
-    onPress: (item: any) => void;
+    onPress: (item: ItemProps) => void;
 }) => {
     const isSelected = selectedCode === item.code;
 
     return (
-        <TouchableOpacity onPress={() => onPress(item)}>
+        <TouchableOpacity key={item.code} onPress={() => {
+            return onPress(item);
+        }}>
             <Card
                 padding={'lg'}
                 background={isSelected ? 'lavender' : 'white'}

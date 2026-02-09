@@ -5,7 +5,7 @@ import { ViewBox } from '../../components/common/ViewBox';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import List from '../../components/common/List';
 import InputSearch from '../../components/input/InputSearch';
-import { EmployeeItem } from './EmployeeItem';
+import { EmployeeItem, ItemProps } from './EmployeeItem';
 
 interface EmployeeSelectModalProps {
     visible: boolean;
@@ -38,7 +38,7 @@ const EmployeeSelectModal = ({
                 item.name?.toLowerCase().includes(lowerSearch) ||
                 item.code?.toLowerCase().includes(lowerSearch)
         );
-    }, [data, searchText]);
+    }, [searchText]);
 
     const handleSelect = useCallback((item: any) => {
         onSelect(item);
@@ -50,15 +50,13 @@ const EmployeeSelectModal = ({
         onClose();
     }, [onClose]);
 
-    const renderItem = useCallback(({ item }: { item: any }) => (
+    const renderItem = useCallback(({ item }: { item: ItemProps }) => (
         <EmployeeItem
             item={item}
             selectedCode={selectedCode}
             onPress={handleSelect}
         />
-    ), [selectedCode, handleSelect]);
-
-    const keyExtractor = useCallback((item: any) => item.code, []);
+    ), []);
 
     return (
         <Modal
@@ -94,15 +92,16 @@ const EmployeeSelectModal = ({
                             numberOfLines={1}
                         />
                     </ViewBox>
-                    <List
-                        list={filteredData}
-                        renderListHeader={() => (<></>)}
-                        renderItem={renderItem}
-                        enableRefresh={false}
-                        maxItem={3}
-                        keyExtractor={keyExtractor}
-                        estimatedItemHeight={90}
-                    />
+                    <ViewBox className="h-[300px]">
+                        <List
+                            list={filteredData}
+                            renderListHeader={() => (<></>)}
+                            renderItem={renderItem}
+                            enableRefresh={false}
+                            initialNumToRender={30}
+                            maxToRenderPerBatch={30}
+                        />
+                    </ViewBox>
                 </ViewBox>
             </View>
         </Modal>

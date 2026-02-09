@@ -158,9 +158,9 @@ const FaceRegister = ({ navigation }: AuthNavigationProps<'FaceRegister'>) => {
         try {
             const res = await getData('portal/inject/employee');
             if (res?.code === 0) {
-                setListEmployee(res.data);
+                setListEmployee(res?.data);
             } else {
-                showToast(res.msg);
+                showToast(res?.msg);
             }
         } catch (error: any) {
             showToast(error);
