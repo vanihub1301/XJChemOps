@@ -96,13 +96,12 @@ const EmployeeSelectModal = ({
                     </ViewBox>
                     <List
                         list={filteredData}
-                        renderListHeader={<></>}
+                        renderListHeader={() => (<></>)}
                         renderItem={renderItem}
                         enableRefresh={false}
                         maxItem={3}
                         keyExtractor={keyExtractor}
                         estimatedItemHeight={90}
-                        initialNumToRender={30}
                     />
                 </ViewBox>
             </View>

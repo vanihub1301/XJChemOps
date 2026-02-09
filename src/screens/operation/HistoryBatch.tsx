@@ -12,7 +12,7 @@ const HistoryBatch: React.FC = () => {
 
     const staff = 'Nguyễn Văn A';
 
-    const historyOperation = batchsStore.filter(item => item.isAppend);
+    const historyOperation = batchsStore.filter(item => item.isAppend).reverse();
 
     const renderHistoryItem = useCallback(
         ({ item, index }: { item: any; index: number }) => {

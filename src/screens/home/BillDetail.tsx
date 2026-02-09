@@ -17,7 +17,7 @@ const BillDetail = ({ route }: AppNavigationProps<'BillDetail'>) => {
     const orderFields = [
         {
             label: 'Mã đơn hàng',
-            value: order.code,
+            value: order.orderNo,
             icon: <MaterialCommunityIcons name="file-document" size={20} color="#9B95EF" />,
         },
         {
@@ -58,7 +58,7 @@ const BillDetail = ({ route }: AppNavigationProps<'BillDetail'>) => {
                         </ViewBox>
                         <ViewBox gap="xs" className="items-center">
                             <Text variant="labelLargeStrong" color="black">
-                                {order.code}
+                                {order.orderNo}
                             </Text>
                             <PillBadge
                                 label="Đã hoàn thành"
