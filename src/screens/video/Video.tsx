@@ -18,7 +18,6 @@ import { useVideoStore } from '../../store/videoStore';
 import { useOperationStore } from '../../store/operationStore';
 import { MIN_FREE_SPACE, MIN_FREE_SPACE_STOP } from '../../constants/ui';
 import { showToast } from '../../service/toast';
-import { useAPI } from '../../service/api';
 
 interface VideoProps {
     navigation: any;
@@ -37,9 +36,7 @@ const Video = ({ navigation, route }: VideoProps) => {
     const [cameraKey, setCameraKey] = useState(0);
     const [zoom, setZoom] = useState(1);
 
-    const { currentChemicals, batchsStore, setBatchsStore, orderStore, setOrderStore } = useOperationStore();
-    const { getData } = useAPI();
-
+    const { currentChemicals, batchsStore } = useOperationStore();
 
     const mapIcon = {
         flask: <MaterialCommunityIcons name="flask" size={28} color="#26F073" />,
@@ -213,40 +210,6 @@ const Video = ({ navigation, route }: VideoProps) => {
             };
         }, [route?.params?.autoRecord])
     );
-
-    useEffect(() => {
-        if (!orderStore?.drumNo) {
-            return;
-        }
-
-        const fetchRunningData = async () => {
-            try {
-                const res = await getData('portal/inject/getRunning', { drumNo: orderStore.drumNo }, true, orderStore?.config?.serverIp + ':' + orderStore?.config?.port);
-                if (res.code === 0 && res.data?.process?.dtl) {
-                    const { dtl, ...processWithoutDtl } = res.data.process;
-
-                    await Promise.all([
-                        setOrderStore({
-                            process: processWithoutDtl,
-                            currentTime: res.data?.curentTime,
-                            config: res.data?.config,
-                            appInjectPause: res.data?.appInjectPause,
-                        }),
-                        setBatchsStore(dtl),
-                    ]);
-                }
-            } catch (error) {
-                console.log('Error fetching running data:', error);
-            }
-        };
-
-        fetchRunningData();
-
-        const intervalMs = 10 * 1000;
-        const interval = setInterval(fetchRunningData, intervalMs);
-
-        return () => clearInterval(interval);
-    }, [getData, setBatchsStore, setOrderStore]);
 
     if (device == null) {
         return (

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ViewContainer from '../../components/common/ViewContainer';
 import ViewHeader from '../../components/common/ViewHeader';
-import { AppNavigationProps } from '../../types/navigation';
+import { MainNavigationProps } from '../../types/navigation';
 import Card from '../../components/common/Card';
 import { ViewBox } from '../../components/common/ViewBox';
 import { Text } from '../../components/common/Text';
@@ -17,7 +17,7 @@ import { showToast } from '../../service/toast';
 import { useAPI } from '../../service/api';
 import { useOperationStore } from '../../store/operationStore';
 
-const FormStopOperation = ({ navigation }: AppNavigationProps<'FormStopOperation'>) => {
+const FormStopOperation = ({ navigation }: MainNavigationProps<'FormStopOperation'>) => {
     const [selectedReason, setSelectedReason] = useState<string>('');
     const [selectedReasonLabel, setSelectedReasonLabel] = useState<string>('');
     const [otherReason, setOtherReason] = useState<string>('');

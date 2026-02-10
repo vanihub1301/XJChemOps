@@ -1,5 +1,5 @@
 import ViewContainer from '../../components/common/ViewContainer.tsx';
-import { AppNavigationProps } from '../../types/navigation.ts';
+import { MainNavigationProps } from '../../types/navigation.ts';
 import { ViewBox } from '../../components/common/ViewBox.tsx';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Text } from '../../components/common/Text.tsx';
@@ -20,7 +20,7 @@ import { showToast } from '../../service/toast.ts';
 
 const { width } = Dimensions.get('window');
 
-const MainHome = ({ navigation }: AppNavigationProps<'Home'>) => {
+const MainHome = ({ navigation }: MainNavigationProps<'Home'>) => {
   const numberOrder = 3;
 
   const [modalVisible, setModalVisible] = useState(false);

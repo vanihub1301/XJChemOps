@@ -13,15 +13,15 @@ export const AppContent: React.FC = () => {
 
     useEffect(() => {
         initialize();
-        initializeSetting();
         requestCameraPermission();
-    }, [initialize, requestCameraPermission, initializeSetting]);
+    }, [initialize, requestCameraPermission]);
 
     if (isLoading) {
         return <SplashScreen />;
     }
 
     if (firstRunning) {
+        initializeSetting();
         return (
             <>
                 <FirstRunningScreen />

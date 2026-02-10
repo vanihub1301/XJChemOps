@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ViewContainer from '../../components/common/ViewContainer';
 import ViewHeader from '../../components/common/ViewHeader';
-import { AppNavigationProps } from '../../types/navigation';
+import { MainNavigationProps } from '../../types/navigation';
 import Card from '../../components/common/Card';
 import { ViewBox } from '../../components/common/ViewBox';
 import { Text } from '../../components/common/Text';
@@ -18,7 +18,7 @@ import { useAPI } from '../../service/api';
 import { useOperationStore } from '../../store/operationStore';
 import { formatDateCustom, formatWithPattern } from '../../utils/dateTime';
 
-const FormChangeStartTime = ({ navigation }: AppNavigationProps<'FormChangeStartTime'>) => {
+const FormChangeStartTime = ({ navigation }: MainNavigationProps<'FormChangeStartTime'>) => {
     const [startTime, setStartTime] = useState<Date>(new Date());
     const [selectedReason, setSelectedReason] = useState<string>('');
     const [selectedReasonLabel, setSelectedReasonLabel] = useState<string>('');

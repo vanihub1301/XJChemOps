@@ -16,8 +16,9 @@ import BottomSheetSelect from '../../components/bottomsheet/BottomSheetSelect';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { useAPI } from '../../service/api';
 import { useAuthStore } from '../../store/authStore';
+import { MainNavigationProps } from '../../types/navigation';
 
-const Setting = () => {
+const Setting = ({ }: MainNavigationProps<'Setting'>) => {
     const { host, port, checkInterval, keepAwake, soundEnabled, language, setMany } = useSettingStore();
     const { postData } = useAPI();
     const { rotatingTank } = useAuthStore();

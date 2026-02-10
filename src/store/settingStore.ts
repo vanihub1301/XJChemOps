@@ -21,42 +21,18 @@ export const useSettingStore = create<SettingState>((set) => ({
 
     initializeSetting: async () => {
         try {
-            const [host, port, checkInterval, keepAwake, soundEnabled, language] = await AsyncStorage.multiGet([
-                'host',
-                'port',
-                'check_interval',
-                'keep_awake',
-                'sound_enabled',
-                'language',
-            ]);
-
-            const finalHost = host[1] || '192.168.10.8';
-            const finalPort = port[1] || '8072';
-            const finalCheckInterval = checkInterval[1] || '30';
-            const finalKeepAwake = keepAwake[1] !== 'true';
-            const finalSoundEnabled = soundEnabled[1] !== 'true';
-            const finalLanguage = language[1] || 'vi';
-
             await Promise.all([
-                host[1] === null && AsyncStorage.setItem('host', finalHost),
-                port[1] === null && AsyncStorage.setItem('port', finalPort),
-                checkInterval[1] === null && AsyncStorage.setItem('check_interval', finalCheckInterval),
-                keepAwake[1] === null && AsyncStorage.setItem('keep_awake', String(finalKeepAwake)),
-                soundEnabled[1] === null && AsyncStorage.setItem('sound_enabled', String(finalSoundEnabled)),
-                language[1] === null && AsyncStorage.setItem('language', finalLanguage),
-            ].filter(Boolean));
-
-            set({
-                host: finalHost,
-                port: finalPort,
-                checkInterval: finalCheckInterval,
-                keepAwake: finalKeepAwake,
-                soundEnabled: finalSoundEnabled,
-                language: finalLanguage,
-            });
+                AsyncStorage.setItem('host', '192.168.10.8'),
+                AsyncStorage.setItem('port', '8072'),
+            ]);
         } catch (error) {
             console.log(error);
         }
+    },
+
+    getMany: async (keys: string[]) => {
+        const values = await AsyncStorage.multiGet(keys);
+        return Object.fromEntries(values);
     },
 
     setData: async (key, value) => {

@@ -5,13 +5,13 @@ import ViewHeader from '../../components/common/ViewHeader';
 import { ViewBox } from '../../components/common/ViewBox';
 import { Text } from '../../components/common/Text';
 import Card from '../../components/common/Card';
-import { AppNavigationProps } from '../../types/navigation';
+import { MainNavigationProps } from '../../types/navigation';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import PillBadge from '../../components/common/PillBadge';
 import { formatDateCustom } from '../../utils/dateTime';
 
-const BillDetail = ({ route }: AppNavigationProps<'BillDetail'>) => {
+const BillDetail = ({ route }: MainNavigationProps<'BillDetail'>) => {
     const { order } = route.params;
 
     const orderFields = [

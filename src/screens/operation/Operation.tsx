@@ -1,7 +1,7 @@
 import { Text } from '../../components/common/Text';
 import { ViewBox } from '../../components/common/ViewBox';
 import ViewContainer from '../../components/common/ViewContainer';
-import { AppNavigationProps } from '../../types/navigation';
+import { MainNavigationProps } from '../../types/navigation';
 import ViewHeader from '../../components/common/ViewHeader';
 import React, { useCallback, useEffect, useRef } from 'react';
 import { parseDateTime } from '../../utils/dateTime';
@@ -25,19 +25,18 @@ import HistoryBatch from './HistoryBatch';
 import { unlink } from 'react-native-fs';
 import { uploadFile } from '../../service/axios';
 
-const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
+const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
     const { order, init } = route.params;
     const [modalVisible, setModalVisible] = React.useState(false);
     const [alertedTimes, setAlertedTimes] = React.useState<Set<string>>(new Set());
 
     const { videoStatus, videoPath } = useVideoStore();
-    const { currentChemicals, orderStore, batchsStore, groupedChemicals, isPause, setBatchsStore, setOrderStore, setGroupedChemicals, setCurrentChemicals, setIsPause } = useOperationStore();
+    const { currentChemicals, orderStore, batchsStore, groupedChemicals, isPause, setCurrentChemicals, setIsPause } = useOperationStore();
     const { getData, postData, putData } = useAPI();
 
     const { play } = useAlarmSound(orderStore?.config?.enableSound);
 
     const settingBottomSheetRef = useRef<BottomSheet>(null);
-    const isFistMount = useRef(true);
 
     const handleSettingPress = () => {
         settingBottomSheetRef.current?.expand();
@@ -72,7 +71,6 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
                 videoFk: videoPathOnServer,
                 fentryid: fentryid,
             });
-            console.log('LOG : Operation : updateRes:', updateRes)
 
             if (updateRes?.code === 0) {
                 showToast('Cập nhật video thành công');
@@ -176,53 +174,6 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
     };
 
     useEffect(() => {
-        if (!batchsStore || batchsStore.length === 0) {
-            setGroupedChemicals([]);
-            return;
-        }
-
-        if (batchsStore.length === 0) {
-            setGroupedChemicals([]);
-            return;
-        }
-
-        const groupedByTime: { [key: string]: any[] } = {};
-        batchsStore.forEach((chemical: any) => {
-            const confirmTime = chemical.confirmTime;
-            if (!groupedByTime[confirmTime]) {
-                groupedByTime[confirmTime] = [];
-            }
-            groupedByTime[confirmTime].push(chemical);
-        });
-
-        const grouped = Object.keys(groupedByTime)
-            .sort()
-            .map(time => ({
-                time,
-                chemicals: groupedByTime[time],
-            }));
-
-        const currentTime = parseDateTime(orderStore.currentTime);
-
-        const currentGroup = grouped.find((group, index) => {
-            const startTime = parseDateTime(group.time);
-            const endTime = grouped[index + 1]
-                ? parseDateTime(grouped[index + 1].time)
-                : Infinity;
-
-            return currentTime >= startTime && currentTime < endTime;
-        });
-
-        console.log('LOG : Operation : currentGroup:', currentGroup)
-        console.log('LOG : Operation : grouped:', grouped);
-        console.log('LOG : Operation : config:', orderStore.config);
-        console.log('LOG : Operation : currentTime:', orderStore.currentTime);
-
-        setGroupedChemicals(grouped);
-        setCurrentChemicals(currentGroup?.chemicals || []);
-    }, [batchsStore, setGroupedChemicals, setCurrentChemicals]);
-
-    useEffect(() => {
         if (groupedChemicals.length === 0) {
             return;
         }
@@ -268,41 +219,6 @@ const Operation = ({ navigation, route }: AppNavigationProps<'Operation'>) => {
             setModalVisible(true);
         }
     }, [init]);
-
-    useEffect(() => {
-        if (!order?.drumNo || isFistMount.current) {
-            isFistMount.current = false;
-            return;
-        }
-
-        const fetchRunningData = async () => {
-            try {
-                const res = await getData('portal/inject/getRunning', { drumNo: order.drumNo }, true, orderStore?.config?.serverIp + ':' + orderStore?.config?.port);
-                if (res.code === 0 && res.data?.process?.dtl) {
-                    const { dtl, ...processWithoutDtl } = res.data.process;
-
-                    await Promise.all([
-                        setOrderStore({
-                            process: processWithoutDtl,
-                            currentTime: res.data?.curentTime,
-                            config: res.data?.config,
-                            appInjectPause: res.data?.appInjectPause,
-                        }),
-                        setBatchsStore(dtl),
-                    ]);
-                }
-            } catch (error) {
-                showToast('Lỗi khi tải dữ liệu');
-            }
-        };
-
-        fetchRunningData();
-
-        const intervalMs = (parseInt(orderStore?.config?.inspectionTime, 10) || 30) * 1000;
-        const interval = setInterval(fetchRunningData, intervalMs);
-
-        return () => clearInterval(interval);
-    }, [getData, setBatchsStore, setOrderStore, orderStore?.config?.inspectionTime]);
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('beforeRemove', (e) => {

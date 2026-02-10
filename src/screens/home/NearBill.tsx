@@ -6,7 +6,7 @@ import { ViewBox } from '../../components/common/ViewBox';
 import { Text } from '../../components/common/Text';
 import Card from '../../components/common/Card';
 import List from '../../components/common/List';
-import { AppNavigationProps } from '../../types/navigation';
+import { MainNavigationProps } from '../../types/navigation';
 import { useAuthStore } from '../../store/authStore';
 import { useAPI } from '../../service/api';
 import { showToast } from '../../service/toast';
@@ -14,7 +14,7 @@ import { formatDateCustom } from '../../utils/dateTime';
 import Feather from 'react-native-vector-icons/Feather';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 
-const NearBill = ({ navigation }: AppNavigationProps<'NearBill'>) => {
+const NearBill = ({ navigation }: MainNavigationProps<'NearBill'>) => {
     const [listOrder, setListOrder] = useState<any[]>([]);
     const [refreshing, setRefreshing] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);

@@ -14,8 +14,20 @@ export interface AppNavigationProps<RouteName extends keyof AppRoutes> {
     route: RouteProp<AppRoutes, RouteName>;
 }
 
+export interface MainNavigationProps<RouteName extends keyof MainRoutes> {
+    navigation: CompositeNavigationProp<
+        StackNavigationProp<MainRoutes, RouteName>,
+        StackNavigationProp<AppRoutes>
+    >;
+    route: RouteProp<MainRoutes, RouteName>;
+}
+
 export type AppRoutes = {
     Authentication: undefined;
+    Main: undefined;
+};
+
+export type MainRoutes = {
     Home: undefined;
     Setting: undefined;
     Operation: { order?: any; init?: boolean; };

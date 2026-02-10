@@ -8,13 +8,13 @@ import { Button } from '../../components/common/Button';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
-import { AppNavigationProps } from '../../types/navigation';
+import { MainNavigationProps } from '../../types/navigation';
 import PillBadge from '../../components/common/PillBadge';
 import { StyleSheet } from 'react-native';
 import { useOperationStore } from '../../store/operationStore';
 import { formatDateCustom } from '../../utils/dateTime';
 
-const FinishConfirm = ({ navigation }: AppNavigationProps<'FinishConfirm'>) => {
+const FinishConfirm = ({ navigation }: MainNavigationProps<'FinishConfirm'>) => {
     const handleFinish = () => {
         navigation.reset({
             index: 0,

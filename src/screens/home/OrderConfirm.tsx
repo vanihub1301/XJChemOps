@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AppNavigationProps } from '../../types/navigation';
+import { MainNavigationProps } from '../../types/navigation';
 import ViewContainer from '../../components/common/ViewContainer';
 import { ViewBox } from '../../components/common/ViewBox';
 import { Text } from '../../components/common/Text';
@@ -13,7 +13,7 @@ import { useAPI } from '../../service/api';
 import { showToast } from '../../service/toast';
 import { useOperationStore } from '../../store/operationStore';
 
-const OrderConfirm = ({ navigation, route }: AppNavigationProps<'OrderConfirm'>) => {
+const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>) => {
     const { code } = route.params || {};
     const [orderData, setOrderData] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);

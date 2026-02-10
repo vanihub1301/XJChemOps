@@ -8,4 +8,5 @@ export interface SettingState {
     initializeSetting: () => Promise<void>;
     setData: (key: string, value: any) => Promise<void>;
     setMany: (data: any) => Promise<void>;
+    getMany: (keys: string[]) => Promise<any>;
 }

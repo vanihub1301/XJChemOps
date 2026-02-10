@@ -2,7 +2,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getFileInfo, normalizeFileUri } from '../utils/file';
 
-const BASE_URL = 'http://192.168.10.8:8072/api/v1/';
+let BASE_URL = 'http://192.168.10.8:8072/api/v1/';
 
 const api = axios.create({
     baseURL: BASE_URL,
@@ -12,36 +12,14 @@ const api = axios.create({
     },
 });
 
-const refreshApi = axios.create({
-    baseURL: BASE_URL,
-    timeout: 10000,
-    headers: {
-        'Content-Type': 'application/json',
-    },
-});
-
-let isRefreshing = false;
-let failedQueue: Array<{
-    resolve: (value?: unknown) => void;
-    reject: (reason?: any) => void;
-}> = [];
-
-const processQueue = (error: any, token: string | null = null) => {
-    failedQueue.forEach(prom => {
-        if (error) {
-            prom.reject(error);
-        } else {
-            prom.resolve(token);
-        }
-    });
-    failedQueue = [];
-};
-
 api.interceptors.request.use(
     async config => {
-        const token = await AsyncStorage.getItem('access_token');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+        const [host, port] = await AsyncStorage.multiGet([
+            'host',
+            'port',
+        ]);
+        if (host && port) {
+            config.baseURL = `http://${host[1]}:${port[1]}/api/v1/`;
         }
         console.log('LOG : config:', config);
         return config;
@@ -52,66 +30,8 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     response => response,
     async error => {
-        const originalRequest = error.config;
-
         if (error.response?.status === 525) {
             return Promise.reject(error);
-        }
-
-        if (error.response?.status === 401 && !originalRequest._retry) {
-            if (isRefreshing) {
-                return new Promise((resolve, reject) => {
-                    failedQueue.push({ resolve, reject });
-                })
-                    .then(token => {
-                        originalRequest.headers.Authorization = `Bearer ${token}`;
-                        return api(originalRequest);
-                    })
-                    .catch(err => Promise.reject(err));
-            }
-
-            originalRequest._retry = true;
-            isRefreshing = true;
-
-            try {
-                const refreshToken = await AsyncStorage.getItem('refresh_token');
-
-                if (!refreshToken) {
-                    throw new Error('No refresh token available');
-                }
-
-                const refreshResponse = await refreshApi.post('auth/reGenerateToken', {
-                    refreshToken,
-                });
-
-                const newAccessToken =
-                    refreshResponse.data.data?.accessToken ||
-                    refreshResponse.data.data?.access_token;
-                const newRefreshToken =
-                    refreshResponse.data.data?.refreshToken ||
-                    refreshResponse.data.data?.refresh_token ||
-                    refreshToken;
-
-                if (!newAccessToken) {
-                    throw new Error('No access token received');
-                }
-
-                await AsyncStorage.setItem('access_token', newAccessToken);
-                await AsyncStorage.setItem('refresh_token', newRefreshToken);
-
-                processQueue(null, newAccessToken);
-
-                originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-                return api(originalRequest);
-
-            } catch (refreshError) {
-                processQueue(refreshError, null);
-                await AsyncStorage.multiRemove(['access_token', 'refresh_token', 'remember_me']);
-
-                return Promise.reject(refreshError);
-            } finally {
-                isRefreshing = false;
-            }
         }
 
         return Promise.reject(error);
@@ -161,9 +81,9 @@ export const uploadFile = async (fileUri: string, baseUrl: string, fileName?: st
     return uploadToEndpoint(fileUri, baseUrl, fileName, mimeType);
 };
 
-export const uploadFaceDetection = async (imageUri: string) => {
-    return uploadToEndpoint(imageUri, 'http://192.168.13.74:8000/check-face');
-};
+// export const uploadFaceDetection = async (imageUri: string) => {
+//     return uploadToEndpoint(imageUri, 'http://192.168.13.74:8000/check-face');
+// };
 
 export const get = async <T = any>(
     url: string,
