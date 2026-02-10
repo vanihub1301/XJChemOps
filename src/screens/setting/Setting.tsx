@@ -17,11 +17,13 @@ import BottomSheet from '@gorhom/bottom-sheet';
 import { useAPI } from '../../service/api';
 import { useAuthStore } from '../../store/authStore';
 import { MainNavigationProps } from '../../types/navigation';
+import { useOperationStore } from '../../store/operationStore';
 
 const Setting = ({ }: MainNavigationProps<'Setting'>) => {
     const { host, port, checkInterval, keepAwake, soundEnabled, language, setMany } = useSettingStore();
     const { postData } = useAPI();
     const { rotatingTank } = useAuthStore();
+    const { orderStore } = useOperationStore();
 
     const [serverAddress, setServerAddress] = useState(host);
     const [serverPort, setServerPort] = useState(port);
@@ -53,6 +55,7 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
                 port: +serverPort,
             })
             const response = await postData('portal/inject/config', {
+                id: 0,
                 drumno: rotatingTank?.name,
                 inspectionTime: +checkIntervalLocal,
                 enableSound: soundEnabledLocal,

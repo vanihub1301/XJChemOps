@@ -24,6 +24,15 @@ const ActiveBatch: React.FC<ActiveBatchProps> = ({
     onChangeOperator,
 }) => {
     const { batchsStore, isPause } = useOperationStore();
+    const processColors: Record<string, string> = {
+        '1': '#4FC3F7',
+        '2': '#81C784',
+        '3': '#FFD54F',
+        '4': '#FF8A65',
+        '5': '#BA68C8',
+        '6': '#F06292',
+        '7': '#4DB6AC',
+    };
 
     const renderItem = useCallback(({ item: chemical }: { item: Chemical }) => {
         return (
@@ -37,7 +46,7 @@ const ActiveBatch: React.FC<ActiveBatchProps> = ({
                     <ViewBox className="flex-row items-center justify-between">
                         <ViewBox className="flex-row items-center gap-2 flex-1">
                             <ViewBox
-                                background={chemical.isAppend ? 'blurLavender' : 'blurGray'}
+                                background={chemical.scanning ? 'blurLavender' : 'blurGray'}
                                 radius={'xl'}
                                 padding={'sm'}
                                 className="w-14 h-14 items-center justify-center"
@@ -46,21 +55,42 @@ const ActiveBatch: React.FC<ActiveBatchProps> = ({
                                 <Ionicons
                                     name="flask"
                                     size={26}
-                                    color={chemical.isAppend ? '#6165EE' : '#9CA3AF'}
+                                    color={chemical.scanning ? '#6165EE' : '#9CA3AF'}
                                 />
                             </ViewBox>
 
                             <ViewBox gap="xxs" className="flex-1">
-                                <Text variant="labelLargeStrong" color="black" numberOfLines={1}>
-                                    {chemical.processCode} | {chemical.materialName} | {formatDateCustom(chemical.confirmTime, { format: 'HH:mm' })}
-                                </Text>
-                                <Text variant="label" color="primary">
-                                    {chemical.actualWeight}kg {chemical.operateTime ? `| ${chemical.operateTime}phút` : ''}
-                                </Text>
+                                <ViewBox className="flex-row items-center">
+                                    <Text variant="labelLargeStrong" color="black" numberOfLines={1}>
+                                        {chemical.processCode} | {chemical.materialCode}-{chemical.materialName}
+                                    </Text>
+                                    <Text className="flex-1 text-right pr-20" variant="labelLargeStrong" color="black" numberOfLines={1}>
+                                        {chemical.actualWeight}kg
+                                    </Text>
+                                </ViewBox>
+                                <ViewBox className="flex-row items-center">
+                                    <ViewBox gap="md" className="flex-row items-center">
+                                        {chemical.autoFeed && (
+                                            <Text variant="label" numberOfLines={1}>
+                                                Đường ống {chemical.pipelineNo}
+                                            </Text>
+                                        )}
+                                    </ViewBox>
+                                    <ViewBox gap={'xxs'} className="flex-row items-center flex-1 justify-end pr-20">
+                                        <MaterialCommunityIcons
+                                            name="clock-outline"
+                                            size={18}
+                                            color={'#6165EE'}
+                                        />
+                                        <Text variant="label" color="primary">
+                                            Ngày {formatDateCustom(chemical.confirmTime, { format: 'dd' })} Tháng {formatDateCustom(chemical.confirmTime, { format: 'MM' })} {formatDateCustom(chemical.confirmTime, { format: 'HH:mm' })}
+                                        </Text>
+                                    </ViewBox>
+                                </ViewBox>
                             </ViewBox>
                         </ViewBox>
 
-                        {chemical.isAppend ? (
+                        {chemical.scanning ? (
                             <MaterialCommunityIcons
                                 name="check-circle"
                                 size={28}
@@ -82,7 +112,7 @@ const ActiveBatch: React.FC<ActiveBatchProps> = ({
             <ViewBox className="flex-row items-center justify-between">
                 <Text color={'black'} variant={'labelLargeStrong'}>DANH SÁCH HOÁ CHẤT</Text>
                 <PillBadge
-                    label={`${batchsStore?.filter((c: any) => c.isAppend)?.length || 0}/${batchsStore?.length || 0} Đã hoàn tất`}
+                    label={`${batchsStore?.filter((c: any) => c.scanning)?.length || 0}/${batchsStore?.length || 0} Đã hoàn tất`}
                     background="blurLavender"
                     textColor="crayola"
                 />

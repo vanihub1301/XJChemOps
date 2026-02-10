@@ -26,7 +26,7 @@ import { unlink } from 'react-native-fs';
 import { uploadFile } from '../../service/axios';
 
 const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
-    const { order, init } = route.params;
+    const { init } = route.params;
     const [modalVisible, setModalVisible] = React.useState(false);
     const [alertedTimes, setAlertedTimes] = React.useState<Set<string>>(new Set());
 
@@ -84,11 +84,8 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
         }
     }, [groupedChemicals, videoPath, getData, putData]);
 
-
     const handleStopPress = async () => {
-        navigation.navigate('FormStopOperation', {
-            operation: order,
-        });
+        navigation.navigate('FormStopOperation');
         // handleModalRecord();
     };
 
@@ -103,31 +100,28 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
                 {
                     text: 'Xác nhận',
                     onPress: async () => {
-                        const now = new Date(orderStore.currentTime.replace(' ', 'T')).getTime();
-
-                        const nextChemical = groupedChemicals.findIndex(item => new Date(item.time.replace(' ', 'T')).getTime() > now);
-
                         let result: any;
 
                         if (isPause) {
                             result = await postData('portal/inject/pause', {
-                                processFk: groupedChemicals[nextChemical - 1]?.chemicals[0].processFk,
-                                orderBill: order?.orderNo,
-                                bomNo: order?.bomNo,
+                                processFk: orderStore?.process?.id,
+                                orderBill: orderStore?.process?.orderNo,
+                                bomNo: orderStore?.process?.bomNo,
+                                pauseTime: orderStore?.appInjectPause?.pauseTime,
                                 continueTime: orderStore?.currentTime,
                             }, true, orderStore?.config?.serverIp + ':' + orderStore?.config?.port);
-                            setIsPause(false);
                         } else {
                             result = await postData('portal/inject/pause', {
-                                processFk: batchsStore[nextChemical - 1]?.processFk,
-                                orderBill: order?.orderNo,
-                                bomNo: order?.bomNo,
+                                processFk: orderStore?.process?.id,
+                                orderBill: orderStore?.process?.orderNo,
+                                bomNo: orderStore?.process?.bomNo,
                                 pauseTime: orderStore?.currentTime,
                             }, true, orderStore?.config?.serverIp + ':' + orderStore?.config?.port);
                         }
 
+                        console.log('LOG : handlePausePress : result:', result)
                         if (result.code === 0) {
-                            setIsPause(true);
+                            setIsPause(!isPause);
                         } else {
                             showToast(result.msg);
                         }
@@ -163,9 +157,7 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
                 });
                 break;
             case 'time':
-                navigation.navigate('FormChangeStartTime', {
-                    operation: order,
-                });
+                navigation.navigate('FormChangeStartTime');
                 break;
             default:
                 break;
@@ -174,11 +166,15 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
     };
 
     useEffect(() => {
-        if (groupedChemicals.length === 0) {
+        if (groupedChemicals.length === 0 && (!batchsStore || batchsStore.length === 0)) {
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Home' }],
+            });
             return;
         }
 
-        if (!orderStore?.currentTime) {
+        if (!orderStore.currentTime) {
             return;
         }
 
@@ -193,14 +189,14 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
             const timeUntilConfirm = confirmTimeMs - serverNowMs;
             const secondsUntilConfirm = Math.floor(timeUntilConfirm / 1000);
 
-            if (secondsUntilConfirm <= 15 && secondsUntilConfirm > 0) {
+            if (secondsUntilConfirm <= 15 && secondsUntilConfirm > 0 && !isPause) {
                 setModalVisible(true);
                 play();
                 setAlertedTimes(prev => new Set(prev).add(group.time));
                 break;
             }
         }
-    }, [groupedChemicals, alertedTimes, play, orderStore]);
+    }, [groupedChemicals, play, navigation]);
 
     useEffect(() => {
         const handler = async () => {
@@ -218,7 +214,7 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
             setCurrentChemicals(firstGroup.chemicals);
             setModalVisible(true);
         }
-    }, [init]);
+    }, [init, groupedChemicals, setCurrentChemicals]);
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('beforeRemove', (e) => {
@@ -263,8 +259,8 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
                                 <MaterialCommunityIcons name="robot-industrial" size={14} color="#6165EE" />
                                 <Text variant={'captionStrong'} color={'crayola'}>LỆNH SẢN XUẤT</Text>
                             </ViewBox>
-                            <Text color={'black'} variant={'sectionTitle'}>Mã đơn: {order?.orderNo}</Text>
-                            <Text variant={'label'} >Vị trí: Bồn {order?.drumNo}</Text>
+                            <Text color={'black'} variant={'sectionTitle'}>Mã đơn: {orderStore?.process?.orderNo}</Text>
+                            <Text variant={'label'} >Đơn thuốc: {orderStore?.process?.bomNo}</Text>
                         </ViewBox>
                         <ViewBox radius={'xxl'} background={'blurLavender'} padding={'md'}>
                             <MaterialIcons name="factory" size={42} color="#6165EE" />

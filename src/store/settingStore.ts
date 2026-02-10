@@ -9,6 +9,7 @@ const mapKey = {
     keepAwake: 'keep_awake',
     soundEnabled: 'sound_enabled',
     language: 'language',
+    idDrum: 'id_drum',
 };
 
 export const useSettingStore = create<SettingState>((set) => ({
@@ -18,6 +19,7 @@ export const useSettingStore = create<SettingState>((set) => ({
     keepAwake: false,
     soundEnabled: false,
     language: '',
+    idDrum: '',
 
     initializeSetting: async () => {
         try {

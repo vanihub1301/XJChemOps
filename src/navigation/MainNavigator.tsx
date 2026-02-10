@@ -22,18 +22,13 @@ import { useSettingStore } from '../store/settingStore';
 
 const MainStack = createStackNavigator<MainRoutes>();
 export const MainNavigator = () => {
-    const { orderStore, batchsStore, reset, setBatchsStore, setOrderStore, setGroupedChemicals, setCurrentChemicals } = useOperationStore();
+    const { orderStore, batchsStore, reset, setBatchsStore, setOrderStore, setGroupedChemicals, setCurrentChemicals, setIsPause } = useOperationStore();
     const { rotatingTank } = useAuthStore();
-    const { host, port, checkInterval, setMany } = useSettingStore();
+    const { host, port, checkInterval, setMany, } = useSettingStore();
     const { getData } = useAPI();
 
     useEffect(() => {
-        if (!batchsStore || batchsStore.length === 0) {
-            setGroupedChemicals([]);
-            return;
-        }
-
-        if (batchsStore.length === 0) {
+        if (!batchsStore || batchsStore.length === 0 || !orderStore?.currentTime) {
             setGroupedChemicals([]);
             return;
         }
@@ -65,7 +60,7 @@ export const MainNavigator = () => {
             return currentTime >= startTime && currentTime < endTime;
         });
 
-        console.log('LOG : Operation : currentGroup:', currentGroup)
+        console.log('LOG : Operation : currentGroup:', currentGroup);
         console.log('LOG : Operation : grouped:', grouped);
         console.log('LOG : Operation : config:', orderStore.config);
         console.log('LOG : Operation : currentTime:', orderStore.currentTime);
@@ -77,8 +72,9 @@ export const MainNavigator = () => {
     useEffect(() => {
         const fetchRunningData = async () => {
             try {
-                const res = await getData('/portal/inject/getRunning', { drumNo: rotatingTank.name }, true, host + ':' + port);
-                console.log('LOG : fetchRunningData : res:', res)
+                console.log('LOG : fetchRunningData : orderStore:', orderStore)
+
+                const res = await getData('portal/inject/getRunning', { drumNo: orderStore?.process?.drumNo || rotatingTank.name }, true, host + ':' + port);
                 if (res.code === 0 && res.data?.process?.dtl) {
                     const { dtl, ...processWithoutDtl } = res.data.process;
                     const config = res.data?.config;
@@ -91,9 +87,10 @@ export const MainNavigator = () => {
                             appInjectPause: res.data?.appInjectPause,
                         }),
                         setBatchsStore(dtl),
-                        setMany({ host: config.serverIp, port: config.port, checkInterval: config.inspectionTime }),
+                        setMany({ host: config.serverIp, port: config.port, checkInterval: config.inspectionTime, idDrum: res.data?.process?.idDrum }),
+                        setIsPause(res.data?.appInjectPause?.pauseTime && !res.data?.appInjectPause?.continueTime),
                     ]);
-                } else {
+                } else if (batchsStore.length > 0) {
                     reset();
                 }
             } catch (error) {
@@ -107,8 +104,7 @@ export const MainNavigator = () => {
         const interval = setInterval(fetchRunningData, intervalMs);
 
         return () => clearInterval(interval);
-    }, [getData, setBatchsStore, setOrderStore, host, port, checkInterval, rotatingTank.name]);
-
+    }, [host, port, checkInterval, rotatingTank.name, getData, setBatchsStore, setOrderStore, reset, setMany]);
 
     return (
         <MainStack.Navigator screenOptions={{ headerShown: false }} initialRouteName={'Home'}>

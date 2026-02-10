@@ -279,7 +279,7 @@ const Video = ({ navigation, route }: VideoProps) => {
                                         CHEMICAL MONITORING
                                     </Text>
                                     <Text variant="labelSmall" className="text-[#858585]">
-                                        Active scan: {batchsStore.filter((batch: any) => batch.isAppend).length} compounds detected
+                                        Active scan: {batchsStore.filter((batch: any) => batch.scanning).length} compounds detected
                                     </Text>
                                 </ViewBox>
 
@@ -296,10 +296,10 @@ const Video = ({ navigation, route }: VideoProps) => {
                                                 <ViewBox
                                                     padding="xs"
                                                     radius="xxxl"
-                                                    className={`w-14 h-14 items-center justify-center ${chemical.isAppend ? 'bg-[#225E42]' : 'bg-[#bf342a8f]'
+                                                    className={`w-14 h-14 items-center justify-center ${chemical.scanning ? 'bg-[#225E42]' : 'bg-[#bf342a8f]'
                                                         }`}
                                                 >
-                                                    {mapIcon[(chemical.autoFeed === true && chemical.isAppend === true) ? 'bag' : chemical.isAppend === true ? 'flask' : 'alert']}
+                                                    {mapIcon[(chemical.autoFeed === true && chemical.scanning === true) ? 'bag' : chemical.scanning === true ? 'flask' : 'alert']}
                                                 </ViewBox>
                                                 <ViewBox className="flex-1">
                                                     <ViewBox className="flex-row items-center gap-2">
@@ -314,7 +314,7 @@ const Video = ({ navigation, route }: VideoProps) => {
                                                     </ViewBox>
                                                 </ViewBox>
                                             </ViewBox>
-                                            <ViewBox className={`w-2 h-2 rounded-full ${chemical.isAppend ? 'bg-[#12F28A]' : 'bg-[#FF5152]'
+                                            <ViewBox className={`w-2 h-2 rounded-full ${chemical.scanning ? 'bg-[#12F28A]' : 'bg-[#FF5152]'
                                                 }`} />
                                         </ViewBox>
                                     )) || (

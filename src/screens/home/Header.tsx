@@ -7,9 +7,10 @@ import { useAuthStore } from '../../store/authStore';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import PillBadge from '../../components/common/PillBadge';
 import CycloneIcon from './CycloneIcon';
+import { formatDateCustom } from '../../utils/dateTime';
 
 const Header = () => {
-    const { fullName, rotatingTank } = useAuthStore();
+    const { fullName, rotatingTank, timeLogin } = useAuthStore();
 
     return (
         <ViewBox className="flex-row gap-3 mb-4">
@@ -22,7 +23,7 @@ const Header = () => {
 
                     <ViewBox gap={'xs'}>
                         <Text color={'black'} variant={'labelLargeStrong'}>
-                            {fullName || 'Nguyễn Văn A'}
+                            {fullName || ''}
                         </Text>
                         <PillBadge
                             label={`ID: ${209092}`}
@@ -31,7 +32,7 @@ const Header = () => {
                         />
                         <ViewBox gap={'xs'} className="flex-row items-center">
                             <MaterialCommunityIcons name="clock" size={20} color="gray" />
-                            <Text variant={'captionSemibold'}>Thời gian đăng nhập: 08:30 </Text>
+                            <Text variant={'captionSemibold'}>Thời gian đăng nhập: {formatDateCustom(timeLogin, { format: 'HH:mm' })}</Text>
                         </ViewBox>
 
                     </ViewBox>

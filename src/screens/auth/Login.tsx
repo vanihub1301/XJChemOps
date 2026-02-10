@@ -151,6 +151,9 @@ const Login = ({ navigation, isReAuthentication = false }: LoginProps) => {
             await useAuthStore.getState().setAuth({
                 isSignedIn: true,
             });
+            await useAuthStore.getState().setTimeLogin({
+                timeLogin: new Date().toISOString(),
+            });
         }
     }, [navigation]);
 

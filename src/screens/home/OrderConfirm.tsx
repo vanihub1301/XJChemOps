@@ -8,10 +8,11 @@ import Card from '../../components/common/Card';
 import ViewHeader from '../../components/common/ViewHeader';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { formatDateCustom } from '../../utils/dateTime';
+import { formatDateCustom, parseDateTime } from '../../utils/dateTime';
 import { useAPI } from '../../service/api';
 import { showToast } from '../../service/toast';
 import { useOperationStore } from '../../store/operationStore';
+import { useAuthStore } from '../../store/authStore';
 
 const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>) => {
     const { code } = route.params || {};
@@ -19,6 +20,7 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
     const [error, setError] = useState<string | null>(null);
     const orderFields = [
         { label: 'Mã đơn', value: orderData?.orderNo, icon: <MaterialCommunityIcons name="fingerprint" size={24} color="#6266F1" /> },
+        { label: 'Mã hoá chất', value: orderData?.bomNo, icon: <MaterialCommunityIcons name="barcode" size={24} color="#6266F1" /> },
         { label: 'Màu sắc', value: orderData?.color, icon: <Ionicons name="color-palette-outline" size={24} color="#6266F1" /> },
         { label: 'Trọng lượng', value: orderData?.actualWeight ? orderData?.actualWeight + 'kg' : '', icon: <MaterialCommunityIcons name="weight" size={24} color="#6266F1" /> },
         { label: 'Độ dày', value: orderData?.thickness ? orderData?.thickness + 'mm' : '', icon: <MaterialCommunityIcons name="format-line-weight" size={24} color="#6266F1" /> },
@@ -26,7 +28,8 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
     ];
 
     const { getData, postData, loading } = useAPI();
-    const { setOrderStore, setBatchsStore } = useOperationStore();
+    const { setOrderStore, setBatchsStore, setGroupedChemicals } = useOperationStore();
+    const { fullName } = useAuthStore();
 
     const fetchData = async (orderNo: string) => {
         try {
@@ -49,47 +52,95 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
         }
     }, [code]);
 
+    const checkTimeData = (batchsStore: any[]) => {
+        const groupedByTime: { [key: string]: any[] } = {};
+        batchsStore.forEach((chemical: any) => {
+            const confirmTime = chemical.confirmTime;
+            if (!groupedByTime[confirmTime]) {
+                groupedByTime[confirmTime] = [];
+            }
+            groupedByTime[confirmTime].push(chemical);
+        });
+
+        const timeKeys = Object.keys(groupedByTime);
+        if (timeKeys.length <= 1) {
+            showToast('Đơn hàng này không có dữ liệu thời gian');
+            return false;
+        }
+        return true;
+    };
+
     const handleConfirm = async () => {
         try {
-            if (orderData) {
-                const resRunning = await getData('portal/inject/getRunning', { drumNo: orderData.drumNo }, false);
-                if (resRunning.code === 0 && resRunning?.data?.process) {
-                    const { dtl, ...processWithoutDtl } = resRunning.data.process;
+            if (!orderData) { return; }
 
-                    await Promise.all([
-                        setOrderStore({
-                            process: processWithoutDtl,
-                            currentTime: resRunning.data?.curentTime,
-                            config: resRunning.data?.config,
-                            appInjectPause: resRunning.data?.appInjectPause,
-                        }),
-                        setBatchsStore(dtl),
-                    ]);
-                    navigation.navigate('Operation', {
-                        order: orderData,
-                    });
-                } else {
-                    const resInit = await postData(`portal/inject/initProject?fid=${orderData.id}&employee=NGUYỄN THỊ THOẢNG`);
-                    navigation.navigate('Operation', {
-                        order: orderData,
-                    });
-                    if (resInit.code === 0) {
-                        await Promise.all([
-                            setOrderStore(resInit.data.process),
-                            setBatchsStore(resInit.data.process.dtl),
-                        ]);
-                        navigation.navigate('Operation', {
-                            order: orderData,
-                            init: true,
-                        });
-                    } else {
-                        showToast(resInit.msg);
-                    }
+            let processData;
+            let isNewInit = false;
+
+            const resRunning = await getData('portal/inject/getRunning', { drumNo: orderData.drumNo }, false);
+
+            if (resRunning.code === 0 && resRunning?.data?.process) {
+                processData = resRunning.data;
+            } else {
+                const resInit = await postData(`portal/inject/initProject?fid=${orderData.id}&employee=${fullName}`);
+
+                if (resInit.code !== 0) {
+                    showToast(resInit.msg);
+                    return;
                 }
+
+                const res = await getData('portal/inject/getRunning', { drumNo: orderData.drumNo }, false);
+                processData = { ...res.data, dtl: resInit.data.dtl };
+                isNewInit = true;
             }
+
+            const { dtl, process, curentTime, config, appInjectPause } = processData;
+
+            // if (!checkTimeData(dtl)) { return; }
+
+            const groupedChemicals = groupChemicalsByTime(dtl);
+
+            await Promise.all([
+                setOrderStore({
+                    process,
+                    currentTime: curentTime,
+                    config,
+                    appInjectPause,
+                }),
+                setBatchsStore(dtl),
+            ]);
+
+            setGroupedChemicals(groupedChemicals);
+
+            navigation.reset({
+                index: 0,
+                routes: [{
+                    name: 'Operation',
+                    ...(isNewInit && { params: { init: true } }),
+                }],
+            });
+
         } catch (err: any) {
             showToast(err);
         }
+    };
+
+    const groupChemicalsByTime = (dtl: any[]) => {
+        const groupedByTime = dtl.reduce((acc, chemical) => {
+            const { confirmTime } = chemical;
+            if (!acc[confirmTime]) {
+                acc[confirmTime] = [];
+            }
+            acc[confirmTime].push(chemical);
+            return acc;
+        }, {} as Record<string, any[]>);
+
+        return Object.keys(groupedByTime)
+            .sort()
+            .map(time => ({
+                time,
+                chemicals: groupedByTime[time],
+            }));
     };
 
     if (error || !orderData) {

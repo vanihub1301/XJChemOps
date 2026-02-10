@@ -17,6 +17,8 @@ import { formatDateCustom } from '../../utils/dateTime.ts';
 import CameraScanSection from './CameraScanSection.tsx';
 import { useAPI } from '../../service/api.ts';
 import { showToast } from '../../service/toast.ts';
+import { useOperationStore } from '../../store/operationStore.ts';
+import { useFocusEffect } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
@@ -28,6 +30,7 @@ const MainHome = ({ navigation }: MainNavigationProps<'Home'>) => {
 
   const { getData, postData } = useAPI();
   const { rotatingTank } = useAuthStore();
+  const { batchsStore } = useOperationStore();
 
   const handleCodeScanned = (code: string) => {
     if (!rotatingTank?.name) {
@@ -66,6 +69,20 @@ const MainHome = ({ navigation }: MainNavigationProps<'Home'>) => {
       showToast(error);
     }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      if (batchsStore.length > 0) {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Operation', params: { init: false } }],
+        });
+      }
+
+      return () => {
+      };
+    }, [batchsStore, navigation])
+  );
 
   useEffect(() => {
     fetchData();

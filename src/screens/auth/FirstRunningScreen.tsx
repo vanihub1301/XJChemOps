@@ -84,7 +84,7 @@ const FirstRunningScreen = () => {
 
     const fetchData = async () => {
         try {
-            const res = await getData('portal/inject/drumInfo', undefined, true);
+            const res = await getData('portal/inject/drumInfo');
             setListRotatingTank(res.data);
         } catch (error: any) {
             showToast(error);

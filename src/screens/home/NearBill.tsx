@@ -86,11 +86,11 @@ const NearBill = ({ navigation }: MainNavigationProps<'NearBill'>) => {
             activeOpacity={0.7}
             onPress={() => navigation.navigate('BillDetail', { order: item })}
             key={item.id}
+            style={styles.shadowCard}
+            className="bg-white mb-3 rounded-3xl"
         >
             <Card
-                style={styles.shadowCard}
-                radius="xxxl"
-                className="flex-1 mb-3 flex-row items-center justify-between border border-gray-100"
+                className="flex-1 flex-row items-center justify-between"
             >
                 <ViewBox gap={'md'} className="flex-row items-center">
                     <ViewBox background={'gray'} radius={'full'} className="w-12 h-12 justify-center items-center">

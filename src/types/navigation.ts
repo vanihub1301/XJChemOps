@@ -30,13 +30,13 @@ export type AppRoutes = {
 export type MainRoutes = {
     Home: undefined;
     Setting: undefined;
-    Operation: { order?: any; init?: boolean; };
+    Operation: { init?: boolean; };
     NearBill: undefined;
     BillDetail: { order: any; };
     FinishConfirm: undefined;
     VideoPlayback: undefined;
-    FormStopOperation: { operation?: any; };
-    FormChangeStartTime: { operation?: any; };
+    FormStopOperation: undefined;
+    FormChangeStartTime: undefined;
     OrderConfirm: { code: string };
     Video: { autoRecord?: boolean; currentChemicals?: any } | undefined;
     ScanQR: { nextScreen?: string, reset?: boolean };

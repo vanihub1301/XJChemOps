@@ -35,6 +35,7 @@ export interface Chemical {
     actualWeight: number;
     operateTime: number;
     isAppend: boolean;
+    scanning: boolean;
     pipelineNo: string;
     confirmUser: string | null;
     confirmTime: string;

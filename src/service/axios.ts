@@ -18,6 +18,7 @@ api.interceptors.request.use(
             'host',
             'port',
         ]);
+
         if (host && port) {
             config.baseURL = `http://${host[1]}:${port[1]}/api/v1/`;
         }

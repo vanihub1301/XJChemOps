@@ -72,7 +72,7 @@ const ChemicalAlertModal = ({
 
                     <ScrollView
                         className="mb-6 max-h-[300px]"
-                        showsVerticalScrollIndicator={true}
+                        showsVerticalScrollIndicator={false}
                     >
                         <ViewBox gap="sm">
                             {currentChemicals.map((chemical: any, _index: number) => (

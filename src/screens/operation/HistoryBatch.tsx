@@ -6,13 +6,13 @@ import { useOperationStore } from '../../store/operationStore';
 import Card from '../../components/common/Card';
 import List from '../../components/common/List';
 import { formatDateCustom } from '../../utils/dateTime';
+import { useAuthStore } from '../../store/authStore';
 
 const HistoryBatch: React.FC = () => {
     const { batchsStore } = useOperationStore();
+    const { fullName } = useAuthStore();
 
-    const staff = 'Nguyễn Văn A';
-
-    const historyOperation = batchsStore.filter(item => item.isAppend).reverse();
+    const historyOperation = batchsStore.filter(item => item.videoFk).reverse();
 
     const renderHistoryItem = useCallback(
         ({ item, index }: { item: any; index: number }) => {
@@ -45,7 +45,7 @@ const HistoryBatch: React.FC = () => {
                                 </Text>
                             </ViewBox>
                             <Text color="primary" variant="captionMedium">
-                                Người vận hành: {staff}
+                                Người vận hành: {fullName}
                             </Text>
                         </ViewBox>
                     ) : (

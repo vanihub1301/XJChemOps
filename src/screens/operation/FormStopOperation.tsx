@@ -16,6 +16,7 @@ import { formatDateCustom } from '../../utils/dateTime';
 import { showToast } from '../../service/toast';
 import { useAPI } from '../../service/api';
 import { useOperationStore } from '../../store/operationStore';
+import { useAuthStore } from '../../store/authStore';
 
 const FormStopOperation = ({ navigation }: MainNavigationProps<'FormStopOperation'>) => {
     const [selectedReason, setSelectedReason] = useState<string>('');
@@ -27,6 +28,7 @@ const FormStopOperation = ({ navigation }: MainNavigationProps<'FormStopOperatio
 
     const { postData, getData, loading } = useAPI();
     const { orderStore } = useOperationStore();
+    const { fullName } = useAuthStore();
 
     const orderFields = [
         { label: 'Mã đơn', value: orderStore?.orderNo, icon: <MaterialCommunityIcons name="fingerprint" size={24} color="#6266F1" /> },
@@ -35,7 +37,6 @@ const FormStopOperation = ({ navigation }: MainNavigationProps<'FormStopOperatio
         { label: 'Độ dày', value: orderStore?.thickness ? orderStore?.thickness + 'mm' : '', icon: <MaterialCommunityIcons name="format-line-weight" size={24} color="#6266F1" /> },
         { label: 'Thời gian bắt đầu', value: formatDateCustom(orderStore?.startDrum, { format: 'HH:mm' }), icon: <MaterialCommunityIcons name="clock-outline" size={24} color="#6266F1" /> },
     ];
-    const staff = 'NGUYỄN THỊ THOẢNG';
 
     const handleReasonPress = () => {
         reasonBottomSheetRef.current?.expand();
@@ -77,7 +78,7 @@ const FormStopOperation = ({ navigation }: MainNavigationProps<'FormStopOperatio
             reason: +selectedReason,
             remarks: otherReason,
             finishTime: orderStore.currentTime,
-            registor: staff,
+            registor: fullName,
         }, true);
 
         if (res?.code === 0) {

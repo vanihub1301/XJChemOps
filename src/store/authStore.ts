@@ -8,6 +8,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     firstRunning: false,
     rotatingTank: {},
     isSignedIn: false,
+    timeLogin: '',
 
     initialize: async () => {
         set({ isLoading: true });
@@ -36,6 +37,11 @@ export const useAuthStore = create<AuthState>((set) => ({
             isSignedIn: isSignedIn,
             isLoading: false,
         });
+    },
+
+    setTimeLogin: async ({ timeLogin }) => {
+        set({ timeLogin: timeLogin });
+        await AsyncStorage.setItem('time_login', timeLogin);
     },
 
     setName: async ({ fullName }) => {
