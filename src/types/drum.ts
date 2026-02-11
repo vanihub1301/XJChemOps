@@ -43,3 +43,12 @@ export interface Chemical {
     autoFeed: boolean;
     videoFk: string | null;
 }
+
+export interface Reference {
+    id: string;
+    code: string;
+    nameVi: string;
+    nameCn: string;
+    group: string;
+    sn: number;
+}

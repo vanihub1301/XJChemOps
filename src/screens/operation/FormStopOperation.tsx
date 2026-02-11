@@ -17,12 +17,13 @@ import { showToast } from '../../service/toast';
 import { useAPI } from '../../service/api';
 import { useOperationStore } from '../../store/operationStore';
 import { useAuthStore } from '../../store/authStore';
+import { Reference } from '../../types/drum';
 
 const FormStopOperation = ({ navigation }: MainNavigationProps<'FormStopOperation'>) => {
     const [selectedReason, setSelectedReason] = useState<string>('');
     const [selectedReasonLabel, setSelectedReasonLabel] = useState<string>('');
     const [otherReason, setOtherReason] = useState<string>('');
-    const [reasons, setReasons] = useState<any[]>([]);
+    const [reasons, setReasons] = useState<Reference[]>([]);
 
     const reasonBottomSheetRef = useRef<BottomSheet>(null);
 

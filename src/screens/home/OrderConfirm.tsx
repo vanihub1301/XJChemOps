@@ -14,6 +14,7 @@ import { showToast } from '../../service/toast';
 import { useOperationStore } from '../../store/operationStore';
 import { useAuthStore } from '../../store/authStore';
 import { Alert } from 'react-native';
+import { Chemical } from '../../types/drum';
 
 const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>) => {
     const { code } = route.params || {};
@@ -53,9 +54,9 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
         }
     }, [code]);
 
-    const checkTimeData = (batchsStore: any[]) => {
-        const groupedByTime: { [key: string]: any[] } = {};
-        batchsStore.forEach((chemical: any) => {
+    const checkTimeData = (batchsStore: Chemical[]) => {
+        const groupedByTime: { [key: string]: Chemical[] } = {};
+        batchsStore.forEach((chemical: Chemical) => {
             const confirmTime = chemical.confirmTime;
             if (!groupedByTime[confirmTime]) {
                 groupedByTime[confirmTime] = [];
@@ -126,7 +127,7 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
         }
     };
 
-    const groupChemicalsByTime = (dtl: any[]) => {
+    const groupChemicalsByTime = (dtl: Chemical[]) => {
         const groupedByTime = dtl.reduce((acc, chemical) => {
             const { confirmTime } = chemical;
             if (!acc[confirmTime]) {

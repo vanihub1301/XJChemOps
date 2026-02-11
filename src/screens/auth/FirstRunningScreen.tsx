@@ -27,7 +27,7 @@ const FirstRunningScreen = () => {
 
     const bottomSheetSearchRef = useRef<BottomSheet>(null);
 
-    const handlePressItem = (item: any) => {
+    const handlePressItem = (item: IDrum) => {
         Alert.alert('Xác nhận', `Bạn có muốn chọn "${item.name}" không?`, [
             {
                 text: 'Hủy',
@@ -115,7 +115,7 @@ const FirstRunningScreen = () => {
         </Card>
     ), []);
 
-    const renderItem = useCallback((item: any) => {
+    const renderItem = useCallback((item: IDrum) => {
         return (
             <Card background={'white'} border={'gray'} className="flex-row items-center mt-4 mx-6">
                 <ViewBox gap={'md'} className="flex-1 flex-row items-center">

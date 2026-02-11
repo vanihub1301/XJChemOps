@@ -19,6 +19,7 @@ import { useOperationStore } from '../store/operationStore';
 import { parseDateTime } from '../utils/dateTime';
 import { useAuthStore } from '../store/authStore';
 import { useSettingStore } from '../store/settingStore';
+import { Chemical } from '../types/drum';
 
 const MainStack = createStackNavigator<MainRoutes>();
 export const MainNavigator = () => {
@@ -33,8 +34,8 @@ export const MainNavigator = () => {
             return;
         }
 
-        const groupedByTime: { [key: string]: any[] } = {};
-        batchsStore.forEach((chemical: any) => {
+        const groupedByTime: { [key: string]: Chemical[] } = {};
+        batchsStore.forEach((chemical: Chemical) => {
             const confirmTime = chemical.confirmTime;
             if (!groupedByTime[confirmTime]) {
                 groupedByTime[confirmTime] = [];

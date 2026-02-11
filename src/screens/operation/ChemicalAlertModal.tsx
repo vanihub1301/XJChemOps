@@ -8,6 +8,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Card from '../../components/common/Card';
 import { useOperationStore } from '../../store/operationStore';
+import { Chemical } from '../../types/drum';
 
 interface ChemicalAlertModalProps {
     visible: boolean;
@@ -75,7 +76,7 @@ const ChemicalAlertModal = ({
                         showsVerticalScrollIndicator={false}
                     >
                         <ViewBox gap="sm">
-                            {currentChemicals.map((chemical: any, _index: number) => (
+                            {currentChemicals.map((chemical: Chemical, _index: number) => (
                                 <Card
                                     key={chemical.id}
                                     background="blurPurple"

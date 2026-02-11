@@ -13,6 +13,7 @@ import PillBadge from '../../components/common/PillBadge';
 import { StyleSheet } from 'react-native';
 import { useOperationStore } from '../../store/operationStore';
 import { formatDateCustom } from '../../utils/dateTime';
+import { Chemical } from '../../types/drum';
 
 const FinishConfirm = ({ navigation }: MainNavigationProps<'FinishConfirm'>) => {
     const handleFinish = () => {
@@ -89,7 +90,7 @@ const FinishConfirm = ({ navigation }: MainNavigationProps<'FinishConfirm'>) => 
                                 <ViewBox gap="sm" className="flex-row items-center">
                                     <FontAwesome6 name="box-archive" size={20} color="#9B95EF" />
                                     <Text variant="labelStrong" color="black">
-                                        {batchsStore?.filter((c: any) => c.scanning)?.length || 0}/{batchsStore?.length || 0}
+                                        {batchsStore?.filter((c: Chemical) => c.scanning)?.length || 0}/{batchsStore?.length || 0}
                                     </Text>
                                 </ViewBox>
                             </ViewBox>

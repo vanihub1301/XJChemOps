@@ -148,7 +148,7 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
         setModalVisible(false);
     };
 
-    const handleOptionSelection = async (value: any) => {
+    const handleOptionSelection = async (value: string) => {
         switch (value) {
             case 'extra':
                 navigation.navigate('ScanQR', {

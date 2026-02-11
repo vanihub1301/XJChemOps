@@ -5,20 +5,16 @@ import { ViewBox } from '../../components/common/ViewBox';
 import { Text } from '../../components/common/Text';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Octicons from 'react-native-vector-icons/Octicons';
-
-export interface ItemProps {
-    code: string;
-    name: string;
-}
+import { User } from '../../types/auth';
 
 export const EmployeeItem = React.memo(({
     item,
     selectedCode,
     onPress,
 }: {
-    item: ItemProps;
+    item: User;
     selectedCode?: string;
-    onPress: (item: ItemProps) => void;
+    onPress: (item: User) => void;
 }) => {
     const isSelected = selectedCode === item.code;
 

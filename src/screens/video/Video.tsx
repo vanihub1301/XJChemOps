@@ -18,6 +18,7 @@ import { useVideoStore } from '../../store/videoStore';
 import { useOperationStore } from '../../store/operationStore';
 import { MIN_FREE_SPACE, MIN_FREE_SPACE_STOP } from '../../constants/ui';
 import { showToast } from '../../service/toast';
+import { Chemical } from '../../types/drum';
 
 interface VideoProps {
     navigation: any;
@@ -279,7 +280,7 @@ const Video = ({ navigation, route }: VideoProps) => {
                                         CHEMICAL MONITORING
                                     </Text>
                                     <Text variant="labelSmall" className="text-[#858585]">
-                                        Active scan: {batchsStore.filter((batch: any) => batch.scanning).length} compounds detected
+                                        Active scan: {batchsStore.filter((batch: Chemical) => batch.scanning).length} compounds detected
                                     </Text>
                                 </ViewBox>
 
@@ -290,7 +291,7 @@ const Video = ({ navigation, route }: VideoProps) => {
                                     showsVerticalScrollIndicator={false}
                                     contentContainerStyle={styles.scrollContent}
                                 >
-                                    {currentChemicals?.map((chemical: any, index: number) => (
+                                    {currentChemicals?.map((chemical: Chemical, index: number) => (
                                         <ViewBox key={index} className="flex-row items-center justify-between py-2">
                                             <ViewBox className="flex-row items-center flex-1" gap="sm">
                                                 <ViewBox

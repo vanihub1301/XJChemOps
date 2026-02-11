@@ -5,13 +5,14 @@ import { ViewBox } from '../../components/common/ViewBox';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import List from '../../components/common/List';
 import InputSearch from '../../components/input/InputSearch';
-import { EmployeeItem, ItemProps } from './EmployeeItem';
+import { EmployeeItem } from './EmployeeItem';
+import { User } from '../../types/auth';
 
 interface EmployeeSelectModalProps {
     visible: boolean;
     onClose: () => void;
-    onSelect: (item: any) => void;
-    data: any[];
+    onSelect: (item: User) => void;
+    data: User[];
     selectedCode?: string;
     title?: string;
     placeholder?: string;
@@ -40,7 +41,7 @@ const EmployeeSelectModal = ({
         );
     }, [data, searchText]);
 
-    const handleSelect = useCallback((item: any) => {
+    const handleSelect = useCallback((item: User) => {
         onSelect(item);
         setSearchText('');
     }, [onSelect]);
@@ -50,7 +51,7 @@ const EmployeeSelectModal = ({
         onClose();
     }, [onClose]);
 
-    const renderItem = useCallback(({ item }: { item: ItemProps }) => (
+    const renderItem = useCallback(({ item }: { item: User }) => (
         <EmployeeItem
             item={item}
             selectedCode={selectedCode}

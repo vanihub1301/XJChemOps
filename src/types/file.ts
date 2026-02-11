@@ -11,22 +11,3 @@ export const mimeTypeMap: { [key: string]: string } = {
     'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'mp4': 'video/mp4',
 };
-
-export interface FileItem {
-    id: number;
-    name: string;
-    type: string;
-    createdAt: Date;
-    size?: string;
-    uploadedBy?: string;
-}
-
-export interface SelectedFile {
-    uri: string;
-    name: string;
-    displayName: string;
-    size: number;
-    mimeType: string;
-    sizeFormatted: string;
-    extension: string;
-}

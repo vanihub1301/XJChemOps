@@ -18,6 +18,7 @@ import { useAPI } from '../../service/api';
 import { useOperationStore } from '../../store/operationStore';
 import { formatDateCustom, formatWithPattern } from '../../utils/dateTime';
 import { useAuthStore } from '../../store/authStore';
+import { Reference } from '../../types/drum';
 
 const FormChangeStartTime = ({ navigation }: MainNavigationProps<'FormChangeStartTime'>) => {
     const [startTime, setStartTime] = useState<Date>(new Date());
@@ -25,7 +26,7 @@ const FormChangeStartTime = ({ navigation }: MainNavigationProps<'FormChangeStar
     const [selectedReasonLabel, setSelectedReasonLabel] = useState<string>('');
     const [otherReason, setOtherReason] = useState<string>('');
     const [openDatePicker, setOpenDatePicker] = useState(false);
-    const [reasons, setReasons] = useState<any[]>([]);
+    const [reasons, setReasons] = useState<Reference[]>([]);
 
     const reasonBottomSheetRef = useRef<BottomSheet>(null);
 

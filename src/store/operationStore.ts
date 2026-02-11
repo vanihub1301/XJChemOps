@@ -1,18 +1,19 @@
 import { create } from 'zustand';
+import { Chemical } from '../types/drum';
 
 interface OperationState {
     remainingMinutes: number;
     orderStore: any;
-    batchsStore: any[];
-    groupedChemicals: { time: string; chemicals: any[] }[];
-    currentChemicals: any[];
+    batchsStore: Chemical[];
+    groupedChemicals: { time: string; chemicals: Chemical[] }[];
+    currentChemicals: Chemical[];
     isPause: boolean;
     setOrderStore: (order: any) => void;
     setBatchsStore: (
-        batchs: any[] | ((prev: any[]) => any[])
+        batchs: Chemical[] | ((prev: Chemical[]) => Chemical[])
     ) => void;
-    setGroupedChemicals: (groups: { time: string; chemicals: any[] }[]) => void;
-    setCurrentChemicals: (chemicals: any[]) => void;
+    setGroupedChemicals: (groups: { time: string; chemicals: Chemical[] }[]) => void;
+    setCurrentChemicals: (chemicals: Chemical[]) => void;
     setIsPause: (isPause: boolean) => void;
     setRemainingMinutes: (remainingMinutes: number) => void;
     reset: () => void;

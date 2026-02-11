@@ -112,7 +112,7 @@ const ActiveBatch: React.FC<ActiveBatchProps> = ({
             <ViewBox className="flex-row items-center justify-between">
                 <Text color={'black'} variant={'labelLargeStrong'}>DANH SÁCH HOÁ CHẤT</Text>
                 <PillBadge
-                    label={`${batchsStore?.filter((c: any) => c.scanning)?.length || 0}/${batchsStore?.length || 0} Đã hoàn tất`}
+                    label={`${batchsStore?.filter((c: Chemical) => c.scanning)?.length || 0}/${batchsStore?.length || 0} Đã hoàn tất`}
                     background="blurLavender"
                     textColor="crayola"
                 />

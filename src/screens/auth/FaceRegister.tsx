@@ -24,6 +24,7 @@ import { showToast } from '../../service/toast';
 import ImageEditor from '@react-native-community/image-editor';
 import { useAuthStore } from '../../store/authStore';
 import { useAPI } from '../../service/api';
+import { User } from '../../types/auth';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -34,9 +35,9 @@ const FaceRegister = ({ navigation }: AuthNavigationProps<'FaceRegister'>) => {
     const [isCapturing, setIsCapturing] = useState(false);
     const [isImageViewingVisible, setIsImageViewingVisible] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
-    const [user, setUser] = useState<any>({});
+    const [user, setUser] = useState<User>();
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [listEmployee, setListEmployee] = useState<any[]>([]);
+    const [listEmployee, setListEmployee] = useState<User[]>([]);
 
     const { checkCameraPermission } = usePermissions();
     const { setName } = useAuthStore();
@@ -149,7 +150,7 @@ const FaceRegister = ({ navigation }: AuthNavigationProps<'FaceRegister'>) => {
         }
     };
 
-    const handlePressItem = useCallback((item: any) => {
+    const handlePressItem = useCallback((item: User) => {
         setUser({ name: item.name, code: item.code });
         setIsModalVisible(false);
     }, []);

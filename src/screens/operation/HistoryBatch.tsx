@@ -7,6 +7,7 @@ import Card from '../../components/common/Card';
 import List from '../../components/common/List';
 import { formatDateCustom } from '../../utils/dateTime';
 import { useAuthStore } from '../../store/authStore';
+import { Chemical } from '../../types/drum';
 
 const HistoryBatch: React.FC = () => {
     const { batchsStore, orderStore } = useOperationStore();
@@ -21,7 +22,7 @@ const HistoryBatch: React.FC = () => {
     ];
 
     const renderHistoryItem = useCallback(
-        ({ item, index }: { item: any; index: number }) => {
+        ({ item, index }: { item: Chemical; index: number }) => {
             const isLast = index === historyOperation.length - 1;
 
             return (

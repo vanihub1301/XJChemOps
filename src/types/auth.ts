@@ -12,3 +12,9 @@ export interface AuthState {
     setTimeLogin: ({ timeLogin }: { timeLogin: string }) => Promise<void>;
     logout: () => Promise<void>;
 }
+
+export interface User {
+    code: string;
+    name: string;
+}
+
