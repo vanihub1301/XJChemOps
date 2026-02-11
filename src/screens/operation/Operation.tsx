@@ -119,7 +119,6 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
                             }, true, orderStore?.config?.serverIp + ':' + orderStore?.config?.port);
                         }
 
-                        console.log('LOG : handlePausePress : result:', result)
                         if (result.code === 0) {
                             setIsPause(!isPause);
                         } else {
@@ -230,7 +229,7 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
 
     useFocusEffect(
         useCallback(() => {
-            if (orderStore?.config?.lockScreen === false) {
+            if (orderStore?.config?.lockScreen === true) {
                 KeepAwake.activate();
             }
 

@@ -78,7 +78,7 @@ const FormStopOperation = ({ navigation }: MainNavigationProps<'FormStopOperatio
             reason: +selectedReason,
             remarks: otherReason,
             finishTime: orderStore.currentTime,
-            registor: fullName,
+            registor: fullName || 'Nguyễn Văn A',
         }, true);
 
         if (res?.code === 0) {

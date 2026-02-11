@@ -148,11 +148,17 @@ const Login = ({ navigation, isReAuthentication = false }: LoginProps) => {
         if (navigation.canGoBack()) {
             navigation.goBack();
         } else {
+            const response = await fetch('https://timeapi.io/api/v1/timezone/zone?timeZone=Asia%2FHo_Chi_Minh');
+            const data = await response.json();
+
+            const timeMatch = data.local_time.match(/T(\d{2}):(\d{2})/);
+            const loginTime = timeMatch ? `${timeMatch[1]}:${timeMatch[2]}` : '';
+
             await useAuthStore.getState().setAuth({
                 isSignedIn: true,
             });
             await useAuthStore.getState().setTimeLogin({
-                timeLogin: new Date().toISOString(),
+                timeLogin: loginTime,
             });
         }
     }, [navigation]);

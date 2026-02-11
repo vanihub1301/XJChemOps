@@ -34,7 +34,7 @@ const FaceRegister = ({ navigation }: AuthNavigationProps<'FaceRegister'>) => {
     const [isCapturing, setIsCapturing] = useState(false);
     const [isImageViewingVisible, setIsImageViewingVisible] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
-    const [user, setUser] = useState({ name: '', code: '' });
+    const [user, setUser] = useState<any>({});
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [listEmployee, setListEmployee] = useState<any[]>([]);
 
@@ -139,18 +139,18 @@ const FaceRegister = ({ navigation }: AuthNavigationProps<'FaceRegister'>) => {
         setImages(newImages);
     }, [images]);
 
-    const handleComplete = useCallback(async () => {
+    const handleComplete = async () => {
         try {
             setName({ fullName: user.name });
             showToast('Đăng ký thành công!');
-            navigation.navigate('Login');
+            navigation.replace('Login');
         } catch (error) {
             showToast('Đăng ký thất bại. Vui lòng thử lại');
         }
-    }, [navigation]);
+    };
 
     const handlePressItem = useCallback((item: any) => {
-        setUser(item);
+        setUser({ name: item.name, code: item.code });
         setIsModalVisible(false);
     }, []);
 

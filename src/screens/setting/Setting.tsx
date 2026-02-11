@@ -17,13 +17,13 @@ import BottomSheet from '@gorhom/bottom-sheet';
 import { useAPI } from '../../service/api';
 import { useAuthStore } from '../../store/authStore';
 import { MainNavigationProps } from '../../types/navigation';
-import { useOperationStore } from '../../store/operationStore';
+
 
 const Setting = ({ }: MainNavigationProps<'Setting'>) => {
     const { host, port, checkInterval, keepAwake, soundEnabled, language, setMany } = useSettingStore();
     const { postData } = useAPI();
     const { rotatingTank } = useAuthStore();
-    const { orderStore } = useOperationStore();
+    const { getMany } = useSettingStore();
 
     const [serverAddress, setServerAddress] = useState(host);
     const [serverPort, setServerPort] = useState(port);
@@ -37,25 +37,9 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
 
     const handleSettingSave = async () => {
         try {
-            console.log(`LOG : handleSettingSave : {
-                drumno: rotatingTank?.name,
-                inspectionTime: +checkIntervalLocal,
-                enableSound: soundEnabledLocal,
-                lockScreen: keepAwakeLocal,
-                language: languageLocal,
-                serverIp: serverAddress,
-                port: +serverPort,
-            }:`, {
-                drumno: rotatingTank?.name,
-                inspectionTime: +checkIntervalLocal,
-                enableSound: soundEnabledLocal,
-                lockScreen: keepAwakeLocal,
-                language: languageLocal,
-                serverIp: serverAddress,
-                port: +serverPort,
-            })
+            const idDrum = await getMany(['idDrum']);
             const response = await postData('portal/inject/config', {
-                id: 0,
+                id: idDrum,
                 drumno: rotatingTank?.name,
                 inspectionTime: +checkIntervalLocal,
                 enableSound: soundEnabledLocal,

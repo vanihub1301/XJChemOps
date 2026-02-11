@@ -32,7 +32,7 @@ const Header = () => {
                         />
                         <ViewBox gap={'xs'} className="flex-row items-center">
                             <MaterialCommunityIcons name="clock" size={20} color="gray" />
-                            <Text variant={'captionSemibold'}>Thời gian đăng nhập: {formatDateCustom(timeLogin, { format: 'HH:mm' })}</Text>
+                            <Text variant={'captionSemibold'}>Thời gian đăng nhập: {timeLogin}</Text>
                         </ViewBox>
 
                     </ViewBox>

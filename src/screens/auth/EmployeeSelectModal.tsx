@@ -35,10 +35,10 @@ const EmployeeSelectModal = ({
         const lowerSearch = searchText.toLowerCase();
         return data.filter(
             (item) =>
-                item.name?.toLowerCase().includes(lowerSearch) ||
-                item.code?.toLowerCase().includes(lowerSearch)
+                item?.name?.toLowerCase().includes(lowerSearch) ||
+                item?.code?.toLowerCase().includes(lowerSearch)
         );
-    }, [searchText]);
+    }, [data, searchText]);
 
     const handleSelect = useCallback((item: any) => {
         onSelect(item);
@@ -56,7 +56,7 @@ const EmployeeSelectModal = ({
             selectedCode={selectedCode}
             onPress={handleSelect}
         />
-    ), []);
+    ), [selectedCode]);
 
     return (
         <Modal

@@ -13,6 +13,7 @@ import { useAPI } from '../../service/api';
 import { showToast } from '../../service/toast';
 import { useOperationStore } from '../../store/operationStore';
 import { useAuthStore } from '../../store/authStore';
+import { Alert } from 'react-native';
 
 const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>) => {
     const { code } = route.params || {};
@@ -64,7 +65,7 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
 
         const timeKeys = Object.keys(groupedByTime);
         if (timeKeys.length <= 1) {
-            showToast('Đơn hàng này không có dữ liệu thời gian');
+            Alert.alert('Thông báo', 'Đơn hàng này không có dữ liệu thời gian', [{ text: 'OK', onPress: () => { }, style: 'cancel' },]);
             return false;
         }
         return true;
@@ -85,7 +86,7 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
                 const resInit = await postData(`portal/inject/initProject?fid=${orderData.id}&employee=${fullName}`);
 
                 if (resInit.code !== 0) {
-                    showToast(resInit.msg);
+                    Alert.alert('Thông báo', resInit.msg, [{ text: 'OK', onPress: () => { }, style: 'cancel' },]);
                     return;
                 }
 
@@ -96,7 +97,7 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
 
             const { dtl, process, curentTime, config, appInjectPause } = processData;
 
-            // if (!checkTimeData(dtl)) { return; }
+            if (!checkTimeData(dtl)) { return; }
 
             const groupedChemicals = groupChemicalsByTime(dtl);
 

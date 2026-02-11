@@ -9,10 +9,16 @@ import { formatDateCustom } from '../../utils/dateTime';
 import { useAuthStore } from '../../store/authStore';
 
 const HistoryBatch: React.FC = () => {
-    const { batchsStore } = useOperationStore();
+    const { batchsStore, orderStore } = useOperationStore();
     const { fullName } = useAuthStore();
 
-    const historyOperation = batchsStore.filter(item => item.videoFk).reverse();
+    const historyOperation = [
+        ...batchsStore.filter(item => item.videoFk).reverse(),
+        {
+            type: 'START_OPERATION',
+            confirmTime: orderStore?.process?.startDrum,
+        },
+    ];
 
     const renderHistoryItem = useCallback(
         ({ item, index }: { item: any; index: number }) => {
@@ -65,9 +71,7 @@ const HistoryBatch: React.FC = () => {
                     )}
                 </ViewBox>
             );
-        },
-        []
-    );
+        }, []);
 
     return (
         <Card className="flex-1" gap={'md'}>

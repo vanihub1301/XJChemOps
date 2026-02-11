@@ -33,8 +33,12 @@ export const useSettingStore = create<SettingState>((set) => ({
     },
 
     getMany: async (keys: string[]) => {
-        const values = await AsyncStorage.multiGet(keys);
-        return Object.fromEntries(values);
+        const values = await AsyncStorage.multiGet(keys.map((key) => mapKey[key]));
+        const result = {};
+        keys.forEach((key) => {
+            result[key] = values.find((value) => value[0] === mapKey[key])?.[1];
+        });
+        return result;
     },
 
     setData: async (key, value) => {
