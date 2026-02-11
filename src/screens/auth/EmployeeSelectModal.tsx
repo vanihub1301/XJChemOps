@@ -93,14 +93,13 @@ const EmployeeSelectModal = ({
                             numberOfLines={1}
                         />
                     </ViewBox>
-                    <ViewBox className="h-[300px]">
+                    <ViewBox className="h-[300px] ">
                         <List
                             list={filteredData}
                             renderListHeader={() => (<></>)}
                             renderItem={renderItem}
                             enableRefresh={false}
-                            initialNumToRender={30}
-                            maxToRenderPerBatch={30}
+                            removeClippedSubviews={false}
                         />
                     </ViewBox>
                 </ViewBox>

@@ -26,7 +26,7 @@ export const EmployeeItem = React.memo(({
                 padding={'lg'}
                 background={isSelected ? 'lavender' : 'white'}
                 border={isSelected ? 'signal' : 'none'}
-                className="flex-1 flex-row items-center"
+                className="flex-row items-center"
             >
                 <ViewBox gap={'md'} className="flex-1 flex-row items-center">
                     <ViewBox

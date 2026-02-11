@@ -22,7 +22,7 @@ interface ListProps<T> {
     removeClippedSubviews?: boolean;
 }
 
-const List = <T extends { id: string | number }>({
+const List = <T extends {}>({
     list,
     renderItem,
     renderListHeader,

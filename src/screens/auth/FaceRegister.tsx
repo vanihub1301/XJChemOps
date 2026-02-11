@@ -35,7 +35,7 @@ const FaceRegister = ({ navigation }: AuthNavigationProps<'FaceRegister'>) => {
     const [isCapturing, setIsCapturing] = useState(false);
     const [isImageViewingVisible, setIsImageViewingVisible] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
-    const [user, setUser] = useState<User>();
+    const [user, setUser] = useState<User>({ code: '', name: '' });
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [listEmployee, setListEmployee] = useState<User[]>([]);
 
