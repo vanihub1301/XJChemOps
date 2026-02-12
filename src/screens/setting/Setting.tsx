@@ -108,11 +108,12 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
     useEffect(() => {
         const loadData = async () => {
             const settings = await getMany(['serverIp', 'port', 'inspectionTime', 'enableSound', 'lockScreen', 'language']);
+            console.log('LOG : loadData : settings:', settings)
             setServerAddress(settings.serverIp || '');
             setServerPort(settings.port || '');
             setInspectionTimeLocal(settings.inspectionTime || '');
-            setEnableSoundLocal(settings.enableSound || false);
-            setLockScreenLocal(settings.lockScreen || false);
+            setEnableSoundLocal(settings.enableSound === 'true');
+            setLockScreenLocal(settings.lockScreen === 'true');
             setLanguageLocal(settings.language || '');
         }
         loadData();

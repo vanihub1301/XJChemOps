@@ -37,6 +37,7 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
     const { play } = useAlarmSound(orderStore?.config?.enableSound);
 
     const settingBottomSheetRef = useRef<BottomSheet>(null);
+    const initRef = useRef(init);
 
     const handleSettingPress = () => {
         settingBottomSheetRef.current?.expand();
@@ -208,10 +209,11 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
     }, [videoStatus, handleUploadVideo, videoPath]);
 
     useEffect(() => {
-        if (init && groupedChemicals && groupedChemicals.length > 0) {
+        if (initRef.current && groupedChemicals && groupedChemicals.length > 0) {
             const firstGroup = groupedChemicals[0];
             setCurrentChemicals(firstGroup.chemicals);
             setModalVisible(true);
+            initRef.current = false;
         }
     }, [init, groupedChemicals, setCurrentChemicals]);
 

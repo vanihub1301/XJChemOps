@@ -22,19 +22,15 @@ export const useSettingStore = create<SettingState>((set) => ({
     idDrum: '',
 
     initializeSetting: async () => {
-        try {
-            await Promise.all([
-                AsyncStorage.setItem('server_ip', '192.168.10.8'),
-                AsyncStorage.setItem('port', '8072'),
-                AsyncStorage.setItem('inspection_time', '30'),
-                AsyncStorage.setItem('lock_screen', 'true'),
-                AsyncStorage.setItem('enable_sound', 'true'),
-                AsyncStorage.setItem('language', 'vi'),
-                AsyncStorage.setItem('id_drum', ''),
-            ]);
-        } catch (error) {
-            console.log(error);
-        }
+        await Promise.all([
+            AsyncStorage.setItem('server_ip', '192.168.10.8'),
+            AsyncStorage.setItem('port', '8072'),
+            AsyncStorage.setItem('inspection_time', '30'),
+            AsyncStorage.setItem('lock_screen', 'true'),
+            AsyncStorage.setItem('enable_sound', 'true'),
+            AsyncStorage.setItem('language', 'vi'),
+            AsyncStorage.setItem('id_drum', ''),
+        ]);
     },
 
     getMany: async (keys: string[]) => {

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getFileInfo, normalizeFileUri } from '../utils/file';
 
 let BASE_URL = 'http://192.168.10.8:8072/api/v1/';
 

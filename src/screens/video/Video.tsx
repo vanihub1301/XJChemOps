@@ -73,8 +73,8 @@ const Video = ({ navigation, route }: VideoProps) => {
                 setIsRecording(false);
                 setIsPaused(false);
             }
-        } catch (error) {
-            console.log(error);
+        } catch (error: any) {
+            showToast(error.message);
         }
     }, []);
 

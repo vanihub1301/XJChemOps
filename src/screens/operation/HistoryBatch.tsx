@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { ViewBox } from '../../components/common/ViewBox';
 import { Text } from '../../components/common/Text';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -13,13 +13,16 @@ const HistoryBatch: React.FC = () => {
     const { batchsStore, orderStore } = useOperationStore();
     const { fullName } = useAuthStore();
 
-    const historyOperation = [
-        ...batchsStore.filter(item => item.videoFk).reverse(),
+    const historyOperation = useMemo(() => [
+        ...batchsStore
+            .filter(item => item.videoFk)
+            .sort((a, b) => new Date(a.confirmTime).getTime() - new Date(b.confirmTime).getTime())
+            .reverse(),
         {
             type: 'START_OPERATION',
             confirmTime: orderStore?.process?.startDrum,
         },
-    ];
+    ], [batchsStore, orderStore?.process?.startDrum]);
 
     const renderHistoryItem = useCallback(
         ({ item, index }: { item: Chemical; index: number }) => {
@@ -72,7 +75,7 @@ const HistoryBatch: React.FC = () => {
                     )}
                 </ViewBox>
             );
-        }, []);
+        }, [historyOperation, fullName]);
 
     return (
         <Card className="flex-1" gap={'md'}>

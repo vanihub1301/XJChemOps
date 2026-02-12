@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { MainRoutes } from '../types/navigation';
 import MainHome from '../screens/home/MainHome';
@@ -20,6 +20,7 @@ import { parseDateTime } from '../utils/dateTime';
 import { useAuthStore } from '../store/authStore';
 import { useSettingStore } from '../store/settingStore';
 import { Chemical } from '../types/drum';
+import { showToast } from '../service/toast';
 
 const MainStack = createStackNavigator<MainRoutes>();
 export const MainNavigator = () => {
@@ -27,6 +28,8 @@ export const MainNavigator = () => {
     const { rotatingTank } = useAuthStore();
     const { setMany, getMany } = useSettingStore();
     const { getData } = useAPI();
+    const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    const currentIntervalTimeRef = useRef<number>(30000);
 
     useEffect(() => {
         if (!batchsStore || batchsStore.length === 0 || !orderStore?.currentTime) {
@@ -71,12 +74,9 @@ export const MainNavigator = () => {
     }, [batchsStore, setGroupedChemicals, setCurrentChemicals]);
 
     useEffect(() => {
-        let inspectionTimeLocal = '';
         const fetchRunningData = async () => {
             try {
                 const settings = await getMany(['serverIp', 'port', 'inspectionTime']);
-                inspectionTimeLocal = settings.inspectionTime;
-                console.log('LOG : fetchRunningData : settings:', settings)
                 const res = await getData('portal/inject/getRunning', { drumNo: orderStore?.process?.drumNo || rotatingTank.name }, true, settings.serverIp + ':' + settings.port);
                 if (res.code === 0 && res.data?.process?.dtl) {
                     const { dtl, ...processWithoutDtl } = res.data.process;
@@ -93,21 +93,42 @@ export const MainNavigator = () => {
                         setMany({ serverIp: config.serverIp, port: config.port, inspectionTime: config.inspectionTime, idDrum: res.data?.config?.id }),
                         setIsPause(res.data?.appInjectPause?.pauseTime && !res.data?.appInjectPause?.continueTime),
                     ]);
+
+                    const newIntervalMs = (parseInt(config.inspectionTime, 10) || 30) * 1000;
+                    if (newIntervalMs !== currentIntervalTimeRef.current) {
+                        currentIntervalTimeRef.current = newIntervalMs;
+
+                        if (intervalRef.current) {
+                            clearInterval(intervalRef.current);
+                        }
+
+                        intervalRef.current = setInterval(fetchRunningData, newIntervalMs);
+                    }
                 } else if (batchsStore.length > 0) {
                     reset();
                 }
-            } catch (error) {
-                console.log('LOG : fetchRunningData : error:', error);
+            } catch (error: any) {
+                showToast(error.message);
             }
         };
 
-        fetchRunningData();
+        const setupInterval = async () => {
+            await fetchRunningData();
 
-        const intervalMs = (parseInt(inspectionTimeLocal, 10) || 30) * 1000;
-        const interval = setInterval(fetchRunningData, intervalMs);
+            const settings = await getMany(['inspectionTime']);
+            const intervalMs = (parseInt(settings.inspectionTime, 10) || 30) * 1000;
+            currentIntervalTimeRef.current = intervalMs;
+            intervalRef.current = setInterval(fetchRunningData, intervalMs);
+        };
 
-        return () => clearInterval(interval);
-    }, [rotatingTank.name, getData, setBatchsStore, setOrderStore, reset, setMany]);
+        setupInterval();
+
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+            }
+        };
+    }, [rotatingTank.name, getData, setBatchsStore, setOrderStore, reset, setMany, getMany, setIsPause, batchsStore.length]);
 
     return (
         <MainStack.Navigator screenOptions={{ headerShown: false }} initialRouteName={'Home'}>

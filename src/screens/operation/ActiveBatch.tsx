@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { ViewBox } from '../../components/common/ViewBox';
 import { Text } from '../../components/common/Text';
 import { Button } from '../../components/common/Button';
@@ -24,15 +24,16 @@ const ActiveBatch: React.FC<ActiveBatchProps> = ({
     onChangeOperator,
 }) => {
     const { batchsStore, isPause } = useOperationStore();
-    const processColors: Record<string, string> = {
-        '1': '#4FC3F7',
-        '2': '#81C784',
-        '3': '#FFD54F',
-        '4': '#FF8A65',
-        '5': '#BA68C8',
-        '6': '#F06292',
-        '7': '#4DB6AC',
-    };
+
+    const sortedBatchs = useMemo(() =>
+        [...batchsStore].sort((a, b) => new Date(a.confirmTime).getTime() - new Date(b.confirmTime).getTime()),
+        [batchsStore]
+    );
+
+    const completedCount = useMemo(() =>
+        batchsStore.filter((c: Chemical) => c.scanning).length,
+        [batchsStore]
+    );
 
     const renderItem = useCallback(({ item: chemical }: { item: Chemical }) => {
         return (
@@ -112,14 +113,14 @@ const ActiveBatch: React.FC<ActiveBatchProps> = ({
             <ViewBox className="flex-row items-center justify-between">
                 <Text color={'black'} variant={'labelLargeStrong'}>DANH SÁCH HOÁ CHẤT</Text>
                 <PillBadge
-                    label={`${batchsStore?.filter((c: Chemical) => c.scanning)?.length || 0}/${batchsStore?.length || 0} Đã hoàn tất`}
+                    label={`${completedCount}/${batchsStore?.length || 0} Đã hoàn tất`}
                     background="blurLavender"
                     textColor="crayola"
                 />
             </ViewBox>
             <ViewBox gap={'sm'} className="flex-1">
                 <List
-                    list={batchsStore}
+                    list={sortedBatchs}
                     renderListHeader={() => (<></>)}
                     renderItem={renderItem}
                     enableRefresh={false}
