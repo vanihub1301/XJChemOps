@@ -1,5 +1,5 @@
 export interface AuthState {
-    fullName: string | null;
+    fullName: string;
     isLoading: boolean;
     firstRunning: boolean;
     rotatingTank: Record<string, any>

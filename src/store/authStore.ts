@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthState } from '../types/auth';
 
 export const useAuthStore = create<AuthState>((set) => ({
-    fullName: null,
+    fullName: '',
     isLoading: true,
     firstRunning: false,
     rotatingTank: {},
@@ -13,17 +13,22 @@ export const useAuthStore = create<AuthState>((set) => ({
     initialize: async () => {
         set({ isLoading: true });
         try {
-            const [fullName, firstRunning, rotatingTank] = await AsyncStorage.multiGet([
+            const [fullName, firstRunning, rotatingTank, isSignedIn] = await AsyncStorage.multiGet([
                 'full_name',
                 'first_running',
                 'rotating_tank',
+                'is_signed_in',
             ]);
 
             if (!firstRunning[1]) {
                 set({ firstRunning: true });
             }
 
-            set({ fullName: fullName[1], rotatingTank: { name: rotatingTank[1] } });
+            set({
+                fullName: fullName[1] || '',
+                rotatingTank: { name: rotatingTank[1] },
+                isSignedIn: isSignedIn[1] === 'true'
+            });
         } catch (error) {
             await new Promise(resolve => setTimeout(resolve, 2000));
             set({ isLoading: false });
@@ -35,6 +40,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     },
 
     setAuth: async ({ isSignedIn }) => {
+        await AsyncStorage.setItem('is_signed_in', isSignedIn.toString());
         set({
             isSignedIn: isSignedIn,
             isLoading: false,
@@ -64,6 +70,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     },
 
     logout: async () => {
+        await AsyncStorage.setItem('is_signed_in', 'false');
         set({
             isSignedIn: false,
             isLoading: false,

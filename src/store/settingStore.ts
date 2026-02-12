@@ -10,6 +10,7 @@ const mapKey: { [key: string]: string } = {
     enableSound: 'enable_sound',
     language: 'language',
     idDrum: 'id_drum',
+    drumno: 'drumno',
 };
 
 export const useSettingStore = create<SettingState>((set) => ({
@@ -20,6 +21,7 @@ export const useSettingStore = create<SettingState>((set) => ({
     enableSound: false,
     language: '',
     idDrum: '',
+    drumno: '',
 
     initializeSetting: async () => {
         await Promise.all([
@@ -30,6 +32,7 @@ export const useSettingStore = create<SettingState>((set) => ({
             AsyncStorage.setItem('enable_sound', 'true'),
             AsyncStorage.setItem('language', 'vi'),
             AsyncStorage.setItem('id_drum', ''),
+            AsyncStorage.setItem('drumno', ''),
         ]);
     },
 

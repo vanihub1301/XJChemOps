@@ -80,11 +80,13 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
             let isNewInit = false;
 
             const resRunning = await getData('portal/inject/getRunning', { drumNo: orderData.drumNo }, false);
+            console.log('LOG : handleConfirm : resRunning:', resRunning)
 
             if (resRunning.code === 0 && resRunning?.data?.process) {
-                processData = resRunning.data;
+                processData = { ...resRunning.data, dtl: resRunning.data.process.dtl };
             } else {
-                const resInit = await postData(`portal/inject/initProject?fid=${orderData.id}&employee=${fullName}`);
+                const resInit = await postData(`portal/inject/initProject?fid=${orderData.id}&employee=${encodeURIComponent(fullName)}&drumNo=${encodeURIComponent(orderData.drumNo)}`);
+                console.log('LOG : handleConfirm : resInit:', resInit)
 
                 if (resInit.code !== 0) {
                     Alert.alert('Thông báo', resInit.msg, [{ text: 'OK', onPress: () => { }, style: 'cancel' },]);
@@ -97,6 +99,9 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
             }
 
             const { dtl, process, curentTime, config, appInjectPause } = processData;
+
+            console.log('LOG : handleConfirm : dtl:', dtl)
+            console.log('LOG : handleConfirm : process:', process)
 
             if (!checkTimeData(dtl)) { return; }
 

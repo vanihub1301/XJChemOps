@@ -84,16 +84,15 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
 
         const fetchRunningData = async () => {
             if (!isActive) return;
-
+            let config;
             try {
                 const settings = await getMany(['serverIp', 'port', 'inspectionTime']);
                 console.log('LOG : fetchRunningData : settings:', settings);
 
                 const res = await getData('portal/inject/getRunning', { drumNo: orderStore?.process?.drumNo || rotatingTank.name }, true, settings.serverIp + ':' + settings.port);
-
+                config = res.data?.config;
                 if (res.code === 0 && res.data?.process?.dtl) {
                     const { dtl, ...processWithoutDtl } = res.data.process;
-                    const config = res.data?.config;
                     const appInjectPause = res.data?.appInjectPause;
                     console.log('LOG : fetchRunningData : processWithoutDtl:', processWithoutDtl)
 
@@ -105,12 +104,7 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
                             appInjectPause: appInjectPause,
                         }),
                         setBatchsStore(dtl),
-                        setMany({
-                            serverIp: config.serverIp,
-                            port: config.port,
-                            inspectionTime: config.inspectionTime,
-                            idDrum: config.id
-                        }),
+
                         setIsPause(appInjectPause?.pauseTime && !appInjectPause?.continueTime),
                     ]);
 
@@ -119,12 +113,23 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
                     if (newIntervalMs !== currentIntervalTimeRef.current) {
                         currentIntervalTimeRef.current = newIntervalMs;
                     }
-                } else if (res.code === 0 && !res.data?.process?.dtl) {
+                } else if (res.code === 0 && !res.data?.process?.dtl && batchsStore.length > 0) {
                     reset();
                 }
             } catch (error: any) {
                 showToast(error.message);
             } finally {
+                console.log('LOG : fetchRunningData : config:', config);
+                setMany({
+                    serverIp: config?.serverIp,
+                    port: config?.port,
+                    inspectionTime: config?.inspectionTime,
+                    idDrum: config?.id,
+                    lockScreen: config?.lockScreen,
+                    enableSound: config?.enableSound,
+                    drumno: config?.drumno,
+                    language: config?.language,
+                })
                 finishInitialLoading();
             }
 

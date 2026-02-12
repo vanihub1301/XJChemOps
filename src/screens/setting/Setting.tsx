@@ -17,6 +17,7 @@ import BottomSheet from '@gorhom/bottom-sheet';
 import { useAPI } from '../../service/api';
 import { useAuthStore } from '../../store/authStore';
 import { MainNavigationProps } from '../../types/navigation';
+import { useOperationStore } from '../../store/operationStore';
 
 
 const Setting = ({ }: MainNavigationProps<'Setting'>) => {
@@ -31,6 +32,7 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
     const [lockScreenLocal, setLockScreenLocal] = useState(false);
     const [languageLocal, setLanguageLocal] = useState('');
     const [sheetType, setSheetType] = useState<string>('inspectionTime');
+    const { orderStore, batchsStore } = useOperationStore();
 
     const bottomSheetRef = useRef<BottomSheet>(null);
 
@@ -117,7 +119,7 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
             setLanguageLocal(settings.language || '');
         }
         loadData();
-    }, []);
+    }, [orderStore?.config]);
     return (
         <>
             <ViewContainer background="none" hasScrollableContent={true}>

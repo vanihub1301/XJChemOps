@@ -6,6 +6,7 @@ export interface SettingState {
     enableSound: boolean;
     language: string;
     idDrum: string;
+    drumno: string;
     initializeSetting: () => Promise<void>;
     setMany: (data: any) => Promise<void>;
     getMany: (keys: string[]) => Promise<any>;
