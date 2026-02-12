@@ -2,30 +2,35 @@ import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SettingState } from '../types/setting';
 
-const mapKey = {
-    host: 'host',
+const mapKey: { [key: string]: string } = {
+    serverIp: 'server_ip',
     port: 'port',
-    checkInterval: 'check_interval',
-    keepAwake: 'keep_awake',
-    soundEnabled: 'sound_enabled',
+    inspectionTime: 'inspection_time',
+    lockScreen: 'lock_screen',
+    enableSound: 'enable_sound',
     language: 'language',
     idDrum: 'id_drum',
 };
 
 export const useSettingStore = create<SettingState>((set) => ({
-    host: '',
+    serverIp: '',
     port: '',
-    checkInterval: '',
-    keepAwake: false,
-    soundEnabled: false,
+    inspectionTime: '',
+    lockScreen: false,
+    enableSound: false,
     language: '',
     idDrum: '',
 
     initializeSetting: async () => {
         try {
             await Promise.all([
-                AsyncStorage.setItem('host', '192.168.10.8'),
+                AsyncStorage.setItem('server_ip', '192.168.10.8'),
                 AsyncStorage.setItem('port', '8072'),
+                AsyncStorage.setItem('inspection_time', '30'),
+                AsyncStorage.setItem('lock_screen', 'true'),
+                AsyncStorage.setItem('enable_sound', 'true'),
+                AsyncStorage.setItem('language', 'vi'),
+                AsyncStorage.setItem('id_drum', ''),
             ]);
         } catch (error) {
             console.log(error);
@@ -34,16 +39,11 @@ export const useSettingStore = create<SettingState>((set) => ({
 
     getMany: async (keys: string[]) => {
         const values = await AsyncStorage.multiGet(keys.map((key) => mapKey[key]));
-        const result = {};
+        const result: any = {};
         keys.forEach((key) => {
             result[key] = values.find((value) => value[0] === mapKey[key])?.[1];
         });
         return result;
-    },
-
-    setData: async (key, value) => {
-        set({ [key]: value });
-        await AsyncStorage.setItem(mapKey[key], value.toString());
     },
 
     setMany: async (data) => {

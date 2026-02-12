@@ -53,7 +53,7 @@ const MainHome = ({ navigation }: MainNavigationProps<'Home'>) => {
         showToast(res.msg);
       }
     } catch (error: any) {
-      showToast(error);
+      showToast(error.message);
     }
   };
 
@@ -66,7 +66,7 @@ const MainHome = ({ navigation }: MainNavigationProps<'Home'>) => {
       const res = await getData('portal/inject/nearBill', { drum: rotatingTank?.name, rows: numberOrder });
       setListOrder(res.data.records);
     } catch (error: any) {
-      showToast(error);
+      showToast(error.message);
     }
   };
 

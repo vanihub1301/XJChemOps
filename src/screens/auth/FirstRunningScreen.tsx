@@ -47,7 +47,7 @@ const FirstRunningScreen = () => {
     const handlePressConfirm = async () => {
         try {
             if (rotatingTank) {
-                const res = await postData(`portal/inject/activeDrum?id=${rotatingTank.id}`, {});
+                const res = await postData(`portal/inject/activeDrum?id=${rotatingTank.id}`, {}, false);
                 if (res.code === 0) {
                     useAuthStore.getState().setRotatingTank({ rotatingTank: rotatingTank });
                 } else {
@@ -58,7 +58,7 @@ const FirstRunningScreen = () => {
                 return;
             }
         } catch (error: any) {
-            showToast(error);
+            showToast(error.message);
         }
     };
 
@@ -87,7 +87,7 @@ const FirstRunningScreen = () => {
             const res = await getData('portal/inject/drumInfo');
             setListRotatingTank(res.data);
         } catch (error: any) {
-            showToast(error);
+            showToast(error.message);
         }
     };
 

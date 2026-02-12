@@ -5,7 +5,7 @@ export const setVolumeToMax = async (): Promise<void> => {
     try {
         await VolumeManager.setVolume(1.0);
     } catch (error: any) {
-        showToast(error);
+        showToast(error.message);
     }
 };
 

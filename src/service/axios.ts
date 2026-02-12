@@ -13,9 +13,9 @@ const api = axios.create({
 
 api.interceptors.request.use(
     async config => {
-        const [host, port] = await AsyncStorage.multiGet(['host', 'port']);
-        if (host[1] && port[1]) {
-            config.baseURL = `${host[1]}:${port[1]}/api/v1/`;
+        const [serverIp, port] = await AsyncStorage.multiGet(['serverIp', 'port']);
+        if (serverIp[1] && port[1]) {
+            config.baseURL = `${serverIp[1]}:${port[1]}/api/v1/`;
         }
         if (config.baseURL && !config.baseURL.includes('http')) {
             config.baseURL = 'http://' + config.baseURL;

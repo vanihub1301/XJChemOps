@@ -22,7 +22,7 @@ export const changeTimeReasons = [
     { value: 'other', label: 'Khác' },
 ];
 
-export const checkIntervals = [
+export const inspectionTime = [
     { value: '10', label: '10 giây' },
     { value: '15', label: '15 giây' },
     { value: '30', label: '30 giây' },

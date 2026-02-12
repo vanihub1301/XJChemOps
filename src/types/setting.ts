@@ -1,13 +1,12 @@
 export interface SettingState {
-    host: string;
+    serverIp: string;
     port: string;
-    checkInterval: string;
-    keepAwake: boolean;
-    soundEnabled: boolean;
+    inspectionTime: string;
+    lockScreen: boolean;
+    enableSound: boolean;
     language: string;
     idDrum: string;
     initializeSetting: () => Promise<void>;
-    setData: (key: string, value: any) => Promise<void>;
     setMany: (data: any) => Promise<void>;
     getMany: (keys: string[]) => Promise<any>;
 }

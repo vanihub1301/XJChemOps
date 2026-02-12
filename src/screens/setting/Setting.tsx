@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Alert, StyleSheet, Switch, TouchableOpacity } from 'react-native';
 import ViewContainer from '../../components/common/ViewContainer';
 import ViewHeader from '../../components/common/ViewHeader';
@@ -20,41 +20,44 @@ import { MainNavigationProps } from '../../types/navigation';
 
 
 const Setting = ({ }: MainNavigationProps<'Setting'>) => {
-    const { host, port, checkInterval, keepAwake, soundEnabled, language, setMany } = useSettingStore();
+    const { setMany, getMany } = useSettingStore();
     const { postData } = useAPI();
     const { rotatingTank } = useAuthStore();
-    const { getMany } = useSettingStore();
 
-    const [serverAddress, setServerAddress] = useState(host);
-    const [serverPort, setServerPort] = useState(port);
-    const [checkIntervalLocal, setCheckIntervalLocal] = useState(checkInterval);
-    const [soundEnabledLocal, setSoundEnabledLocal] = useState(soundEnabled);
-    const [keepAwakeLocal, setKeepAwakeLocal] = useState(keepAwake);
-    const [languageLocal, setLanguageLocal] = useState(language);
-    const [sheetType, setSheetType] = useState<string>('checkInterval');
+    const [serverAddress, setServerAddress] = useState('');
+    const [serverPort, setServerPort] = useState('');
+    const [inspectionTimeLocal, setInspectionTimeLocal] = useState('');
+    const [enableSoundLocal, setEnableSoundLocal] = useState(false);
+    const [lockScreenLocal, setLockScreenLocal] = useState(false);
+    const [languageLocal, setLanguageLocal] = useState('');
+    const [sheetType, setSheetType] = useState<string>('inspectionTime');
 
     const bottomSheetRef = useRef<BottomSheet>(null);
 
     const handleSettingSave = async () => {
         try {
-            const idDrum = await getMany(['idDrum']);
+            const settings = await getMany(['idDrum']);
+            if (!settings.idDrum) {
+                showToast('Không tìm thấy id máy');
+                return;
+            }
             const response = await postData('portal/inject/config', {
-                id: idDrum,
+                id: settings.idDrum,
                 drumno: rotatingTank?.name,
-                inspectionTime: +checkIntervalLocal,
-                enableSound: soundEnabledLocal,
-                lockScreen: keepAwakeLocal,
+                inspectionTime: +inspectionTimeLocal,
+                enableSound: enableSoundLocal,
+                lockScreen: lockScreenLocal,
                 language: languageLocal,
                 serverIp: serverAddress,
                 port: +serverPort,
             });
             if (response?.code === 0) {
                 await setMany({
-                    host: serverAddress,
+                    serverIp: serverAddress,
                     port: serverPort,
-                    checkInterval: checkIntervalLocal,
-                    keepAwake: keepAwakeLocal,
-                    soundEnabled: soundEnabledLocal,
+                    inspectionTime: inspectionTimeLocal,
+                    lockScreen: lockScreenLocal,
+                    enableSound: enableSoundLocal,
                     language: languageLocal,
                 });
                 showToast('Cài đặt đã được lưu thành công');
@@ -62,7 +65,7 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
                 showToast(response?.msg);
             }
         } catch (error: any) {
-            showToast(error);
+            showToast(error.message);
         }
     };
 
@@ -90,8 +93,8 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
     };
 
     const handleSelection = (value: string) => {
-        if (sheetType === 'checkInterval') {
-            setCheckIntervalLocal(value);
+        if (sheetType === 'inspectionTime') {
+            setInspectionTimeLocal(value);
         } else if (sheetType === 'language') {
             setLanguageLocal(value);
         }
@@ -102,6 +105,18 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
         bottomSheetRef.current?.close();
     };
 
+    useEffect(() => {
+        const loadData = async () => {
+            const settings = await getMany(['serverIp', 'port', 'inspectionTime', 'enableSound', 'lockScreen', 'language']);
+            setServerAddress(settings.serverIp || '');
+            setServerPort(settings.port || '');
+            setInspectionTimeLocal(settings.inspectionTime || '');
+            setEnableSoundLocal(settings.enableSound || false);
+            setLockScreenLocal(settings.lockScreen || false);
+            setLanguageLocal(settings.language || '');
+        }
+        loadData();
+    }, []);
     return (
         <>
             <ViewContainer background="none" hasScrollableContent={true}>
@@ -139,9 +154,9 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
                         <Card style={styles.shadow}>
                             <SelectBox
                                 label="Thời gian kiểm tra"
-                                selectedChoice={checkIntervalLocal + ' giây'}
+                                selectedChoice={inspectionTimeLocal + ' giây'}
                                 placeholder="Chọn thời gian"
-                                handleChoicePress={() => handleOpenSheet('checkInterval')}
+                                handleChoicePress={() => handleOpenSheet('inspectionTime')}
                             />
                         </Card>
 
@@ -164,8 +179,8 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
                                     </Text>
                                 </ViewBox>
                                 <Switch
-                                    value={soundEnabledLocal}
-                                    onValueChange={setSoundEnabledLocal}
+                                    value={enableSoundLocal}
+                                    onValueChange={setEnableSoundLocal}
                                     trackColor={{ false: '#D1D5DB', true: '#1616E6' }}
                                     thumbColor="#FFFFFF"
                                 />
@@ -183,8 +198,8 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
                                     </Text>
                                 </ViewBox>
                                 <Switch
-                                    value={keepAwakeLocal}
-                                    onValueChange={setKeepAwakeLocal}
+                                    value={lockScreenLocal}
+                                    onValueChange={setLockScreenLocal}
                                     trackColor={{ false: '#D1D5DB', true: '#1616E6' }}
                                     thumbColor="#FFFFFF"
                                 />

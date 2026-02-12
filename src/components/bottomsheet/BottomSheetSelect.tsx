@@ -3,7 +3,7 @@ import { Dimensions, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetProps, BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { languages, settings, stopReasons, changeTimeReasons, checkIntervals } from '../../constants/ui';
+import { languages, settings, stopReasons, changeTimeReasons, inspectionTime } from '../../constants/ui';
 import { Text } from '../common/Text';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 const { height } = Dimensions.get('window');
@@ -61,8 +61,8 @@ const BottomSheetSelect = forwardRef<BottomSheetMethods, CustomBottomSheetProps>
             title: 'Lý do điều chỉnh thời gian',
             field: '',
         },
-        checkInterval: {
-            data: checkIntervals,
+        inspectionTime: {
+            data: inspectionTime,
             title: 'Chọn khoảng thời gian kiểm tra',
             field: '',
         },
@@ -119,7 +119,7 @@ const BottomSheetSelect = forwardRef<BottomSheetMethods, CustomBottomSheetProps>
             >
                 <View className="relative px-4 py-2 items-center justify-center">
                     <Text color={'black'} variant={'labelLarge'} className="text-center mb-4">
-                        {config.title}
+                        {config?.title}
                     </Text>
                     <TouchableOpacity onPress={onClose} className="absolute right-5 top-2">
                         <MaterialIcons name="close" size={24} color="black" />

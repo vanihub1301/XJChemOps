@@ -164,7 +164,7 @@ const FaceRegister = ({ navigation }: AuthNavigationProps<'FaceRegister'>) => {
                 showToast(res?.msg);
             }
         } catch (error: any) {
-            showToast(error);
+            showToast(error.message);
         }
     };
 

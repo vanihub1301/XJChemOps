@@ -62,7 +62,7 @@ const NearBill = ({ navigation }: MainNavigationProps<'NearBill'>) => {
             const totalPages = res.data?.pages || 1;
             setHasMore(currentPageFromAPI < totalPages);
         } catch (error: any) {
-            showToast(error);
+            showToast(error.message);
         } finally {
             setRefreshing(false);
         }

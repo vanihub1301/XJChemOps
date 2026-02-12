@@ -72,8 +72,13 @@ const Login = ({ navigation, isReAuthentication = false }: LoginProps) => {
                 if (navigation.canGoBack()) {
                     navigation.goBack();
                 } else {
-                    await useAuthStore.getState().setAuth({
+                    const loginTime = await getTime();
+
+                    useAuthStore.getState().setAuth({
                         isSignedIn: true,
+                    });
+                    useAuthStore.getState().setTimeLogin({
+                        timeLogin: loginTime,
                     });
                 }
             }
@@ -144,20 +149,23 @@ const Login = ({ navigation, isReAuthentication = false }: LoginProps) => {
         navigation.navigate('FaceRegister');
     }, [navigation]);
 
+    const getTime = async () => {
+        const response = await fetch('https://timeapi.io/api/v1/timezone/zone?timeZone=Asia%2FHo_Chi_Minh');
+        const data = await response.json();
+
+        const timeMatch = data.local_time.match(/T(\d{2}):(\d{2})/);
+        return timeMatch ? `${timeMatch[1]}:${timeMatch[2]}` : '';
+    }
     const handlePasswordLogin = useCallback(async () => {
         if (navigation.canGoBack()) {
             navigation.goBack();
         } else {
-            const response = await fetch('https://timeapi.io/api/v1/timezone/zone?timeZone=Asia%2FHo_Chi_Minh');
-            const data = await response.json();
+            const loginTime = await getTime();
 
-            const timeMatch = data.local_time.match(/T(\d{2}):(\d{2})/);
-            const loginTime = timeMatch ? `${timeMatch[1]}:${timeMatch[2]}` : '';
-
-            await useAuthStore.getState().setAuth({
+            useAuthStore.getState().setAuth({
                 isSignedIn: true,
             });
-            await useAuthStore.getState().setTimeLogin({
+            useAuthStore.getState().setTimeLogin({
                 timeLogin: loginTime,
             });
         }

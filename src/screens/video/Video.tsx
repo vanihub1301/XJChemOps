@@ -113,7 +113,7 @@ const Video = ({ navigation, route }: VideoProps) => {
             });
             setIsRecording(true);
         } catch (error: any) {
-            showToast(error);
+            showToast(error.message);
         }
     }, [handleDownloadAndCallback]);
 
