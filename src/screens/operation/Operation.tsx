@@ -83,7 +83,7 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
         } finally {
             await unlink(videoPath);
         }
-    }, [groupedChemicals, videoPath, getData, putData]);
+    }, [videoPath, getData, putData]);
 
     const handleStopPress = async () => {
         navigation.navigate('FormStopOperation');
@@ -201,7 +201,7 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
     useEffect(() => {
         const handler = async () => {
             if (videoStatus === 'saved' && videoPath) {
-                handleUploadVideo();
+                await handleUploadVideo();
                 useVideoStore.getState().markIdle();
             }
         };

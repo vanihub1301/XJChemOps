@@ -74,10 +74,23 @@ export const MainNavigator = () => {
     }, [batchsStore, setGroupedChemicals, setCurrentChemicals]);
 
     useEffect(() => {
+        let timeoutId: NodeJS.Timeout | null = null;
+        let isActive = true;
+
         const fetchRunningData = async () => {
+            if (!isActive) return;
+
             try {
                 const settings = await getMany(['serverIp', 'port', 'inspectionTime']);
-                const res = await getData('portal/inject/getRunning', { drumNo: orderStore?.process?.drumNo || rotatingTank.name }, true, settings.serverIp + ':' + settings.port);
+                console.log('LOG : fetchRunningData : settings:', settings);
+
+                const res = await getData(
+                    'portal/inject/getRunning',
+                    { drumNo: orderStore?.process?.drumNo || rotatingTank.name },
+                    true,
+                    settings.serverIp + ':' + settings.port
+                );
+
                 if (res.code === 0 && res.data?.process?.dtl) {
                     const { dtl, ...processWithoutDtl } = res.data.process;
                     const config = res.data?.config;
@@ -90,19 +103,18 @@ export const MainNavigator = () => {
                             appInjectPause: res.data?.appInjectPause,
                         }),
                         setBatchsStore(dtl),
-                        setMany({ serverIp: config.serverIp, port: config.port, inspectionTime: config.inspectionTime, idDrum: res.data?.config?.id }),
+                        setMany({
+                            serverIp: config.serverIp,
+                            port: config.port,
+                            inspectionTime: config.inspectionTime,
+                            idDrum: res.data?.config?.id
+                        }),
                         setIsPause(res.data?.appInjectPause?.pauseTime && !res.data?.appInjectPause?.continueTime),
                     ]);
 
                     const newIntervalMs = (parseInt(config.inspectionTime, 10) || 30) * 1000;
                     if (newIntervalMs !== currentIntervalTimeRef.current) {
                         currentIntervalTimeRef.current = newIntervalMs;
-
-                        if (intervalRef.current) {
-                            clearInterval(intervalRef.current);
-                        }
-
-                        intervalRef.current = setInterval(fetchRunningData, newIntervalMs);
                     }
                 } else if (batchsStore.length > 0) {
                     reset();
@@ -110,26 +122,29 @@ export const MainNavigator = () => {
             } catch (error: any) {
                 showToast(error.message);
             }
+
+            if (isActive) {
+                timeoutId = setTimeout(fetchRunningData, currentIntervalTimeRef.current);
+            }
         };
 
-        const setupInterval = async () => {
-            await fetchRunningData();
-
+        const init = async () => {
             const settings = await getMany(['inspectionTime']);
             const intervalMs = (parseInt(settings.inspectionTime, 10) || 30) * 1000;
             currentIntervalTimeRef.current = intervalMs;
-            intervalRef.current = setInterval(fetchRunningData, intervalMs);
+
+            await fetchRunningData();
         };
 
-        setupInterval();
+        init();
 
         return () => {
-            if (intervalRef.current) {
-                clearInterval(intervalRef.current);
+            isActive = false;
+            if (timeoutId) {
+                clearTimeout(timeoutId);
             }
         };
-    }, [rotatingTank.name, getData, setBatchsStore, setOrderStore, reset, setMany, getMany, setIsPause, batchsStore.length]);
-
+    }, [rotatingTank.name, getData, setBatchsStore, setOrderStore, reset, setMany, getMany, setIsPause]);
     return (
         <MainStack.Navigator screenOptions={{ headerShown: false }} initialRouteName={'Home'}>
             <MainStack.Screen name="Home" component={MainHome} />

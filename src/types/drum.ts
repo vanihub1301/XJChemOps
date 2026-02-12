@@ -39,7 +39,7 @@ export interface Chemical {
     pipelineNo: string;
     confirmUser: string | null;
     confirmTime: string;
-    realConfirmTime: string | null;
+    realConfirmTime: string;
     autoFeed: boolean;
     videoFk: string | null;
 }

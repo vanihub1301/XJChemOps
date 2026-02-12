@@ -65,7 +65,7 @@ const HistoryBatch: React.FC = () => {
                                     Đã đổ {item.materialName} ({item.processCode})
                                 </Text>
                                 <Text color="primary" variant="captionMedium">
-                                    {formatDateCustom(item.confirmTime, { format: 'HH:mm' })}
+                                    {formatDateCustom(item.realConfirmTime, { format: 'HH:mm' })}
                                 </Text>
                             </ViewBox>
                             <Text color="primary" variant="captionMedium">
