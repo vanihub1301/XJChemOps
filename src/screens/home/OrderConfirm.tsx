@@ -31,7 +31,7 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
 
     const { getData, postData, loading } = useAPI();
     const { setOrderStore, setBatchsStore, setGroupedChemicals } = useOperationStore();
-    const { fullName } = useAuthStore();
+    const { fullName, setRotatingTank } = useAuthStore();
 
     const fetchData = async (orderNo: string) => {
         try {
@@ -42,7 +42,7 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
                 setError(res.msg);
             }
         } catch (err: any) {
-            showToast(err);
+            showToast(err.message);
         }
     };
 
@@ -113,7 +113,12 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
             ]);
 
             setGroupedChemicals(groupedChemicals);
-
+            setRotatingTank({
+                rotatingTank: {
+                    code: orderData.drumNo,
+                    name: orderData.drumNo,
+                }
+            });
             navigation.reset({
                 index: 0,
                 routes: [{
@@ -123,7 +128,7 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
             });
 
         } catch (err: any) {
-            showToast(err);
+            showToast(err.message);
         }
     };
 

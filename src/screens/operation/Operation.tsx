@@ -26,7 +26,6 @@ import { unlink } from 'react-native-fs';
 import { uploadFile } from '../../service/axios';
 
 const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
-    const { init } = route.params;
     const [modalVisible, setModalVisible] = React.useState(false);
     const [alertedTimes, setAlertedTimes] = React.useState<Set<string>>(new Set());
 
@@ -34,10 +33,10 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
     const { currentChemicals, orderStore, batchsStore, groupedChemicals, isPause, setCurrentChemicals, setIsPause } = useOperationStore();
     const { getData, postData, putData } = useAPI();
 
-    const { play } = useAlarmSound(orderStore?.config?.enableSound);
+    const { play, stop } = useAlarmSound(orderStore?.config?.enableSound);
 
     const settingBottomSheetRef = useRef<BottomSheet>(null);
-    const initRef = useRef(init);
+    const initRef = useRef(true);
 
     const handleSettingPress = () => {
         settingBottomSheetRef.current?.expand();
@@ -130,7 +129,7 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
             ]);
 
         } catch (err: any) {
-            showToast(err);
+            showToast(err.message);
         }
     };
 
@@ -147,6 +146,7 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
 
     const handleModalDismiss = () => {
         setModalVisible(false);
+        stop();
     };
 
     const handleOptionSelection = async (value: string) => {
@@ -166,11 +166,8 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
     };
 
     useEffect(() => {
-        if (groupedChemicals.length === 0 && (!batchsStore || batchsStore.length === 0)) {
-            navigation.reset({
-                index: 0,
-                routes: [{ name: 'Home' }],
-            });
+        if (groupedChemicals.length === 0) {
+            navigation.replace('Home');
             return;
         }
 
@@ -209,13 +206,11 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
     }, [videoStatus, handleUploadVideo, videoPath]);
 
     useEffect(() => {
-        if (initRef.current && groupedChemicals && groupedChemicals.length > 0) {
-            const firstGroup = groupedChemicals[0];
-            setCurrentChemicals(firstGroup.chemicals);
+        if (initRef.current && groupedChemicals && groupedChemicals.length > 0 && !currentChemicals[0]?.videoFk) {
             setModalVisible(true);
             initRef.current = false;
         }
-    }, [init, groupedChemicals, setCurrentChemicals]);
+    }, [groupedChemicals, currentChemicals]);
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('beforeRemove', (e) => {

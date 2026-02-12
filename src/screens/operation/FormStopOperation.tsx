@@ -29,14 +29,15 @@ const FormStopOperation = ({ navigation }: MainNavigationProps<'FormStopOperatio
 
     const { postData, getData, loading } = useAPI();
     const { orderStore } = useOperationStore();
+    console.log('LOG : FormStopOperation : orderStore:', orderStore)
     const { fullName } = useAuthStore();
 
     const orderFields = [
-        { label: 'Mã đơn', value: orderStore?.orderNo, icon: <MaterialCommunityIcons name="fingerprint" size={24} color="#6266F1" /> },
-        { label: 'Màu sắc', value: orderStore?.color, icon: <Ionicons name="color-palette-outline" size={24} color="#6266F1" /> },
-        { label: 'Trọng lượng', value: orderStore?.actualWeight ? orderStore?.actualWeight + 'kg' : '', icon: <MaterialCommunityIcons name="weight" size={24} color="#6266F1" /> },
-        { label: 'Độ dày', value: orderStore?.thickness ? orderStore?.thickness + 'mm' : '', icon: <MaterialCommunityIcons name="format-line-weight" size={24} color="#6266F1" /> },
-        { label: 'Thời gian bắt đầu', value: formatDateCustom(orderStore?.startDrum, { format: 'HH:mm' }), icon: <MaterialCommunityIcons name="clock-outline" size={24} color="#6266F1" /> },
+        { label: 'Mã đơn', value: orderStore?.process?.orderNo, icon: <MaterialCommunityIcons name="fingerprint" size={24} color="#6266F1" /> },
+        { label: 'Màu sắc', value: orderStore?.process?.color, icon: <Ionicons name="color-palette-outline" size={24} color="#6266F1" /> },
+        { label: 'Trọng lượng', value: orderStore?.process?.actualWeight ? orderStore?.process?.actualWeight + 'kg' : '', icon: <MaterialCommunityIcons name="weight" size={24} color="#6266F1" /> },
+        { label: 'Độ dày', value: orderStore?.process?.thickness ? orderStore?.process?.thickness + 'mm' : '', icon: <MaterialCommunityIcons name="format-line-weight" size={24} color="#6266F1" /> },
+        { label: 'Thời gian bắt đầu', value: formatDateCustom(orderStore?.process?.startDrum, { format: 'HH:mm' }), icon: <MaterialCommunityIcons name="clock-outline" size={24} color="#6266F1" /> },
     ];
 
     const handleReasonPress = () => {

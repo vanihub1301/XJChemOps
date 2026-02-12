@@ -20,12 +20,15 @@ export const useAlarmSound = (enableSound?: boolean) => {
     const play = async () => {
         if (enableSound) {
             await setVolumeToMax();
+            soundRef.current?.stop(() => {
+                soundRef.current?.play();
+            });
         }
-
-        soundRef.current?.stop(() => {
-            soundRef.current?.play();
-        });
     };
 
-    return { play };
+    const stop = () => {
+        soundRef.current?.stop();
+    };
+
+    return { play, stop };
 };

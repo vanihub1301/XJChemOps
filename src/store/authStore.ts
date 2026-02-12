@@ -23,13 +23,15 @@ export const useAuthStore = create<AuthState>((set) => ({
                 set({ firstRunning: true });
             }
 
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            set({ isLoading: false, fullName: fullName[1], rotatingTank: { name: rotatingTank[1] } });
+            set({ fullName: fullName[1], rotatingTank: { name: rotatingTank[1] } });
         } catch (error) {
             await new Promise(resolve => setTimeout(resolve, 2000));
             set({ isLoading: false });
         }
+    },
+
+    setLoading: async ({ isLoading }) => {
+        set({ isLoading: isLoading });
     },
 
     setAuth: async ({ isSignedIn }) => {

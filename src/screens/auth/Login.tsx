@@ -168,12 +168,6 @@ const Login = ({ navigation, isReAuthentication = false }: LoginProps) => {
             useAuthStore.getState().setTimeLogin({
                 timeLogin: loginTime,
             });
-            // useAuthStore.getState().setRotatingTank({
-            //     rotatingTank: {
-            //         "code": "35#",
-            //         "name": "35#",
-            //     }
-            // });
         }
     }, [navigation]);
 

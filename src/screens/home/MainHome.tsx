@@ -70,20 +70,6 @@ const MainHome = ({ navigation }: MainNavigationProps<'Home'>) => {
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      if (batchsStore.length > 0) {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Operation', params: { init: false } }],
-        });
-      }
-
-      return () => {
-      };
-    }, [batchsStore, navigation])
-  );
-
   useEffect(() => {
     fetchData();
   }, [rotatingTank]);

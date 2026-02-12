@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { MainRoutes } from '../types/navigation';
 import MainHome from '../screens/home/MainHome';
@@ -14,139 +14,14 @@ import FormChangeStartTime from '../screens/operation/FormChangeStartTime';
 import Video from '../screens/video/Video';
 import ScanQR from '../components/camera/ScanQR';
 import OperatorLogin from '../screens/operation/OperatorLogin';
-import { useAPI } from '../service/api';
 import { useOperationStore } from '../store/operationStore';
-import { parseDateTime } from '../utils/dateTime';
-import { useAuthStore } from '../store/authStore';
-import { useSettingStore } from '../store/settingStore';
-import { Chemical } from '../types/drum';
-import { showToast } from '../service/toast';
 
 const MainStack = createStackNavigator<MainRoutes>();
 export const MainNavigator = () => {
-    const { orderStore, batchsStore, reset, setBatchsStore, setOrderStore, setGroupedChemicals, setCurrentChemicals, setIsPause } = useOperationStore();
-    const { rotatingTank } = useAuthStore();
-    const { setMany, getMany } = useSettingStore();
-    const { getData } = useAPI();
-    const intervalRef = useRef<NodeJS.Timeout | null>(null);
-    const currentIntervalTimeRef = useRef<number>(30000);
+    const { batchsStore } = useOperationStore();
 
-    useEffect(() => {
-        if (!batchsStore || batchsStore.length === 0 || !orderStore?.currentTime) {
-            setGroupedChemicals([]);
-            return;
-        }
-
-        const groupedByTime: { [key: string]: Chemical[] } = {};
-        batchsStore.forEach((chemical: Chemical) => {
-            const confirmTime = chemical.confirmTime;
-            if (!groupedByTime[confirmTime]) {
-                groupedByTime[confirmTime] = [];
-            }
-            groupedByTime[confirmTime].push(chemical);
-        });
-
-        const grouped = Object.keys(groupedByTime)
-            .sort()
-            .map(time => ({
-                time,
-                chemicals: groupedByTime[time],
-            }));
-
-        const currentTime = parseDateTime(orderStore.currentTime);
-
-        const currentGroup = grouped.find((group, index) => {
-            const startTime = parseDateTime(group.time);
-            const endTime = grouped[index + 1]
-                ? parseDateTime(grouped[index + 1].time)
-                : Infinity;
-
-            return currentTime >= startTime && currentTime < endTime;
-        });
-
-        console.log('LOG : Operation : currentGroup:', currentGroup);
-        console.log('LOG : Operation : grouped:', grouped);
-        console.log('LOG : Operation : config:', orderStore.config);
-        console.log('LOG : Operation : currentTime:', orderStore.currentTime);
-
-        setGroupedChemicals(grouped);
-        setCurrentChemicals(currentGroup?.chemicals || []);
-    }, [batchsStore, setGroupedChemicals, setCurrentChemicals]);
-
-    useEffect(() => {
-        let timeoutId: NodeJS.Timeout | null = null;
-        let isActive = true;
-
-        const fetchRunningData = async () => {
-            if (!isActive) return;
-
-            try {
-                const settings = await getMany(['serverIp', 'port', 'inspectionTime']);
-                console.log('LOG : fetchRunningData : settings:', settings);
-
-                const res = await getData(
-                    'portal/inject/getRunning',
-                    { drumNo: orderStore?.process?.drumNo || rotatingTank.name },
-                    true,
-                    settings.serverIp + ':' + settings.port
-                );
-
-                if (res.code === 0 && res.data?.process?.dtl) {
-                    const { dtl, ...processWithoutDtl } = res.data.process;
-                    const config = res.data?.config;
-
-                    await Promise.all([
-                        setOrderStore({
-                            process: processWithoutDtl,
-                            currentTime: res.data?.curentTime,
-                            config: config,
-                            appInjectPause: res.data?.appInjectPause,
-                        }),
-                        setBatchsStore(dtl),
-                        setMany({
-                            serverIp: config.serverIp,
-                            port: config.port,
-                            inspectionTime: config.inspectionTime,
-                            idDrum: res.data?.config?.id
-                        }),
-                        setIsPause(res.data?.appInjectPause?.pauseTime && !res.data?.appInjectPause?.continueTime),
-                    ]);
-
-                    const newIntervalMs = (parseInt(config.inspectionTime, 10) || 30) * 1000;
-                    if (newIntervalMs !== currentIntervalTimeRef.current) {
-                        currentIntervalTimeRef.current = newIntervalMs;
-                    }
-                } else if (batchsStore.length > 0) {
-                    reset();
-                }
-            } catch (error: any) {
-                showToast(error.message);
-            }
-
-            if (isActive) {
-                timeoutId = setTimeout(fetchRunningData, currentIntervalTimeRef.current);
-            }
-        };
-
-        const init = async () => {
-            const settings = await getMany(['inspectionTime']);
-            const intervalMs = (parseInt(settings.inspectionTime, 10) || 30) * 1000;
-            currentIntervalTimeRef.current = intervalMs;
-
-            await fetchRunningData();
-        };
-
-        init();
-
-        return () => {
-            isActive = false;
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-            }
-        };
-    }, [rotatingTank.name, getData, setBatchsStore, setOrderStore, reset, setMany, getMany, setIsPause]);
     return (
-        <MainStack.Navigator screenOptions={{ headerShown: false }} initialRouteName={'Home'}>
+        <MainStack.Navigator screenOptions={{ headerShown: false }} initialRouteName={batchsStore.length > 0 ? 'Operation' : 'Home'}>
             <MainStack.Screen name="Home" component={MainHome} />
             <MainStack.Screen name="Setting" component={Setting} />
             <MainStack.Screen name="OrderConfirm" component={OrderConfirm} />

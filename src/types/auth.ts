@@ -10,6 +10,7 @@ export interface AuthState {
     setAuth: ({ isSignedIn }: { isSignedIn: boolean }) => Promise<void>;
     setRotatingTank: ({ rotatingTank }: { rotatingTank: Record<string, any> }) => Promise<void>;
     setTimeLogin: ({ timeLogin }: { timeLogin: string }) => Promise<void>;
+    setLoading: ({ isLoading }: { isLoading: boolean }) => Promise<void>;
     logout: () => Promise<void>;
 }
 
