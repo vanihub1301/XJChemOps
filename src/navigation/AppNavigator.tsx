@@ -166,14 +166,11 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
     return (
         <AppStack.Navigator
             screenOptions={{ headerShown: false }}
-            initialRouteName={(isSignedIn || groupedChemicals.length > 0) ? 'Main' : 'Authentication'}
-            key={(isSignedIn || groupedChemicals.length > 0) ? 'main' : 'auth'}
+            initialRouteName={(groupedChemicals.length > 0) ? 'Main' : 'Authentication'}
+            key={(groupedChemicals.length > 0) ? 'main' : 'auth'}
         >
-            {(isSignedIn || groupedChemicals.length > 0) ? (
-                <AppStack.Screen name="Main" component={MainNavigator} />
-            ) : (
-                <AppStack.Screen name="Authentication" component={AuthenticationNavigator} />
-            )}
+            <AppStack.Screen name="Main" component={MainNavigator} />
+            <AppStack.Screen name="Authentication" component={AuthenticationNavigator} />
         </AppStack.Navigator>
     );
 };

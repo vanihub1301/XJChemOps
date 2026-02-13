@@ -27,7 +27,7 @@ export const useAuthStore = create<AuthState>((set) => ({
             set({
                 fullName: fullName[1] || '',
                 rotatingTank: { name: rotatingTank[1] },
-                isSignedIn: isSignedIn[1] === 'true'
+                // isSignedIn: isSignedIn[1] === 'true'
             });
         } catch (error) {
             await new Promise(resolve => setTimeout(resolve, 2000));

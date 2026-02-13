@@ -168,6 +168,7 @@ const Login = ({ navigation, isReAuthentication = false }: LoginProps) => {
             useAuthStore.getState().setTimeLogin({
                 timeLogin: loginTime,
             });
+            navigation.replace('Main');
         }
     }, [navigation]);
 
