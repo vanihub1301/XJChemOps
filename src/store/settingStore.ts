@@ -48,7 +48,7 @@ export const useSettingStore = create<SettingState>((set) => ({
     setMany: async (data) => {
         set(data);
         await Promise.all(
-            Object.entries(data).map(([key, value]) =>
+            Object.entries(data).map(([key, value]: [string, any]) =>
                 AsyncStorage.setItem(mapKey[key], value.toString())
             )
         );

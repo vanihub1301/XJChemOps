@@ -17,11 +17,9 @@ import BottomSheet from '@gorhom/bottom-sheet';
 import { useAPI } from '../../service/api';
 import { useAuthStore } from '../../store/authStore';
 import { MainNavigationProps } from '../../types/navigation';
-import { useOperationStore } from '../../store/operationStore';
-
 
 const Setting = ({ }: MainNavigationProps<'Setting'>) => {
-    const { setMany, getMany } = useSettingStore();
+    const { setMany, getMany, serverIp, port, inspectionTime, enableSound, lockScreen, language } = useSettingStore();
     const { postData } = useAPI();
     const { rotatingTank } = useAuthStore();
 
@@ -32,7 +30,6 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
     const [lockScreenLocal, setLockScreenLocal] = useState(false);
     const [languageLocal, setLanguageLocal] = useState('');
     const [sheetType, setSheetType] = useState<string>('inspectionTime');
-    const { orderStore, batchsStore } = useOperationStore();
 
     const bottomSheetRef = useRef<BottomSheet>(null);
 
@@ -110,7 +107,6 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
     useEffect(() => {
         const loadData = async () => {
             const settings = await getMany(['serverIp', 'port', 'inspectionTime', 'enableSound', 'lockScreen', 'language']);
-            console.log('LOG : loadData : settings:', settings)
             setServerAddress(settings.serverIp || '');
             setServerPort(settings.port || '');
             setInspectionTimeLocal(settings.inspectionTime || '');
@@ -119,7 +115,8 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
             setLanguageLocal(settings.language || '');
         }
         loadData();
-    }, [orderStore?.config]);
+    }, [serverIp, port, inspectionTime, enableSound, lockScreen, language]);
+
     return (
         <>
             <ViewContainer background="none" hasScrollableContent={true}>

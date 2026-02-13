@@ -29,7 +29,6 @@ const FormStopOperation = ({ navigation }: MainNavigationProps<'FormStopOperatio
 
     const { postData, getData, loading } = useAPI();
     const { orderStore } = useOperationStore();
-    console.log('LOG : FormStopOperation : orderStore:', orderStore)
     const { fullName } = useAuthStore();
 
     const orderFields = [

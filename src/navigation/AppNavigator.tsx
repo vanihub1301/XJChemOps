@@ -87,14 +87,12 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
             let config;
             try {
                 const settings = await getMany(['serverIp', 'port', 'inspectionTime']);
-                console.log('LOG : fetchRunningData : settings:', settings);
 
                 const res = await getData('portal/inject/getRunning', { drumNo: orderStore?.process?.drumNo || rotatingTank.name }, true, settings.serverIp + ':' + settings.port);
                 config = res.data?.config;
                 if (res.code === 0 && res.data?.process?.dtl) {
                     const { dtl, ...processWithoutDtl } = res.data.process;
                     const appInjectPause = res.data?.appInjectPause;
-                    console.log('LOG : fetchRunningData : processWithoutDtl:', processWithoutDtl)
 
                     await Promise.all([
                         setOrderStore({

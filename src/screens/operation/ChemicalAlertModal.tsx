@@ -34,7 +34,7 @@ const ChemicalAlertModal = ({
                     background="white"
                     radius="xxxl"
                     padding="xl"
-                    className="w-full max-w-md max-h-[80%]"
+                    className="w-full max-w-lg max-h-[80%]"
                 >
                     <View className="items-center mb-6">
                         <ViewBox
@@ -88,16 +88,16 @@ const ChemicalAlertModal = ({
                                             background="white"
                                             radius="md"
                                             padding="sm"
-                                            className="w-10 h-10 items-center justify-center"
+                                            className="w-12 h-12 items-center justify-center"
                                             border={'gray'}
                                         >
                                             <Ionicons
                                                 name="flask"
-                                                size={20}
+                                                size={24}
                                                 color="#6165EE"
                                             />
                                         </ViewBox>
-                                        <ViewBox className="flex-1">
+                                        <ViewBox gap={'xs'} className="flex-1">
                                             <Text variant="labelSemibold" color="black">
                                                 {chemical.processCode} | {chemical.materialName}
                                             </Text>
