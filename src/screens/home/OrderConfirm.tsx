@@ -20,7 +20,6 @@ import { mockData } from './data';
 const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>) => {
     const { code } = route.params || {};
     const [orderData, setOrderData] = useState<any>(null);
-    const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const orderFields = [
         { label: 'Mã đơn', value: orderData?.orderNo, icon: <MaterialCommunityIcons name="fingerprint" size={24} color="#6266F1" /> },
@@ -33,7 +32,7 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
 
     const { getData, postData } = useAPI();
     const { setOrderStore, setBatchsStore, setGroupedChemicals } = useOperationStore();
-    const { fullName, setRotatingTank } = useAuthStore();
+    const { fullName, rotatingTank } = useAuthStore();
 
     const fetchData = async (orderNo: string) => {
         try {
@@ -41,7 +40,7 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
             if (res.code === 0) {
                 setOrderData(res.data);
             } else {
-                setError(res.msg);
+                Alert.alert('Thông báo', res.msg, [{ text: 'OK', onPress: () => { }, style: 'cancel' },]);
             }
         } catch (err: any) {
             showToast(err.message);
@@ -52,7 +51,7 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
         if (code) {
             fetchData(code);
         } else {
-            setError('Mã đơn hàng không hợp lệ');
+            Alert.alert('Thông báo', 'Mã đơn hàng không hợp lệ', [{ text: 'OK', onPress: () => { }, style: 'cancel' },]);
         }
     }, [code]);
 
@@ -81,19 +80,19 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
 
             let processData;
 
-            const resRunning = await getData('portal/inject/getRunning', { drumNo: orderData.drumNo });
+            const resRunning = await getData('portal/inject/getRunning', { drumNo: rotatingTank?.name });
 
             if (resRunning.code === 0 && resRunning?.data?.process?.dtl?.length > 0) {
                 processData = { ...resRunning.data, dtl: resRunning.data.process.dtl };
             } else {
-                const resInit = await postData(`portal/inject/initProject?fid=${orderData.id}&employee=${encodeURIComponent(fullName)}&drumNo=${encodeURIComponent(orderData.drumNo)}`);
+                const resInit = await postData(`portal/inject/initProject?fid=${orderData.id}&employee=${encodeURIComponent(fullName)}&drumNo=${encodeURIComponent(rotatingTank?.name)}`);
 
                 if (resInit.code !== 0) {
                     Alert.alert('Thông báo', resInit.msg, [{ text: 'OK', onPress: () => { }, style: 'cancel' },]);
                     return;
                 }
 
-                const res = await getData('portal/inject/getRunning', { drumNo: orderData.drumNo });
+                const res = await getData('portal/inject/getRunning', { drumNo: rotatingTank?.name });
                 processData = { ...res.data, dtl: resInit.data.dtl };
 
                 // processData = { ...mockData, dtl: mockData.process.dtl };
@@ -114,12 +113,6 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
                 }),
                 setBatchsStore(dtl),
                 setGroupedChemicals(groupedChemicals),
-                setRotatingTank({
-                    rotatingTank: {
-                        code: orderData.drumNo,
-                        name: orderData.drumNo,
-                    }
-                })
             ]);
 
             navigation.replace('Operation');
@@ -149,7 +142,7 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
             }));
     };
 
-    if (error || !orderData) {
+    if (!orderData) {
         return (
             <ViewContainer>
                 <ViewHeader border={true} title="Xác nhận đơn sản xuất" />

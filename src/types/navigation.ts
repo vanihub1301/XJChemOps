@@ -1,5 +1,6 @@
 import { CompositeNavigationProp, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { Chemical } from './drum';
 
 export interface AuthNavigationProps<RouteName extends keyof AuthRoutes> {
     navigation: CompositeNavigationProp<
@@ -38,7 +39,7 @@ export type MainRoutes = {
     FormStopOperation: undefined;
     FormChangeStartTime: undefined;
     OrderConfirm: { code: string };
-    Video: { autoRecord?: boolean; currentChemicals?: any } | undefined;
+    Video: { autoRecord?: boolean; chemicals?: Chemical[] } | undefined;
     ScanQR: { nextScreen?: string, reset?: boolean };
     OperatorLogin: undefined;
 };

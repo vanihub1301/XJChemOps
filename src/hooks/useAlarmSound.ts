@@ -7,7 +7,7 @@ export const useAlarmSound = (enableSound?: boolean) => {
     const soundRef = useRef<Sound | null>(null);
 
     useEffect(() => {
-        soundRef.current = new Sound('alert.mp3', Sound.MAIN_BUNDLE, (e) => {
+        soundRef.current = new Sound('alert2.mp3', Sound.MAIN_BUNDLE, (e) => {
             if (e) { showToast(e); }
         });
 

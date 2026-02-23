@@ -26,6 +26,7 @@ interface VideoProps {
         params?: {
             onVideoRecorded?: (videoPath: string) => void;
             autoRecord?: boolean;
+            chemicals?: Chemical[];
         };
     };
 }
@@ -37,7 +38,8 @@ const Video = ({ navigation, route }: VideoProps) => {
     const [cameraKey, setCameraKey] = useState(0);
     const [zoom, setZoom] = useState(1);
 
-    const { currentChemicals, batchsStore } = useOperationStore();
+    const { batchsStore } = useOperationStore();
+    const chemicals: Chemical[] = route?.params?.chemicals ?? [];
 
     const mapIcon = {
         flask: <MaterialCommunityIcons name="flask" size={28} color="#26F073" />,
@@ -291,7 +293,7 @@ const Video = ({ navigation, route }: VideoProps) => {
                                     showsVerticalScrollIndicator={false}
                                     contentContainerStyle={styles.scrollContent}
                                 >
-                                    {currentChemicals?.map((chemical: Chemical, index: number) => (
+                                    {chemicals?.map((chemical: Chemical, index: number) => (
                                         <ViewBox key={index} className="flex-row items-center justify-between py-2">
                                             <ViewBox className="flex-row items-center flex-1" gap="sm">
                                                 <ViewBox

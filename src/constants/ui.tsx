@@ -4,7 +4,7 @@ export const languages = [
 ];
 
 export const settings = [
-    { value: 'extra', label: 'Bổ sung hoá chất' },
+    // { value: 'extra', label: 'Bổ sung hoá chất' },
     { value: 'time', label: 'Đổi thời gian bắt đầu' },
 ];
 

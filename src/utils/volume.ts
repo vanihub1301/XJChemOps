@@ -3,7 +3,7 @@ import { showToast } from '../service/toast';
 
 export const setVolumeToMax = async (): Promise<void> => {
     try {
-        await VolumeManager.setVolume(1.0);
+        await VolumeManager.setVolume(1.0, { type: 'music' });
     } catch (error: any) {
         showToast(error.message);
     }

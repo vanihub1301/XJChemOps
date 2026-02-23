@@ -12,16 +12,12 @@ import { Chemical } from '../../types/drum';
 
 interface ChemicalAlertModalProps {
     visible: boolean;
+    chemicals: Chemical[];
     onRecord: () => void;
     onDismiss: () => void;
 }
 
-const ChemicalAlertModal = ({
-    visible,
-    onRecord,
-    onDismiss,
-}: ChemicalAlertModalProps) => {
-    const { currentChemicals } = useOperationStore();
+const ChemicalAlertModal = ({ visible, chemicals, onRecord, onDismiss }: ChemicalAlertModalProps) => {
     return (
         <Modal
             visible={visible}
@@ -68,7 +64,7 @@ const ChemicalAlertModal = ({
                         color="primary"
                         className="mb-2"
                     >
-                        HÓA CHẤT CẦN ĐỔ ({currentChemicals.length})
+                        HÓA CHẤT CẦN ĐỔ ({chemicals.length})
                     </Text>
 
                     <ScrollView
@@ -76,7 +72,7 @@ const ChemicalAlertModal = ({
                         showsVerticalScrollIndicator={false}
                     >
                         <ViewBox gap="sm">
-                            {currentChemicals.map((chemical: Chemical, _index: number) => (
+                            {chemicals.map((chemical: Chemical, _index: number) => (
                                 <Card
                                     key={chemical.id}
                                     background="blurPurple"
