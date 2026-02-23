@@ -16,6 +16,7 @@ import { showToast } from '../../service/toast';
 import { useFocusEffect } from '@react-navigation/native';
 import KeepAwake from 'react-native-keep-awake';
 import { Worklets } from 'react-native-worklets-core';
+import { useSettingStore } from '../../store/settingStore';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -29,6 +30,7 @@ const Login = ({ navigation, isReAuthentication = false }: LoginProps) => {
     const [isDetecting, setIsDetecting] = useState(false);
 
     const { checkCameraPermission } = usePermissions();
+    const { setMany } = useSettingStore();
     const scanLinePosition = useSharedValue(0);
     const lastFrameProcessTime = useSharedValue(0);
     const device = useCameraDevice('front');
@@ -167,6 +169,14 @@ const Login = ({ navigation, isReAuthentication = false }: LoginProps) => {
             });
             useAuthStore.getState().setTimeLogin({
                 timeLogin: loginTime,
+            });
+            setMany({
+                serverIp: "192.168.10.8",
+                port: "8072",
+                inspectionTime: 10,
+                lockScreen: true,
+                enableSound: true,
+                language: "vi",
             });
             navigation.replace('Main');
         }

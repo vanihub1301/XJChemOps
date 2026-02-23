@@ -14,14 +14,18 @@ const api = axios.create({
 
 api.interceptors.request.use(
     async config => {
-        const [serverIp, port] = await AsyncStorage.multiGet(['serverIp', 'port']);
-        if (serverIp[1] && port[1]) {
-            config.baseURL = `${serverIp[1]}:${port[1]}/api/v1/`;
+        if (!config.headers['X-Custom-BaseURL']) {
+            const [serverIp, port] = await AsyncStorage.multiGet(['server_ip', 'port']);
+            if (serverIp[1] && port[1]) {
+                config.baseURL = `${serverIp[1]}:${port[1]}/api/v1/`;
+            }
+        } else {
+            delete config.headers['X-Custom-BaseURL'];
         }
         if (config.baseURL && !config.baseURL.includes('http')) {
             config.baseURL = 'http://' + config.baseURL;
         }
-        console.log('LOG : config:', config);
+        console.log('LOG : config:', config)
         return config;
     },
     error => Promise.reject(error)
@@ -91,7 +95,10 @@ export const get = async <T = any>(
     baseUrl?: string
 ): Promise<T> => {
     const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
-    const config = baseUrl ? { baseURL: baseUrl + '/api/v1' } : {};
+    const config = baseUrl ? {
+        baseURL: baseUrl + '/api/v1',
+        headers: { 'X-Custom-BaseURL': 'true' }
+    } : {};
     const response = await api.get<T>(url + queryString, config);
     return response.data;
 };
@@ -101,7 +108,10 @@ export const post = async <T = any>(
     data?: any,
     baseUrl?: string
 ): Promise<T> => {
-    const config = baseUrl ? { baseURL: baseUrl + '/api/v1' } : {};
+    const config = baseUrl ? {
+        baseURL: baseUrl + '/api/v1',
+        headers: { 'X-Custom-BaseURL': 'true' }
+    } : {};
     const response = await api.post<T>(url, data, config);
     return response.data;
 };
@@ -111,7 +121,10 @@ export const put = async <T = any>(
     data?: any,
     baseUrl?: string
 ): Promise<T> => {
-    const config = baseUrl ? { baseURL: baseUrl + '/api/v1' } : {};
+    const config = baseUrl ? {
+        baseURL: baseUrl + '/api/v1',
+        headers: { 'X-Custom-BaseURL': 'true' }
+    } : {};
     const response = await api.put<T>(url, data, config);
     return response.data;
 };
@@ -121,7 +134,10 @@ export const del = async <T = any>(
     id: string,
     baseUrl?: string
 ): Promise<T> => {
-    const config = baseUrl ? { baseURL: baseUrl + '/api/v1' } : {};
+    const config = baseUrl ? {
+        baseURL: baseUrl + '/api/v1',
+        headers: { 'X-Custom-BaseURL': 'true' }
+    } : {};
     const response = await api.delete<T>(url, { ...config, params: { id } });
     return response.data;
 };

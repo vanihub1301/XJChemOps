@@ -15,11 +15,13 @@ import { useOperationStore } from '../../store/operationStore';
 import { useAuthStore } from '../../store/authStore';
 import { Alert } from 'react-native';
 import { Chemical } from '../../types/drum';
+import { mockData } from './data';
 
 const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>) => {
     const { code } = route.params || {};
     const [orderData, setOrderData] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
     const orderFields = [
         { label: 'Mã đơn', value: orderData?.orderNo, icon: <MaterialCommunityIcons name="fingerprint" size={24} color="#6266F1" /> },
         { label: 'Mã hoá chất', value: orderData?.bomNo, icon: <MaterialCommunityIcons name="barcode" size={24} color="#6266F1" /> },
@@ -29,7 +31,7 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
         { label: 'Thời gian bắt đầu', value: formatDateCustom(orderData?.startDrum, { format: 'HH:mm' }), icon: <MaterialCommunityIcons name="clock-outline" size={24} color="#6266F1" /> },
     ];
 
-    const { getData, postData, loading } = useAPI();
+    const { getData, postData } = useAPI();
     const { setOrderStore, setBatchsStore, setGroupedChemicals } = useOperationStore();
     const { fullName, setRotatingTank } = useAuthStore();
 
@@ -74,14 +76,14 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
 
     const handleConfirm = async () => {
         try {
+            setLoading(true);
             if (!orderData) { return; }
 
             let processData;
-            let isNewInit = false;
 
-            const resRunning = await getData('portal/inject/getRunning', { drumNo: orderData.drumNo }, false);
+            const resRunning = await getData('portal/inject/getRunning', { drumNo: orderData.drumNo });
 
-            if (resRunning.code === 0 && resRunning?.data?.process) {
+            if (resRunning.code === 0 && resRunning?.data?.process?.dtl?.length > 0) {
                 processData = { ...resRunning.data, dtl: resRunning.data.process.dtl };
             } else {
                 const resInit = await postData(`portal/inject/initProject?fid=${orderData.id}&employee=${encodeURIComponent(fullName)}&drumNo=${encodeURIComponent(orderData.drumNo)}`);
@@ -91,9 +93,10 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
                     return;
                 }
 
-                const res = await getData('portal/inject/getRunning', { drumNo: orderData.drumNo }, false);
+                const res = await getData('portal/inject/getRunning', { drumNo: orderData.drumNo });
                 processData = { ...res.data, dtl: resInit.data.dtl };
-                isNewInit = true;
+
+                // processData = { ...mockData, dtl: mockData.process.dtl };
             }
 
             const { dtl, process, curentTime, config, appInjectPause } = processData;
@@ -110,25 +113,21 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
                     appInjectPause,
                 }),
                 setBatchsStore(dtl),
+                setGroupedChemicals(groupedChemicals),
+                setRotatingTank({
+                    rotatingTank: {
+                        code: orderData.drumNo,
+                        name: orderData.drumNo,
+                    }
+                })
             ]);
 
-            setGroupedChemicals(groupedChemicals);
-            setRotatingTank({
-                rotatingTank: {
-                    code: orderData.drumNo,
-                    name: orderData.drumNo,
-                }
-            });
-            navigation.reset({
-                index: 0,
-                routes: [{
-                    name: 'Operation',
-                    ...(isNewInit && { params: { init: true } }),
-                }],
-            });
+            navigation.replace('Operation');
 
         } catch (err: any) {
             showToast(err.message);
+        } finally {
+            setLoading(false);
         }
     };
 

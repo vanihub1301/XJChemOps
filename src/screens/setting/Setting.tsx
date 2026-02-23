@@ -7,7 +7,6 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ViewBox } from '../../components/common/ViewBox';
 import { Text } from '../../components/common/Text';
 import Input from '../../components/input/Input';
-import SelectBox from '../../components/common/SelectBox';
 import { Button } from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import { showToast } from '../../service/toast';
@@ -19,8 +18,8 @@ import { useAuthStore } from '../../store/authStore';
 import { MainNavigationProps } from '../../types/navigation';
 
 const Setting = ({ }: MainNavigationProps<'Setting'>) => {
-    const { setMany, getMany, serverIp, port, inspectionTime, enableSound, lockScreen, language } = useSettingStore();
-    const { postData } = useAPI();
+    const { setMany, getMany, inspectionTime } = useSettingStore();
+    const { postData, getData, loading } = useAPI();
     const { rotatingTank } = useAuthStore();
 
     const [serverAddress, setServerAddress] = useState('');
@@ -30,8 +29,44 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
     const [lockScreenLocal, setLockScreenLocal] = useState(false);
     const [languageLocal, setLanguageLocal] = useState('');
     const [sheetType, setSheetType] = useState<string>('inspectionTime');
+    const [changedFields, setChangedFields] = useState<Set<string>>(new Set());
 
     const bottomSheetRef = useRef<BottomSheet>(null);
+
+    const handleServerAddressChange = (value: string) => {
+        setServerAddress(value);
+        setChangedFields(prev => new Set(prev).add('serverIp'));
+    };
+
+    const handleServerPortChange = (value: string) => {
+        setServerPort(value);
+        setChangedFields(prev => new Set(prev).add('port'));
+    };
+
+    const handleInspectionTimeChange = (value: string) => {
+        setInspectionTimeLocal(value);
+        setChangedFields(prev => new Set(prev).add('inspectionTime'));
+    };
+
+    const handleEnableSoundChange = (value: boolean) => {
+        setEnableSoundLocal(value);
+        setChangedFields(prev => new Set(prev).add('enableSound'));
+    };
+
+    const handleLockScreenChange = (value: boolean) => {
+        setLockScreenLocal(value);
+        setChangedFields(prev => new Set(prev).add('lockScreen'));
+    };
+
+    const handleCheckServer = async ({ serverIp = serverAddress, port = serverPort }: { serverIp: string, port: string }) => {
+        try {
+            await getData('portal/inject/reference', {}, true, "http://" + serverIp + ":" + port);
+            await setMany({ serverIp, port });
+            return true
+        } catch (error: any) {
+            return false;
+        }
+    };
 
     const handleSettingSave = async () => {
         try {
@@ -40,31 +75,48 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
                 showToast('Không tìm thấy id máy');
                 return;
             }
-            const response = await postData('portal/inject/config', {
+
+            const updatedConfig: any = {
                 id: settings.idDrum,
                 drumno: rotatingTank?.name,
-                inspectionTime: +inspectionTimeLocal,
-                enableSound: enableSoundLocal,
-                lockScreen: lockScreenLocal,
-                language: languageLocal,
-                serverIp: serverAddress,
-                port: +serverPort,
-            });
+            };
+
+            if (changedFields.has('inspectionTime')) {
+                updatedConfig.inspectionTime = +inspectionTimeLocal;
+            }
+            if (changedFields.has('serverIp')) {
+                updatedConfig.serverIp = serverAddress;
+            }
+            if (changedFields.has('port')) {
+                updatedConfig.port = +serverPort;
+            }
+            if (changedFields.has('language')) {
+                updatedConfig.language = languageLocal;
+            }
+            if (changedFields.has('enableSound')) {
+                updatedConfig.enableSound = enableSoundLocal;
+            }
+            if (changedFields.has('lockScreen')) {
+                updatedConfig.lockScreen = lockScreenLocal;
+            }
+
+            const isServerValid = await handleCheckServer({ serverIp: updatedConfig?.serverIp, port: updatedConfig?.port });
+            if (!isServerValid) {
+                showToast('Không tìm thấy máy chủ, vui lòng kiểm tra lại');
+                return;
+            }
+
+            const response = await postData('portal/inject/config', updatedConfig, false);
             if (response?.code === 0) {
-                await setMany({
-                    serverIp: serverAddress,
-                    port: serverPort,
-                    inspectionTime: inspectionTimeLocal,
-                    lockScreen: lockScreenLocal,
-                    enableSound: enableSoundLocal,
-                    language: languageLocal,
-                });
                 showToast('Cài đặt đã được lưu thành công');
+                await setMany(updatedConfig);
             } else {
                 showToast(response?.msg);
             }
         } catch (error: any) {
             showToast(error.message);
+        } finally {
+            setChangedFields(new Set());
         }
     };
 
@@ -94,8 +146,10 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
     const handleSelection = (value: string) => {
         if (sheetType === 'inspectionTime') {
             setInspectionTimeLocal(value);
+            setChangedFields(prev => new Set(prev).add('inspectionTime'));
         } else if (sheetType === 'language') {
             setLanguageLocal(value);
+            setChangedFields(prev => new Set(prev).add('language'));
         }
         handleClose();
     };
@@ -113,9 +167,16 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
             setEnableSoundLocal(settings.enableSound === 'true');
             setLockScreenLocal(settings.lockScreen === 'true');
             setLanguageLocal(settings.language || '');
+            setChangedFields(new Set());
         }
+
         loadData();
-    }, [serverIp, port, inspectionTime, enableSound, lockScreen, language]);
+
+        const intervalTime = inspectionTime ? parseInt(inspectionTime) * 1000 : 5000;
+        const intervalId = setInterval(loadData, intervalTime);
+
+        return () => clearInterval(intervalId);
+    }, [inspectionTime]);
 
     return (
         <>
@@ -132,7 +193,8 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
                                 label="Địa chỉ máy chủ"
                                 placeholder="Nhập địa chỉ máy chủ"
                                 InputValue={serverAddress}
-                                onChangeText={setServerAddress}
+                                onChangeText={handleServerAddressChange}
+                                keyboardType="numeric"
                                 showClearButton={false}
                             />
 
@@ -140,7 +202,7 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
                                 label="Cổng (Port)"
                                 placeholder="Nhập cổng"
                                 InputValue={serverPort}
-                                onChangeText={setServerPort}
+                                onChangeText={handleServerPortChange}
                                 keyboardType="numeric"
                                 showClearButton={false}
                             />
@@ -152,11 +214,13 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
                             KIỂM TRA HỆ THỐNG
                         </Text>
                         <Card style={styles.shadow}>
-                            <SelectBox
-                                label="Thời gian kiểm tra"
-                                selectedChoice={inspectionTimeLocal + ' giây'}
-                                placeholder="Chọn thời gian"
-                                handleChoicePress={() => handleOpenSheet('inspectionTime')}
+                            <Input
+                                label="Thời gian kiểm tra (giây)"
+                                placeholder="Nhập thời gian"
+                                InputValue={inspectionTimeLocal}
+                                onChangeText={handleInspectionTimeChange}
+                                keyboardType="numeric"
+                                showClearButton={false}
                             />
                         </Card>
 
@@ -180,7 +244,7 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
                                 </ViewBox>
                                 <Switch
                                     value={enableSoundLocal}
-                                    onValueChange={setEnableSoundLocal}
+                                    onValueChange={handleEnableSoundChange}
                                     trackColor={{ false: '#D1D5DB', true: '#1616E6' }}
                                     thumbColor="#FFFFFF"
                                 />
@@ -199,7 +263,7 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
                                 </ViewBox>
                                 <Switch
                                     value={lockScreenLocal}
-                                    onValueChange={setLockScreenLocal}
+                                    onValueChange={handleLockScreenChange}
                                     trackColor={{ false: '#D1D5DB', true: '#1616E6' }}
                                     thumbColor="#FFFFFF"
                                 />
@@ -276,6 +340,8 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
                         label="LƯU CÀI ĐẶT"
                         onPress={handleSave}
                         className="w-full"
+                        disabled={loading}
+                        loading={loading}
                     />
                 </ViewBox>
             </ViewContainer>

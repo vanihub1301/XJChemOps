@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { StyleSheet, View, Dimensions, AppState } from 'react-native';
-import { Camera, useCameraDevice, useCameraFormat, useCodeScanner } from 'react-native-vision-camera';
-import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, cancelAnimation } from 'react-native-reanimated';
+import { StyleSheet, View, Dimensions, AppState, AppStateStatus } from 'react-native';
+import { Camera, useCameraDevice, useCodeScanner } from 'react-native-vision-camera';
+import { useSharedValue, withRepeat, withTiming, Easing, cancelAnimation } from 'react-native-reanimated';
 import { usePermissions } from '../../hooks/usePermissions';
-import { useFocusEffect } from '@react-navigation/native';
+import { useIsFocused } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 const LINE_HEIGHT = 2;
@@ -23,16 +23,15 @@ const CameraScanSection: React.FC<CameraScanSectionProps> = ({
 }) => {
     const [scanned, setScanned] = useState(false);
     const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-    const [isCameraActive, setIsCameraActive] = useState(false);
-    const [cameraKey, setCameraKey] = useState(0);
+    const [appState, setAppState] = useState<AppStateStatus>(AppState.currentState);
     const [layoutHeight, setLayoutHeight] = useState(boxSize);
 
     const { requestCameraPermission } = usePermissions();
     const device = useCameraDevice('front');
-    const format = useCameraFormat(device, [
-        { videoResolution: 'max' },
-    ]);
+    const isFocused = useIsFocused();
     const scanLinePosition = useSharedValue(0);
+
+    const isCameraActive = isFocused && appState === 'active' && hasPermission === true && !scanned;
 
     const onLayout = useCallback((event: any) => {
         const { height } = event.nativeEvent.layout;
@@ -86,23 +85,12 @@ const CameraScanSection: React.FC<CameraScanSectionProps> = ({
         (async () => {
             const requested = await requestCameraPermission();
             setHasPermission(requested);
-            if (requested) {
-                setIsCameraActive(true);
-            }
         })();
     }, [requestCameraPermission]);
 
     useEffect(() => {
         const subscription = AppState.addEventListener('change', (nextAppState) => {
-            if (nextAppState === 'active') {
-                setIsCameraActive(false);
-                setTimeout(() => {
-                    setIsCameraActive(true);
-                    setCameraKey(prev => prev + 1);
-                }, 100);
-            } else if (nextAppState === 'background' || nextAppState === 'inactive') {
-                setIsCameraActive(false);
-            }
+            setAppState(nextAppState);
         });
 
         return () => {
@@ -110,31 +98,20 @@ const CameraScanSection: React.FC<CameraScanSectionProps> = ({
         };
     }, []);
 
-    useFocusEffect(
-        useCallback(() => {
+    useEffect(() => {
+        if (isFocused) {
             setScanned(false);
-            setIsCameraActive(true);
-
-            return () => {
-                setIsCameraActive(false);
-            };
-        }, [])
-    );
-
-    const scanLineStyle = useAnimatedStyle(() => ({
-        transform: [{ translateY: scanLinePosition.value }],
-    }));
+        }
+    }, [isFocused]);
 
     return (
         <View style={[styles.container, { borderRadius }]} onLayout={onLayout}>
             {hasPermission && device && (
                 <>
                     <Camera
-                        key={cameraKey}
                         style={StyleSheet.absoluteFill}
                         device={device}
-                        format={format}
-                        isActive={isCameraActive && !scanned}
+                        isActive={isCameraActive}
                         codeScanner={codeScanner}
                     />
 

@@ -23,6 +23,7 @@ export const changeTimeReasons = [
 ];
 
 export const inspectionTime = [
+    { value: '5', label: '5 giây' },
     { value: '10', label: '10 giây' },
     { value: '15', label: '15 giây' },
     { value: '30', label: '30 giây' },

@@ -30,7 +30,7 @@ export type AppRoutes = {
 export type MainRoutes = {
     Home: undefined;
     Setting: undefined;
-    Operation: { init?: boolean; };
+    Operation: undefined;
     NearBill: undefined;
     BillDetail: { order: any; };
     FinishConfirm: undefined;

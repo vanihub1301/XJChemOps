@@ -21,7 +21,7 @@ interface AppNavigatorProps {
 export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
     const { orderStore, batchsStore, groupedChemicals, reset, setBatchsStore, setOrderStore, setGroupedChemicals, setCurrentChemicals, setIsPause } = useOperationStore();
     const { rotatingTank, isLoading, setLoading } = useAuthStore();
-    const { setMany, getMany } = useSettingStore();
+    const { setMany, getMany, inspectionTime } = useSettingStore();
     const { getData } = useAPI();
     const currentIntervalTimeRef = useRef<number>(30000);
     const hasLoadedRef = useRef<boolean>(false);
@@ -89,6 +89,7 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
                 const settings = await getMany(['serverIp', 'port', 'inspectionTime']);
 
                 const res = await getData('portal/inject/getRunning', { drumNo: orderStore?.process?.drumNo || rotatingTank.name }, true, settings.serverIp + ':' + settings.port);
+                console.log('LOG : fetchRunningData : res:', res);
                 config = res.data?.config;
                 if (res.code === 0 && res.data?.process?.dtl) {
                     const { dtl, ...processWithoutDtl } = res.data.process;
@@ -105,13 +106,8 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
 
                         setIsPause(appInjectPause?.pauseTime && !appInjectPause?.continueTime),
                     ]);
-
-
-                    const newIntervalMs = (parseInt(config.inspectionTime, 10) || 30) * 1000;
-                    if (newIntervalMs !== currentIntervalTimeRef.current) {
-                        currentIntervalTimeRef.current = newIntervalMs;
-                    }
-                } else if (res.code === 0 && !res.data?.process?.dtl && batchsStore.length > 0) {
+                } else if (res.code === 0 && !res.data?.process?.dtl) {
+                    console.log('LOG : fetchRunningData : reset');
                     reset();
                 }
             } catch (error: any) {
@@ -128,6 +124,14 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
                     drumno: config?.drumno,
                     language: config?.language,
                 })
+                const newIntervalMs = (parseInt(config?.inspectionTime, 10) || 30) * 1000;
+                if (newIntervalMs !== currentIntervalTimeRef.current) {
+                    currentIntervalTimeRef.current = newIntervalMs;
+                    if (timeoutId) {
+                        clearTimeout(timeoutId);
+                        timeoutId = null;
+                    }
+                }
                 finishInitialLoading();
             }
 
@@ -139,7 +143,7 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
         const init = async () => {
             try {
                 const settings = await getMany(['inspectionTime']);
-                const intervalMs = (parseInt(settings.inspectionTime, 10) || 30) * 1000;
+                const intervalMs = (parseInt(settings?.inspectionTime, 10) || 30) * 1000;
                 currentIntervalTimeRef.current = intervalMs;
 
                 await fetchRunningData();
@@ -157,7 +161,7 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
                 clearTimeout(timeoutId);
             }
         };
-    }, [rotatingTank.name, getData, setBatchsStore, setOrderStore, reset, setMany, getMany, setIsPause]);
+    }, [rotatingTank.name, getData, setBatchsStore, setOrderStore, reset, setMany, getMany, setIsPause, inspectionTime]);
 
     if (isLoading) {
         return <SplashScreen />;
@@ -167,7 +171,6 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
         <AppStack.Navigator
             screenOptions={{ headerShown: false }}
             initialRouteName={(groupedChemicals.length > 0) ? 'Main' : 'Authentication'}
-            key={(groupedChemicals.length > 0) ? 'main' : 'auth'}
         >
             <AppStack.Screen name="Main" component={MainNavigator} />
             <AppStack.Screen name="Authentication" component={AuthenticationNavigator} />
