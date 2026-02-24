@@ -34,7 +34,7 @@ export type MainRoutes = {
     Operation: undefined;
     NearBill: undefined;
     BillDetail: { order: any; };
-    FinishConfirm: undefined;
+    FinishConfirm: { payload: any, scanCount: string };
     VideoPlayback: undefined;
     FormStopOperation: undefined;
     FormChangeStartTime: undefined;

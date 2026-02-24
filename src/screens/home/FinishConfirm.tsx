@@ -11,24 +11,20 @@ import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 import { MainNavigationProps } from '../../types/navigation';
 import PillBadge from '../../components/common/PillBadge';
 import { StyleSheet } from 'react-native';
-import { useOperationStore } from '../../store/operationStore';
 import { formatDateCustom } from '../../utils/dateTime';
-import { Chemical } from '../../types/drum';
 
-const FinishConfirm = ({ navigation }: MainNavigationProps<'FinishConfirm'>) => {
+const FinishConfirm = ({ navigation, route }: MainNavigationProps<'FinishConfirm'>) => {
+    const { payload, scanCount } = route.params;
     const handleFinish = () => {
         navigation.reset({
             index: 0,
             routes: [{ name: 'Home' }],
         });
-        reset();
     };
 
     const handleViewVideo = () => {
         navigation.navigate('VideoPlayback');
     };
-
-    const { orderStore, batchsStore, reset } = useOperationStore();
 
     return (
         <ViewContainer background="white" hasScrollableContent={true}>
@@ -78,7 +74,7 @@ const FinishConfirm = ({ navigation }: MainNavigationProps<'FinishConfirm'>) => 
                                 <ViewBox gap="sm" className="flex-row items-center">
                                     <MaterialCommunityIcons name="file-document" size={20} color="#9B95EF" />
                                     <Text variant="labelStrong" color="black">
-                                        {orderStore?.process?.orderNo}
+                                        {payload?.orderBill}
                                     </Text>
                                 </ViewBox>
                             </ViewBox>
@@ -90,7 +86,7 @@ const FinishConfirm = ({ navigation }: MainNavigationProps<'FinishConfirm'>) => 
                                 <ViewBox gap="sm" className="flex-row items-center">
                                     <FontAwesome6 name="box-archive" size={20} color="#9B95EF" />
                                     <Text variant="labelStrong" color="black">
-                                        {batchsStore?.filter((c: Chemical) => c.scanning)?.length || 0}/{batchsStore?.length || 0}
+                                        {scanCount}
                                     </Text>
                                 </ViewBox>
                             </ViewBox>
@@ -102,7 +98,7 @@ const FinishConfirm = ({ navigation }: MainNavigationProps<'FinishConfirm'>) => 
                                 <ViewBox gap="sm" className="flex-row items-center">
                                     <MaterialCommunityIcons name="clock" size={20} color="#9B95EF" />
                                     <Text variant="labelStrong" color="black">
-                                        {formatDateCustom(orderStore?.currentTime, { format: 'HH:mm' })}
+                                        {formatDateCustom(payload?.finishTime, { format: 'HH:mm' })}
                                     </Text>
                                 </ViewBox>
                             </ViewBox>

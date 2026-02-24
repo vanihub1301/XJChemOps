@@ -40,7 +40,7 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
             if (res.code === 0) {
                 setOrderData(res.data);
             } else {
-                Alert.alert('Thông báo', res.msg, [{ text: 'OK', onPress: () => { }, style: 'cancel' },]);
+                Alert.alert('Thông báo', res.msg, [{ text: 'OK', onPress: () => { navigation.goBack() }, style: 'cancel' },]);
             }
         } catch (err: any) {
             showToast(err.message);

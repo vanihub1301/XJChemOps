@@ -31,7 +31,7 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
     const [alertedTimes, setAlertedTimes] = React.useState<Set<string>>(new Set());
     const [upcomingChemicals, setUpcomingChemicals] = React.useState<Chemical[]>([]);
 
-    const { videoStatus, videoPath } = useVideoStore();
+    const { videoStatus, videoPath, markIdle } = useVideoStore();
     const { currentChemicals, orderStore, batchsStore, groupedChemicals, isPause, setIsPause } = useOperationStore();
     const { getData, postData, putData } = useAPI();
     const { play, stop } = useAlarmSound(orderStore?.config?.enableSound);
@@ -88,7 +88,7 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
         } finally {
             await unlink(videoPath);
         }
-    }, [getData, putData]);
+    }, []);
 
     const handleStopPress = async () => {
         navigation.navigate('FormStopOperation');
@@ -210,15 +210,17 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
                 const secondsUntilConfirm = Math.floor((confirmTimeMs - estimatedServerNowMs) / 1000);
                 console.log('LOG : Operation : secondsUntilConfirm:', secondsUntilConfirm)
 
-                if (secondsUntilConfirm <= 15 && secondsUntilConfirm > 0) {
-                    setUpcomingChemicals(group.chemicals);
-                    setModalVisible(true);
-                    play();
-                    setAlertedTimes(prev => new Set(prev).add(group.time));
+                if (secondsUntilConfirm > 0) {
+                    if (secondsUntilConfirm <= 15) {
+                        setUpcomingChemicals(group.chemicals);
+                        setModalVisible(true);
+                        play();
+                        setAlertedTimes(prev => new Set(prev).add(group.time));
+                    }
                     break;
                 }
             }
-        }, 5000);
+        }, 10000);
 
         return () => clearInterval(intervalId);
     }, []);
@@ -227,14 +229,14 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
         const handler = async () => {
             if (videoStatus === 'saved' && videoPath) {
                 await handleUploadVideo(videoPath);
-                useVideoStore.getState().markIdle();
+                markIdle();
             }
         };
         handler();
-    }, [videoStatus, handleUploadVideo, videoPath]);
+    }, [videoStatus, videoPath]);
 
     useEffect(() => {
-        if (initRef.current && groupedChemicals && groupedChemicals.length > 0 && !currentChemicals[0]?.videoFk) {
+        if (initRef.current && groupedChemicals && groupedChemicals.length > 0 && !currentChemicals[0]?.videoFk && !isPause) {
             setUpcomingChemicals(currentChemicals);
             setModalVisible(true);
             initRef.current = false;

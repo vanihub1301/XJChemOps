@@ -39,6 +39,7 @@ const Video = ({ navigation, route }: VideoProps) => {
     const [zoom, setZoom] = useState(1);
 
     const { batchsStore } = useOperationStore();
+    const { markSaved, markIdle } = useVideoStore();
     const chemicals: Chemical[] = route?.params?.chemicals ?? [];
 
     const mapIcon = {
@@ -77,6 +78,8 @@ const Video = ({ navigation, route }: VideoProps) => {
             }
         } catch (error: any) {
             showToast(error.message);
+        } finally {
+            markIdle();
         }
     }, []);
 
@@ -86,7 +89,7 @@ const Video = ({ navigation, route }: VideoProps) => {
                 type: 'video',
             });
             await RNFS.unlink(videoPath);
-            useVideoStore.getState().markSaved(asset);
+            markSaved(asset);
             navigation.goBack();
         } catch (error) {
             showToast('Lỗi khi lưu video');

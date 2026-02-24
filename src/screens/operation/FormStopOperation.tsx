@@ -17,7 +17,7 @@ import { showToast } from '../../service/toast';
 import { useAPI } from '../../service/api';
 import { useOperationStore } from '../../store/operationStore';
 import { useAuthStore } from '../../store/authStore';
-import { Reference } from '../../types/drum';
+import { Chemical, Reference } from '../../types/drum';
 
 const FormStopOperation = ({ navigation }: MainNavigationProps<'FormStopOperation'>) => {
     const [selectedReason, setSelectedReason] = useState<string>('');
@@ -28,7 +28,7 @@ const FormStopOperation = ({ navigation }: MainNavigationProps<'FormStopOperatio
     const reasonBottomSheetRef = useRef<BottomSheet>(null);
 
     const { postData, getData, loading } = useAPI();
-    const { orderStore } = useOperationStore();
+    const { orderStore, batchsStore } = useOperationStore();
     const { fullName } = useAuthStore();
 
     const orderFields = [
@@ -71,8 +71,7 @@ const FormStopOperation = ({ navigation }: MainNavigationProps<'FormStopOperatio
             showToast('Vui lòng điền đầy đủ thông tin');
             return;
         }
-
-        const res = await postData('portal/inject/finish', {
+        const payload = {
             processFk: orderStore?.process?.id,
             orderBill: orderStore.process.orderNo,
             bomNo: orderStore.process.bomNo,
@@ -80,7 +79,8 @@ const FormStopOperation = ({ navigation }: MainNavigationProps<'FormStopOperatio
             remarks: otherReason,
             finishTime: orderStore.currentTime,
             registor: fullName || 'Nguyễn Văn A',
-        }, true);
+        }
+        const res = await postData('portal/inject/finish', payload, true);
 
         if (res?.code === 0) {
             showToast('Đã gửi yêu cầu dừng chu trình');
@@ -88,7 +88,7 @@ const FormStopOperation = ({ navigation }: MainNavigationProps<'FormStopOperatio
                 index: 1,
                 routes: [
                     { name: 'Home' },
-                    { name: 'FinishConfirm' },
+                    { name: 'FinishConfirm', params: { payload, scanCount: `${batchsStore?.filter((c: Chemical) => c.videoFk)?.length || 0}/${batchsStore?.length || 0}` } },
                 ],
             });
         } else {
