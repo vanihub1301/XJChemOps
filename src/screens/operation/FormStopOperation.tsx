@@ -28,7 +28,7 @@ const FormStopOperation = ({ navigation }: MainNavigationProps<'FormStopOperatio
     const reasonBottomSheetRef = useRef<BottomSheet>(null);
 
     const { postData, getData, loading } = useAPI();
-    const { orderStore, batchsStore } = useOperationStore();
+    const { currentTime, orderStore, batchsStore } = useOperationStore();
     const { fullName } = useAuthStore();
 
     const orderFields = [
@@ -77,7 +77,7 @@ const FormStopOperation = ({ navigation }: MainNavigationProps<'FormStopOperatio
             bomNo: orderStore.process.bomNo,
             reason: +selectedReason,
             remarks: otherReason,
-            finishTime: orderStore.currentTime,
+            finishTime: currentTime,
             registor: fullName || 'Nguyễn Văn A',
         }
         const res = await postData('portal/inject/finish', payload, true);

@@ -52,3 +52,15 @@ export interface Reference {
     group: string;
     sn: number;
 }
+
+export interface Config {
+    id: string;
+    drumno: string;
+    inspectionTime: number;
+    enableSound: boolean;
+    lockScreen: boolean;
+    language: string;
+    serverIp: string;
+    port: number;
+    currentTime: string;
+}

@@ -12,10 +12,14 @@ import { MainNavigationProps } from '../../types/navigation';
 import PillBadge from '../../components/common/PillBadge';
 import { StyleSheet } from 'react-native';
 import { formatDateCustom } from '../../utils/dateTime';
+import { useOperationStore } from '../../store/operationStore';
 
 const FinishConfirm = ({ navigation, route }: MainNavigationProps<'FinishConfirm'>) => {
     const { payload, scanCount } = route.params;
-    const handleFinish = () => {
+    const { reset } = useOperationStore();
+
+    const handleFinish = async () => {
+        reset();
         navigation.reset({
             index: 0,
             routes: [{ name: 'Home' }],

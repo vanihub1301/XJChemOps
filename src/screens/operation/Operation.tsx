@@ -11,7 +11,7 @@ import { Alert, TouchableOpacity } from 'react-native';
 import BottomSheet from '@gorhom/bottom-sheet';
 import BottomSheetSelect from '../../components/bottomsheet/BottomSheetSelect';
 import ActiveBatch from './ActiveBatch';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import KeepAwake from 'react-native-keep-awake';
 import { useAlarmSound } from '../../hooks/useAlarmSound';
 import { useOperationStore } from '../../store/operationStore';
@@ -22,9 +22,10 @@ import ChemicalAlertModal from './ChemicalAlertModal';
 import { showToast } from '../../service/toast';
 import { SplashScreen } from '../../components/app/SplashScreen';
 import HistoryBatch from './HistoryBatch';
-import { unlink } from 'react-native-fs';
 import { uploadFile } from '../../service/axios';
+import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 import { Chemical } from '../../types/drum';
+import { useAuthStore } from '../../store/authStore';
 
 const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
     const [modalVisible, setModalVisible] = React.useState(false);
@@ -32,9 +33,10 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
     const [upcomingChemicals, setUpcomingChemicals] = React.useState<Chemical[]>([]);
 
     const { videoStatus, videoPath, markIdle } = useVideoStore();
-    const { currentChemicals, orderStore, batchsStore, groupedChemicals, isPause, setIsPause } = useOperationStore();
+    const { currentTime, currentChemicals, orderStore, batchsStore, groupedChemicals, isPause, isProcessComplete, setIsPause, reset } = useOperationStore();
     const { getData, postData, putData } = useAPI();
     const { play, stop } = useAlarmSound(orderStore?.config?.enableSound);
+    const { fullName } = useAuthStore();
 
     const lastServerTimeRef = useRef<{ serverMs: number; localTick: number } | null>(null);
     const groupedChemicalsRef = useRef(groupedChemicals);
@@ -42,6 +44,7 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
     const isPauseRef = useRef(isPause);
     const settingBottomSheetRef = useRef<BottomSheet>(null);
     const initRef = useRef(true);
+    const isFocused = useIsFocused();
 
 
     const handleSettingPress = () => {
@@ -73,7 +76,7 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
             const videoPathOnServer = presignedUrl.split('/videos/')[1].split('?')[0];
 
             const updateRes = await putData('portal/inject/updateBatch', {
-                employee: 'NGUYỄN THỊ THOẢNG',
+                employee: fullName || 'NGUYỄN THỊ THOẢNG',
                 videoFk: videoPathOnServer,
                 fentryid: fentryid,
             });
@@ -83,16 +86,18 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
             } else {
                 showToast('Cập nhật video thất bại ' + updateRes?.msg);
             }
+            // await CameraRoll.deletePhotos([videoPath]);
         } catch (err) {
             showToast('Cập nhật video thất bại');
         } finally {
-            await unlink(videoPath);
+            markIdle();
         }
     }, []);
 
     const handleStopPress = async () => {
-        navigation.navigate('FormStopOperation');
+        // navigation.navigate('FormStopOperation');
         // handleModalRecord();
+        reset()
     };
 
     const handlePausePress = async () => {
@@ -114,14 +119,14 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
                                 orderBill: orderStore?.process?.orderNo,
                                 bomNo: orderStore?.process?.bomNo,
                                 pauseTime: orderStore?.appInjectPause?.pauseTime,
-                                continueTime: orderStore?.currentTime,
+                                continueTime: currentTime,
                             }, true, orderStore?.config?.serverIp + ':' + orderStore?.config?.port);
                         } else {
                             result = await postData('portal/inject/pause', {
                                 processFk: orderStore?.process?.id,
                                 orderBill: orderStore?.process?.orderNo,
                                 bomNo: orderStore?.process?.bomNo,
-                                pauseTime: orderStore?.currentTime,
+                                pauseTime: currentTime,
                             }, true, orderStore?.config?.serverIp + ':' + orderStore?.config?.port);
                         }
 
@@ -140,7 +145,8 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
     };
 
     const handleOperatorChange = () => {
-        navigation.navigate('OperatorLogin');
+        // navigation.navigate('OperatorLogin');
+        handleModalRecord();
     };
 
     const handleModalRecord = () => {
@@ -173,20 +179,35 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
     };
 
     useEffect(() => {
-        if (orderStore?.currentTime) {
+        if (currentTime) {
+            console.log('LOG : Operation : orderStore?.currentTime:', orderStore?.currentTime)
+            console.log('LOG : Operation : currentTime:', currentTime)
             lastServerTimeRef.current = {
-                serverMs: parseDateTime(orderStore.currentTime),
+                serverMs: parseDateTime(currentTime),
                 localTick: Date.now(),
             };
         }
-    }, [orderStore?.currentTime]);
+    }, [currentTime]);
 
     useEffect(() => {
         groupedChemicalsRef.current = groupedChemicals;
-        if (groupedChemicals.length === 0) {
-            navigation.replace('Home');
+        if (groupedChemicals.length === 0 && isFocused) {
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Home' }],
+            });
         }
-    }, [groupedChemicals, navigation]);
+    }, [groupedChemicals, navigation, isFocused]);
+
+    useEffect(() => {
+        if (isProcessComplete && isFocused) {
+            reset()
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Home' }],
+            });
+        }
+    }, [isProcessComplete, isFocused, navigation]);
 
     useEffect(() => { alertedTimesRef.current = alertedTimes; }, [alertedTimes]);
 
@@ -229,7 +250,6 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
         const handler = async () => {
             if (videoStatus === 'saved' && videoPath) {
                 await handleUploadVideo(videoPath);
-                markIdle();
             }
         };
         handler();
@@ -239,6 +259,7 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
         if (initRef.current && groupedChemicals && groupedChemicals.length > 0 && !currentChemicals[0]?.videoFk && !isPause) {
             setUpcomingChemicals(currentChemicals);
             setModalVisible(true);
+            // play();
             initRef.current = false;
         }
     }, [groupedChemicals, currentChemicals]);

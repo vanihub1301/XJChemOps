@@ -33,12 +33,11 @@ interface VideoProps {
 
 const Video = ({ navigation, route }: VideoProps) => {
     const [isRecording, setIsRecording] = useState(false);
-    const [isPaused, setIsPaused] = useState(false);
     const [isCameraActive, setIsCameraActive] = useState(true);
     const [cameraKey, setCameraKey] = useState(0);
     const [zoom, setZoom] = useState(1);
 
-    const { batchsStore } = useOperationStore();
+    const { batchsStore, reset } = useOperationStore();
     const { markSaved, markIdle } = useVideoStore();
     const chemicals: Chemical[] = route?.params?.chemicals ?? [];
 
@@ -74,7 +73,6 @@ const Video = ({ navigation, route }: VideoProps) => {
             if (camera.current) {
                 await camera.current.cancelRecording();
                 setIsRecording(false);
-                setIsPaused(false);
             }
         } catch (error: any) {
             showToast(error.message);
@@ -89,6 +87,7 @@ const Video = ({ navigation, route }: VideoProps) => {
                 type: 'video',
             });
             await RNFS.unlink(videoPath);
+
             markSaved(asset);
             navigation.goBack();
         } catch (error) {
@@ -113,7 +112,6 @@ const Video = ({ navigation, route }: VideoProps) => {
                 },
                 onRecordingError: (_error) => {
                     setIsRecording(false);
-                    setIsPaused(false);
                 },
             });
             setIsRecording(true);
@@ -126,7 +124,6 @@ const Video = ({ navigation, route }: VideoProps) => {
         try {
             await camera.current?.stopRecording();
             setIsRecording(false);
-            setIsPaused(false);
         } catch (error) {
             showToast('Lỗi khi dừng quay video');
         }
@@ -249,10 +246,7 @@ const Video = ({ navigation, route }: VideoProps) => {
                 <ViewBox className="flex-1">
                     <ViewBox className="flex-1 relative">
                         {isRecording && (
-                            <VideoHeader
-                                status={
-                                    (isPaused && isRecording) ? 'paused' : (!isPaused && !isRecording) ? 'stopped' : 'recording'
-                                } />
+                            <VideoHeader />
                         )}
 
                         <ViewBox className="absolute top-12 right-7 flex-row" gap="sm">

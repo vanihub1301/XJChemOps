@@ -1,6 +1,19 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SettingState } from '../types/setting';
+
+export interface SettingState {
+    serverIp: string;
+    port: string;
+    inspectionTime: string;
+    lockScreen: boolean;
+    enableSound: boolean;
+    language: string;
+    idDrum: string;
+    drumno: string;
+    initializeSetting: () => Promise<void>;
+    setMany: (data: any) => Promise<void>;
+    getMany: (keys: string[]) => Promise<any>;
+}
 
 const mapKey: { [key: string]: string } = {
     serverIp: 'server_ip',

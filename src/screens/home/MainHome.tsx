@@ -18,7 +18,7 @@ import CameraScanSection from './CameraScanSection.tsx';
 import { useAPI } from '../../service/api.ts';
 import { showToast } from '../../service/toast.ts';
 import { useOperationStore } from '../../store/operationStore.ts';
-import { useFocusEffect } from '@react-navigation/native';
+import { useIsFocused } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
@@ -31,6 +31,7 @@ const MainHome = ({ navigation }: MainNavigationProps<'Home'>) => {
   const { getData, postData } = useAPI();
   const { rotatingTank } = useAuthStore();
   const { batchsStore } = useOperationStore();
+  const isFocused = useIsFocused();
 
   const handleCodeScanned = (code: string) => {
     if (!rotatingTank?.name) {
@@ -73,6 +74,15 @@ const MainHome = ({ navigation }: MainNavigationProps<'Home'>) => {
   useEffect(() => {
     fetchData();
   }, [rotatingTank]);
+
+  useEffect(() => {
+    if (batchsStore.length > 0 && isFocused) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Operation' }],
+      });
+    }
+  }, [batchsStore.length, isFocused]);
 
   const renderListHeader = useCallback(() => (
     <ViewBox background={'white'} className="py-6 flex-row justify-between items-center">

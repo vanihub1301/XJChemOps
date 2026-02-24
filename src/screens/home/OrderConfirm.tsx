@@ -115,8 +115,10 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
                 setGroupedChemicals(groupedChemicals),
             ]);
 
-            navigation.replace('Operation');
-
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Operation' }],
+            });
         } catch (err: any) {
             showToast(err.message);
         } finally {
