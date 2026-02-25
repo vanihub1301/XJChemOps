@@ -26,26 +26,31 @@ import { uploadFile } from '../../service/axios';
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 import { Chemical } from '../../types/drum';
 import { useAuthStore } from '../../store/authStore';
+import { useSettingStore } from '../../store/settingStore';
 
 const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
     const [modalVisible, setModalVisible] = React.useState(false);
     const [alertedTimes, setAlertedTimes] = React.useState<Set<string>>(new Set());
     const [upcomingChemicals, setUpcomingChemicals] = React.useState<Chemical[]>([]);
+    const [upcomingTime, setUpcomingTime] = React.useState<string | null>(null);
+    const [videoUploading, setVideoUploading] = React.useState(false);
 
     const { videoStatus, videoPath, markIdle } = useVideoStore();
-    const { currentTime, currentChemicals, orderStore, batchsStore, groupedChemicals, isPause, isProcessComplete, setIsPause, reset } = useOperationStore();
+    const { lockScreen, enableSound } = useSettingStore();
+
+    const { currentTime, currentChemicals, orderStore, batchsStore, groupedChemicals, isPause, isProcessComplete, setIsPause, reset, setMany, maxDuration } = useOperationStore();
     const { getData, postData, putData } = useAPI();
-    const { play, stop } = useAlarmSound(orderStore?.config?.enableSound);
+    const { play, stop } = useAlarmSound(enableSound);
     const { fullName } = useAuthStore();
 
     const lastServerTimeRef = useRef<{ serverMs: number; localTick: number } | null>(null);
     const groupedChemicalsRef = useRef(groupedChemicals);
+    const currentChemicalsRef = useRef(currentChemicals);
     const alertedTimesRef = useRef(alertedTimes);
     const isPauseRef = useRef(isPause);
     const settingBottomSheetRef = useRef<BottomSheet>(null);
     const initRef = useRef(true);
     const isFocused = useIsFocused();
-
 
     const handleSettingPress = () => {
         settingBottomSheetRef.current?.expand();
@@ -56,7 +61,9 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
 
     const handleUploadVideo = useCallback(async (videoPath: string) => {
         try {
-            const fentryid = currentChemicals.map(i => i.id);
+            setVideoUploading(true);
+            console.log('LOG : Operation : currentChemicals:', currentChemicalsRef.current)
+            const fentryid = currentChemicalsRef.current.map(i => i.id);
 
             const presignedUrl = await getData('portal/inject/video-url');
             if (!presignedUrl) {
@@ -91,18 +98,19 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
             showToast('Cập nhật video thất bại');
         } finally {
             markIdle();
+            setVideoUploading(false);
         }
     }, []);
 
     const handleStopPress = async () => {
-        // navigation.navigate('FormStopOperation');
+        navigation.navigate('FormStopOperation');
         // handleModalRecord();
-        reset()
+        // reset()
     };
 
     const handlePausePress = async () => {
         try {
-            Alert.alert(isPause ? 'Tiếp tục' : 'Tạm dừng', `Bạn có chắc chắn muốn ${isPause ? 'tiếp tục' : 'tạm dừng'}?`, [
+            Alert.alert(isPauseRef.current ? 'Tiếp tục' : 'Tạm dừng', `Bạn có chắc chắn muốn ${isPauseRef.current ? 'tiếp tục' : 'tạm dừng'}?`, [
                 {
                     text: 'Hủy',
                     onPress: () => { },
@@ -113,7 +121,7 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
                     onPress: async () => {
                         let result: any;
 
-                        if (isPause) {
+                        if (isPauseRef.current) {
                             result = await postData('portal/inject/pause', {
                                 processFk: orderStore?.process?.id,
                                 orderBill: orderStore?.process?.orderNo,
@@ -131,7 +139,7 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
                         }
 
                         if (result.code === 0) {
-                            setIsPause(!isPause);
+                            setIsPause(!isPauseRef.current);
                         } else {
                             showToast(result.msg);
                         }
@@ -145,15 +153,30 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
     };
 
     const handleOperatorChange = () => {
-        // navigation.navigate('OperatorLogin');
-        handleModalRecord();
+        navigation.navigate('OperatorLogin');
+        // handleModalRecord();
     };
 
     const handleModalRecord = () => {
         setModalVisible(false);
+
+        let videoDurationSeconds: number = (maxDuration ?? 5) * 60;
+        if (upcomingTime) {
+            const currentIdx = groupedChemicals.findIndex((g: any) => g.time === upcomingTime);
+            const nextGroup = groupedChemicals[currentIdx + 1];
+            if (nextGroup) {
+                const gapSeconds = Math.floor(
+                    (parseDateTime(nextGroup.time) - parseDateTime(upcomingTime)) / 1000
+                );
+                const capSeconds = (maxDuration ?? 5) * 60;
+                videoDurationSeconds = gapSeconds > capSeconds ? capSeconds : gapSeconds + 15;
+            }
+        }
+
         navigation.navigate('Video', {
             autoRecord: true,
             chemicals: upcomingChemicals,
+            videoDurationSeconds,
         });
     };
 
@@ -189,25 +212,49 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
         }
     }, [currentTime]);
 
-    useEffect(() => {
-        groupedChemicalsRef.current = groupedChemicals;
-        if (groupedChemicals.length === 0 && isFocused) {
-            navigation.reset({
-                index: 0,
-                routes: [{ name: 'Home' }],
-            });
-        }
-    }, [groupedChemicals, navigation, isFocused]);
+    useEffect(() => { currentChemicalsRef.current = currentChemicals; }, [currentChemicals]);
 
     useEffect(() => {
-        if (isProcessComplete && isFocused) {
-            reset()
+        groupedChemicalsRef.current = groupedChemicals;
+        if (groupedChemicals.length === 0 && isFocused && videoStatus === 'idle') {
+            const payload = {
+                processFk: orderStore?.process?.id,
+                orderBill: orderStore.process.orderNo,
+                bomNo: orderStore.process.bomNo,
+                reason: 1,
+                remarks: '',
+                finishTime: currentTime,
+                registor: fullName || 'Nguyễn Văn A',
+            }
             navigation.reset({
                 index: 0,
-                routes: [{ name: 'Home' }],
+                routes: [
+                    { name: 'Home' },
+                    { name: 'FinishConfirm', params: { payload, scanCount: `${batchsStore?.filter((c: Chemical) => c.videoFk)?.length || 0}/${batchsStore?.length || 0}` } }],
             });
         }
-    }, [isProcessComplete, isFocused, navigation]);
+    }, [groupedChemicals, navigation, isFocused, videoStatus]);
+
+    useEffect(() => {
+        if (isProcessComplete && isFocused && videoStatus === 'idle') {
+            const payload = {
+                processFk: orderStore?.process?.id,
+                orderBill: orderStore.process.orderNo,
+                bomNo: orderStore.process.bomNo,
+                reason: 1,
+                remarks: '',
+                finishTime: currentTime,
+                registor: fullName || 'Nguyễn Văn A',
+            }
+            reset();
+            navigation.reset({
+                index: 0,
+                routes: [
+                    { name: 'Home' },
+                    { name: 'FinishConfirm', params: { payload, scanCount: `${batchsStore?.filter((c: Chemical) => c.videoFk)?.length || 0}/${batchsStore?.length || 0}` } }],
+            });
+        }
+    }, [isProcessComplete, isFocused, navigation, videoStatus]);
 
     useEffect(() => { alertedTimesRef.current = alertedTimes; }, [alertedTimes]);
 
@@ -232,11 +279,13 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
                 console.log('LOG : Operation : secondsUntilConfirm:', secondsUntilConfirm)
 
                 if (secondsUntilConfirm > 0) {
-                    if (secondsUntilConfirm <= 15) {
+                    if (secondsUntilConfirm <= 10) {
                         setUpcomingChemicals(group.chemicals);
+                        setUpcomingTime(group.time);
                         setModalVisible(true);
                         play();
                         setAlertedTimes(prev => new Set(prev).add(group.time));
+                        initRef.current = false;
                     }
                     break;
                 }
@@ -256,10 +305,12 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
     }, [videoStatus, videoPath]);
 
     useEffect(() => {
-        if (initRef.current && groupedChemicals && groupedChemicals.length > 0 && !currentChemicals[0]?.videoFk && !isPause) {
+        if (initRef.current && groupedChemicals && groupedChemicals.length > 0 && currentChemicals.length > 0 && !currentChemicals[0]?.videoFk && !isPauseRef.current) {
             setUpcomingChemicals(currentChemicals);
+            setUpcomingTime(currentChemicals[0].confirmTime);
             setModalVisible(true);
-            // play();
+            play();
+            setAlertedTimes(prev => new Set(prev).add(currentChemicals[0].confirmTime));
             initRef.current = false;
         }
     }, [groupedChemicals, currentChemicals]);
@@ -278,14 +329,14 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
 
     useFocusEffect(
         useCallback(() => {
-            if (orderStore?.config?.lockScreen === true) {
+            if (lockScreen === true) {
                 KeepAwake.activate();
             }
 
             return () => {
                 KeepAwake.deactivate();
             };
-        }, [orderStore?.config?.lockScreen])
+        }, [lockScreen])
     );
 
     if (!batchsStore) {
@@ -320,7 +371,7 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
                         onPausePress={handlePausePress}
                         onChangeOperator={handleOperatorChange}
                     />
-                    <HistoryBatch />
+                    <HistoryBatch videoUploading={videoUploading} />
                 </ViewBox>
                 <ChemicalAlertModal
                     visible={modalVisible}

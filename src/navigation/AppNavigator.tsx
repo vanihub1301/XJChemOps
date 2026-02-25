@@ -20,61 +20,14 @@ interface AppNavigatorProps {
 }
 
 export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
-    const { orderStore, batchsStore, groupedChemicals, setMany: setManyOperation, reset, setCurrentTime, setIsProcessComplete, setBatchsStore, setOrderStore, setGroupedChemicals, setCurrentChemicals, setIsPause } = useOperationStore();
+    const { orderStore, groupedChemicals, setMany: setManyOperation, reset, setCurrentTime, setIsProcessComplete, setBatchsStore, setOrderStore, setIsPause } = useOperationStore();
     const { rotatingTank, isLoading, setLoading } = useAuthStore();
     const { setMany: setManySetting, getMany, inspectionTime } = useSettingStore();
     const { getData } = useAPI();
 
     const currentIntervalTimeRef = useRef<number>(30000);
     const hasLoadedRef = useRef<boolean>(false);
-
-    useEffect(() => {
-        if (!batchsStore || batchsStore.length === 0 || !orderStore?.currentTime) {
-            return;
-        }
-
-        const groupedByTime: { [key: string]: Chemical[] } = {};
-        batchsStore.forEach((chemical: Chemical) => {
-            const confirmTime = chemical.confirmTime;
-            if (!groupedByTime[confirmTime]) {
-                groupedByTime[confirmTime] = [];
-            }
-            groupedByTime[confirmTime].push(chemical);
-        });
-
-        const grouped = Object.keys(groupedByTime)
-            .sort()
-            .map(time => ({
-                time,
-                chemicals: groupedByTime[time],
-            }));
-
-        const currentTime = parseDateTime(orderStore.currentTime);
-
-        const currentGroupIndex = grouped.findIndex((group, index) => {
-            const startTime = parseDateTime(group.time);
-            const endTime = grouped[index + 1]
-                ? parseDateTime(grouped[index + 1].time)
-                : Infinity;
-
-            return currentTime >= startTime && currentTime < endTime;
-        });
-
-        const currentGroup = currentGroupIndex !== -1 ? grouped[currentGroupIndex] : undefined;
-
-        console.log('LOG : Operation : currentGroup:', currentGroup);
-        console.log('LOG : Operation : grouped:', grouped);
-
-        // unstable_batchedUpdates(() => {
-        //     setGroupedChemicals(grouped);
-        //     setCurrentChemicals(currentGroup?.chemicals || []);
-        // });
-        setManyOperation({
-            groupedChemicals: grouped,
-            currentChemicals: currentGroup?.chemicals || [],
-        })
-
-    }, [batchsStore, setGroupedChemicals, setCurrentChemicals]);
+    const groupedChemicalsRef = useRef(groupedChemicals);
 
     useEffect(() => {
         let timeoutId: NodeJS.Timeout | null = null;
@@ -101,6 +54,39 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
                 if (res.code === 0 && res.data?.process?.dtl) {
                     const { dtl, ...processWithoutDtl } = res.data.process;
                     const appInjectPause = res.data?.appInjectPause;
+
+                    const groupedByTime: { [key: string]: Chemical[] } = {};
+                    dtl.forEach((chemical: Chemical) => {
+                        const confirmTime = chemical.confirmTime;
+                        if (!groupedByTime[confirmTime]) {
+                            groupedByTime[confirmTime] = [];
+                        }
+                        groupedByTime[confirmTime].push(chemical);
+                    });
+
+                    const grouped = Object.keys(groupedByTime)
+                        .sort()
+                        .map(time => ({
+                            time,
+                            chemicals: groupedByTime[time],
+                        }));
+                    groupedChemicalsRef.current = grouped;
+                    const currentTime = parseDateTime(res.data?.curentTime);
+
+                    const currentGroupIndex = grouped.findIndex((group, index) => {
+                        const startTime = parseDateTime(group.time);
+                        const endTime = grouped[index + 1]
+                            ? parseDateTime(grouped[index + 1].time)
+                            : Infinity;
+
+                        return currentTime >= startTime && currentTime < endTime;
+                    });
+
+                    const currentGroup = currentGroupIndex !== -1 ? grouped[currentGroupIndex] : undefined;
+
+                    console.log('LOG : Operation : currentGroup:', currentGroup);
+                    console.log('LOG : Operation : grouped:', grouped);
+
                     setManyOperation({
                         isProcessComplete: false,
                         orderStore: {
@@ -111,38 +97,31 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
                         },
                         batchsStore: dtl,
                         isPause: appInjectPause?.pauseTime && !appInjectPause?.continueTime,
+                        groupedChemicals: grouped,
+                        currentChemicals: currentGroup?.chemicals || [],
                     })
-                    // unstable_batchedUpdates(() => {
-                    //     setOrderStore({
-                    //         process: processWithoutDtl,
-                    //         currentTime: res.data?.curentTime,
-                    //         config: config,
-                    //         appInjectPause: appInjectPause,
-                    //     });
-                    //     setBatchsStore(dtl);
-                    //     setIsPause(appInjectPause?.pauseTime && !appInjectPause?.continueTime)
-                    // });
                 }
-                if (res.code === 0 && !res.data?.process?.dtl && (groupedChemicals.length > 0)) {
+                if (res.code === 0 && !res.data?.process?.dtl && (groupedChemicalsRef.current.length > 0)) {
                     const currentTime = parseDateTime(res.data?.curentTime);
-                    const currentGroupIndex = groupedChemicals.findIndex((group, index) => {
-                        const startTime = parseDateTime(group.time);
-                        const endTime = groupedChemicals[index + 1]
-                            ? parseDateTime(groupedChemicals[index + 1].time)
-                            : Infinity;
-
-                        return currentTime >= startTime && currentTime < endTime;
-                    });
-                    console.log('LOG : fetchRunningData : currentGroupIndex:', currentGroupIndex)
-                    if (currentGroupIndex !== groupedChemicals.length - 1) {
+                    console.log('LOG : fetchRunningData : currentTime:', currentTime)
+                    const groups = groupedChemicalsRef.current;
+                    const lastGroup = groups[groups.length - 1];
+                    console.log('LOG : fetchRunningData : lastGroup:', lastGroup)
+                    const lastGroupStartMs = parseDateTime(lastGroup.time);
+                    const finishMs = lastGroupStartMs + lastGroup.chemicals[0].operateTime * 60_000;
+                    console.log('LOG : fetchRunningData : lastGroupStartMs:', lastGroupStartMs, 'finishMs:', finishMs, 'currentTime:', currentTime);
+                    if ((finishMs >= currentTime) && (currentTime >= lastGroupStartMs)) {
+                        setManyOperation({
+                            currentChemicals: lastGroup?.chemicals || [],
+                        })
+                    }
+                    if (finishMs <= currentTime) {
+                        setIsProcessComplete(true);
+                        groupedChemicalsRef.current = [];
+                    } else if (currentTime < lastGroupStartMs) {
+                        console.log('LOG : fetchRunningData : reset');
                         reset();
-                    } else {
-                        const lastGroup = groupedChemicals[currentGroupIndex];
-                        const finishMs = parseDateTime(lastGroup.time) + lastGroup.chemicals[0].operateTime * 60_000;
-                        console.log('LOG : fetchRunningData : finishMs:', finishMs);
-                        if (finishMs <= currentTime) {
-                            setIsProcessComplete(true);
-                        }
+                        groupedChemicalsRef.current = [];
                     }
                 }
             } catch (error: any) {

@@ -39,7 +39,7 @@ export type MainRoutes = {
     FormStopOperation: undefined;
     FormChangeStartTime: undefined;
     OrderConfirm: { code: string };
-    Video: { autoRecord?: boolean; chemicals?: Chemical[] } | undefined;
+    Video: { autoRecord?: boolean; chemicals?: Chemical[]; videoDurationSeconds?: number } | undefined;
     ScanQR: { nextScreen?: string, reset?: boolean };
     OperatorLogin: undefined;
 };

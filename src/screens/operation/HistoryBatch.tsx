@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
+import { ActivityIndicator } from 'react-native';
 import { ViewBox } from '../../components/common/ViewBox';
 import { Text } from '../../components/common/Text';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -9,11 +10,16 @@ import { formatDateCustom } from '../../utils/dateTime';
 import { useAuthStore } from '../../store/authStore';
 import { Chemical } from '../../types/drum';
 
-const HistoryBatch: React.FC = () => {
+interface HistoryBatchProps {
+    videoUploading: boolean;
+}
+
+const HistoryBatch: React.FC<HistoryBatchProps> = ({ videoUploading }) => {
     const { batchsStore, orderStore } = useOperationStore();
     const { fullName } = useAuthStore();
 
     const historyOperation = useMemo(() => [
+        ...(videoUploading ? [{ type: 'VIDEO_UPLOADING' }] : []),
         ...batchsStore
             .filter(item => item.videoFk)
             .sort((a, b) => new Date(a.confirmTime).getTime() - new Date(b.confirmTime).getTime())
@@ -22,11 +28,26 @@ const HistoryBatch: React.FC = () => {
             type: 'START_OPERATION',
             confirmTime: orderStore?.process?.startDrum,
         },
-    ], [batchsStore, orderStore?.process?.startDrum]);
+    ], [batchsStore, orderStore?.process?.startDrum, videoUploading]);
 
     const renderHistoryItem = useCallback(
         ({ item, index }: { item: Chemical; index: number }) => {
             const isLast = index === historyOperation.length - 1;
+
+            if ((item as any).type === 'VIDEO_UPLOADING') {
+                return (
+                    <ViewBox gap="md" className="flex-row items-start">
+                        <ViewBox className="items-center w-6">
+                            <ActivityIndicator size="small" color="#6165EE" style={{ marginTop: 4 }} />
+                            <ViewBox background="lightGray" className="w-0.5 flex-1 mt-1 min-h-20" />
+                        </ViewBox>
+                        <ViewBox className="flex-1" gap="xs">
+                            <Text color="black" variant="labelStrong">Đang tải video lên...</Text>
+                            <Text color="primary" variant="captionMedium">Vui lòng không thoát ứng dụng</Text>
+                        </ViewBox>
+                    </ViewBox>
+                );
+            }
 
             return (
                 <ViewBox gap="md" className="flex-row items-start">
@@ -84,7 +105,7 @@ const HistoryBatch: React.FC = () => {
                 <Text color={'black'} variant={'labelLargeStrong'}>LỊCH SỬ VẬN HÀNH</Text>
             </ViewBox>
             <List
-                list={historyOperation}
+                list={historyOperation as any[]}
                 renderListHeader={() => (<></>)}
                 renderItem={renderHistoryItem}
                 enableRefresh={false}

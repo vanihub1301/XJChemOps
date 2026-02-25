@@ -9,6 +9,7 @@ interface OperationState {
     currentTime: string;
     isPause: boolean;
     isProcessComplete: boolean;
+    maxDuration: number;
     setOrderStore: (order: any) => void;
     setBatchsStore: (batchs: Chemical[] | ((prev: Chemical[]) => Chemical[])) => void;
     setGroupedChemicals: (groups: { time: string; chemicals: Chemical[] }[]) => void;
@@ -16,6 +17,7 @@ interface OperationState {
     setCurrentTime: (currentTime: string) => void;
     setIsPause: (isPause: boolean) => void;
     setIsProcessComplete: (v: boolean) => void;
+    setMaxDuration: (v: number) => void;
     setMany: (data: any) => void;
     reset: () => void;
 }
@@ -28,6 +30,7 @@ export const useOperationStore = create<OperationState>((set) => ({
     currentTime: '',
     isPause: false,
     isProcessComplete: false,
+    maxDuration: 5,
     setOrderStore: (order: any) => set({ orderStore: order }),
     setBatchsStore: (updater) =>
         set((state) => ({
@@ -41,6 +44,7 @@ export const useOperationStore = create<OperationState>((set) => ({
     setIsPause: (isPause: boolean) => set({ isPause }),
     setCurrentTime: (currentTime: string) => set({ currentTime }),
     setIsProcessComplete: (v: boolean) => set({ isProcessComplete: v }),
+    setMaxDuration: (v: number) => set({ maxDuration: v }),
     setMany: (data: any) => set(data),
     reset: () => set({
         orderStore: null,

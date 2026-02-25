@@ -19,6 +19,7 @@ import { useOperationStore } from '../../store/operationStore';
 import { MIN_FREE_SPACE, MIN_FREE_SPACE_STOP } from '../../constants/ui';
 import { showToast } from '../../service/toast';
 import { Chemical } from '../../types/drum';
+import { useSettingStore } from '../../store/settingStore';
 
 interface VideoProps {
     navigation: any;
@@ -27,6 +28,7 @@ interface VideoProps {
             onVideoRecorded?: (videoPath: string) => void;
             autoRecord?: boolean;
             chemicals?: Chemical[];
+            videoDurationSeconds?: number;
         };
     };
 }
@@ -36,9 +38,14 @@ const Video = ({ navigation, route }: VideoProps) => {
     const [isCameraActive, setIsCameraActive] = useState(true);
     const [cameraKey, setCameraKey] = useState(0);
     const [zoom, setZoom] = useState(1);
+    const [recordingTime, setRecordingTime] = React.useState(0);
+    const startTimeRef = useRef<number>(Date.now());
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-    const { batchsStore, reset } = useOperationStore();
+    const { batchsStore, maxDuration } = useOperationStore();
     const { markSaved, markIdle } = useVideoStore();
+    const { inspectionTime } = useSettingStore();
+
     const chemicals: Chemical[] = route?.params?.chemicals ?? [];
 
     const mapIcon = {
@@ -122,12 +129,16 @@ const Video = ({ navigation, route }: VideoProps) => {
 
     const stopRecord = useCallback(async () => {
         try {
+            if (recordingTime < Number(inspectionTime)) {
+                showToast('Video tối thiểu ' + inspectionTime + ' giây');
+                return;
+            }
             await camera.current?.stopRecording();
             setIsRecording(false);
         } catch (error) {
             showToast('Lỗi khi dừng quay video');
         }
-    }, []);
+    }, [recordingTime, inspectionTime]);
 
     useEffect(() => {
         const subscription = AppState.addEventListener('change', (nextAppState) => {
@@ -155,6 +166,19 @@ const Video = ({ navigation, route }: VideoProps) => {
 
         return () => clearInterval(id);
     }, []);
+
+    useEffect(() => {
+        if (!isRecording) return;
+        const paramSecs = route?.params?.videoDurationSeconds;
+        console.log('LOG : Video : paramSecs:', paramSecs)
+        const durationMs = paramSecs !== undefined
+            ? paramSecs * 1000
+            : (maxDuration ?? 5) * 60 * 1000;
+        const timer = setTimeout(() => {
+            stopRecord();
+        }, durationMs);
+        return () => clearTimeout(timer);
+    }, [isRecording]);
 
     useEffect(() => {
         const checkPermission = async () => {
@@ -191,6 +215,21 @@ const Video = ({ navigation, route }: VideoProps) => {
             subscription.remove();
         };
     }, [checkCameraPermission, navigation]);
+
+    useEffect(() => {
+        startTimeRef.current = Date.now();
+        timerRef.current = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+            setRecordingTime(elapsed);
+        }, 500);
+
+        return () => {
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
+        };
+    }, []);
 
     useFocusEffect(
         useCallback(() => {

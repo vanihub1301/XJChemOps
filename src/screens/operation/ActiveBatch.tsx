@@ -31,7 +31,7 @@ const ActiveBatch: React.FC<ActiveBatchProps> = ({
     );
 
     const completedCount = useMemo(() =>
-        batchsStore.filter((c: Chemical) => c.scanning).length,
+        batchsStore.filter((c: Chemical) => c.videoFk).length,
         [batchsStore]
     );
 
