@@ -33,11 +33,11 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
     const [upcomingChemicals, setUpcomingChemicals] = React.useState<Chemical[]>([]);
     const [videoUploading, setVideoUploading] = React.useState(false);
     const { videoStatus, videoPath, markIdle } = useVideoStore();
-    const { lockScreen, enableSound } = useSettingStore();
+    const { lockScreen, enableSound, alarmUrl } = useSettingStore();
 
     const { currentTime, currentChemicals, orderStore, batchsStore, groupedChemicals, isPause, isProcessComplete, setIsPause, reset, setMany, maxDuration } = useOperationStore();
     const { getData, postData, putData } = useAPI();
-    const { play, stop } = useAlarmSound(enableSound);
+    const { play, stop } = useAlarmSound(enableSound, alarmUrl);
     const { fullName } = useAuthStore();
 
     const lastServerTimeRef = useRef<{ serverMs: number; localTick: number } | null>(null);

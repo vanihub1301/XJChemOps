@@ -10,6 +10,7 @@ export interface SettingState {
     language: string;
     idDrum: string;
     drumno: string;
+    alarmUrl: string;
     initializeSetting: () => Promise<void>;
     setMany: (data: any) => Promise<void>;
     getMany: (keys: string[]) => Promise<any>;
@@ -24,6 +25,7 @@ const mapKey: { [key: string]: string } = {
     language: 'language',
     idDrum: 'id_drum',
     drumno: 'drumno',
+    alarmUrl: 'alarm_url',
 };
 
 export const useSettingStore = create<SettingState>((set) => ({
@@ -35,6 +37,7 @@ export const useSettingStore = create<SettingState>((set) => ({
     language: '',
     idDrum: '',
     drumno: '',
+    alarmUrl: '',
 
     initializeSetting: async () => {
         await Promise.all([
@@ -46,6 +49,7 @@ export const useSettingStore = create<SettingState>((set) => ({
             AsyncStorage.setItem('language', 'vi'),
             AsyncStorage.setItem('id_drum', ''),
             AsyncStorage.setItem('drumno', ''),
+            AsyncStorage.setItem('alarm_url', ''),
         ]);
     },
 

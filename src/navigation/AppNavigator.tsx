@@ -139,6 +139,7 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
                         enableSound: config?.enableSound,
                         drumno: config?.drumno,
                         language: config?.language,
+                        alarmUrl: config?.alarmUrl,
                     })
                 });
 
