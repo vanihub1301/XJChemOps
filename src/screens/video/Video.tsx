@@ -57,6 +57,7 @@ const Video = ({ navigation, route }: VideoProps) => {
 
     const device = useCameraDevice('front');
     const format = useCameraFormat(device, [
+        { videoResolution: { width: 1280, height: 720 } },
         { videoStabilizationMode: 'cinematic-extended' },
     ]);
 
@@ -140,12 +141,22 @@ const Video = ({ navigation, route }: VideoProps) => {
         }
     }, [recordingTime, inspectionTime]);
 
+    const forceStopRecord = useCallback(async () => {
+        try {
+            await camera.current?.stopRecording();
+            setIsRecording(false);
+        } catch (error: any) {
+            console.log('LOG : Video : error:', error)
+            showToast(error.message);
+        }
+    }, []);
+
     useEffect(() => {
         const subscription = AppState.addEventListener('change', (nextAppState) => {
             if (nextAppState === 'active') {
                 setIsCameraActive(true);
             } else if (nextAppState === 'background' || nextAppState === 'inactive') {
-                stopRecord();
+                forceStopRecord();
                 setIsCameraActive(false);
             }
         });
@@ -159,7 +170,7 @@ const Video = ({ navigation, route }: VideoProps) => {
         const id = setInterval(async () => {
             const fs = await RNFS.getFSInfo();
             if (fs.freeSpace < MIN_FREE_SPACE_STOP) {
-                stopRecord();
+                forceStopRecord();
                 showToast('Không đủ dung lượng bộ nhớ');
             }
         }, 30_000);
@@ -175,7 +186,7 @@ const Video = ({ navigation, route }: VideoProps) => {
             ? paramSecs * 1000
             : (maxDuration ?? 5) * 60 * 1000;
         const timer = setTimeout(() => {
-            stopRecord();
+            forceStopRecord();
         }, durationMs);
         return () => clearTimeout(timer);
     }, [isRecording]);

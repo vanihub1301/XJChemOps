@@ -3,7 +3,7 @@ import { ViewBox } from '../../components/common/ViewBox';
 import ViewContainer from '../../components/common/ViewContainer';
 import { MainNavigationProps } from '../../types/navigation';
 import ViewHeader from '../../components/common/ViewHeader';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { parseDateTime } from '../../utils/dateTime';
 import { useVideoStore } from '../../store/videoStore';
 import { useAPI } from '../../service/api';
@@ -23,7 +23,6 @@ import { showToast } from '../../service/toast';
 import { SplashScreen } from '../../components/app/SplashScreen';
 import HistoryBatch from './HistoryBatch';
 import { uploadFile } from '../../service/axios';
-import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 import { Chemical } from '../../types/drum';
 import { useAuthStore } from '../../store/authStore';
 import { useSettingStore } from '../../store/settingStore';
@@ -32,9 +31,7 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
     const [modalVisible, setModalVisible] = React.useState(false);
     const [alertedTimes, setAlertedTimes] = React.useState<Set<string>>(new Set());
     const [upcomingChemicals, setUpcomingChemicals] = React.useState<Chemical[]>([]);
-    const [upcomingTime, setUpcomingTime] = React.useState<string | null>(null);
     const [videoUploading, setVideoUploading] = React.useState(false);
-
     const { videoStatus, videoPath, markIdle } = useVideoStore();
     const { lockScreen, enableSound } = useSettingStore();
 
@@ -48,9 +45,11 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
     const currentChemicalsRef = useRef(currentChemicals);
     const alertedTimesRef = useRef(alertedTimes);
     const isPauseRef = useRef(isPause);
+    const maxDurationRef = useRef(maxDuration);
     const settingBottomSheetRef = useRef<BottomSheet>(null);
     const initRef = useRef(true);
     const isFocused = useIsFocused();
+    const upcomingVideoStopMsRef = useRef<number>(0);
 
     const handleSettingPress = () => {
         settingBottomSheetRef.current?.expand();
@@ -93,7 +92,6 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
             } else {
                 showToast('Cập nhật video thất bại ' + updateRes?.msg);
             }
-            // await CameraRoll.deletePhotos([videoPath]);
         } catch (err) {
             showToast('Cập nhật video thất bại');
         } finally {
@@ -160,23 +158,16 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
     const handleModalRecord = () => {
         setModalVisible(false);
 
-        let videoDurationSeconds: number = (maxDuration ?? 5) * 60;
-        if (upcomingTime) {
-            const currentIdx = groupedChemicals.findIndex((g: any) => g.time === upcomingTime);
-            const nextGroup = groupedChemicals[currentIdx + 1];
-            if (nextGroup) {
-                const gapSeconds = Math.floor(
-                    (parseDateTime(nextGroup.time) - parseDateTime(upcomingTime)) / 1000
-                );
-                const capSeconds = (maxDuration ?? 5) * 60;
-                videoDurationSeconds = gapSeconds > capSeconds ? capSeconds : gapSeconds + 15;
-            }
-        }
+        const estimatedServerNowMs = lastServerTimeRef.current
+            ? lastServerTimeRef.current.serverMs + (Date.now() - lastServerTimeRef.current.localTick)
+            : Date.now();
 
+        const remainingSecs = Math.max(0, Math.floor((upcomingVideoStopMsRef.current - estimatedServerNowMs) / 1000));
+        console.log('LOG : handleModalRecord : stopMs:', upcomingVideoStopMsRef.current, 'estimatedNow:', estimatedServerNowMs, 'remaining:', remainingSecs);
         navigation.navigate('Video', {
             autoRecord: true,
             chemicals: upcomingChemicals,
-            videoDurationSeconds,
+            videoDurationSeconds: remainingSecs,
         });
     };
 
@@ -251,7 +242,7 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
                 index: 0,
                 routes: [
                     { name: 'Home' },
-                    { name: 'FinishConfirm', params: { payload, scanCount: `${batchsStore?.filter((c: Chemical) => c.videoFk)?.length || 0}/${batchsStore?.length || 0}` } }],
+                    { name: 'FinishConfirm', params: { payload, scanCount: `${batchsStore?.filter((c: Chemical) => c.videoFk)?.length + 1 || 0}/${batchsStore?.length || 0}` } }],
             });
         }
     }, [isProcessComplete, isFocused, navigation, videoStatus]);
@@ -259,10 +250,11 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
     useEffect(() => { alertedTimesRef.current = alertedTimes; }, [alertedTimes]);
 
     useEffect(() => { isPauseRef.current = isPause; }, [isPause]);
+    useEffect(() => { maxDurationRef.current = maxDuration; }, [maxDuration]);
 
     useEffect(() => {
         const intervalId = setInterval(() => {
-            if (!lastServerTimeRef.current || groupedChemicalsRef.current.length === 0 || isPauseRef.current) {
+            if (!lastServerTimeRef.current || groupedChemicalsRef.current.length === 0) {
                 return;
             }
 
@@ -281,7 +273,22 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
                 if (secondsUntilConfirm > 0) {
                     if (secondsUntilConfirm <= 10) {
                         setUpcomingChemicals(group.chemicals);
-                        setUpcomingTime(group.time);
+
+                        const allGroups = groupedChemicalsRef.current;
+                        const idx = allGroups.findIndex((g: any) => g.time === group.time);
+                        const nextGrp = allGroups[idx + 1];
+                        const capSec = (maxDurationRef.current ?? 5) * 60;
+                        if (nextGrp) {
+                            const stopMs = parseDateTime(nextGrp.time) - 30 * 1000;
+                            const capStopMs = confirmTimeMs + capSec * 1000;
+                            upcomingVideoStopMsRef.current = Math.min(stopMs, capStopMs);
+                        } else {
+                            const operateMin = group.chemicals[0]?.operateTime ?? 1;
+                            const stopMs = confirmTimeMs + operateMin * 60 * 1000 - 30 * 1000;
+                            const capStopMs = confirmTimeMs + capSec * 1000;
+                            upcomingVideoStopMsRef.current = Math.min(stopMs, capStopMs);
+                        }
+
                         setModalVisible(true);
                         play();
                         setAlertedTimes(prev => new Set(prev).add(group.time));
@@ -305,9 +312,24 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
     }, [videoStatus, videoPath]);
 
     useEffect(() => {
-        if (initRef.current && groupedChemicals && groupedChemicals.length > 0 && currentChemicals.length > 0 && !currentChemicals[0]?.videoFk && !isPauseRef.current) {
+        if (initRef.current && groupedChemicals && groupedChemicals.length > 0 && currentChemicals.length > 0 && !currentChemicals[0]?.videoFk) {
             setUpcomingChemicals(currentChemicals);
-            setUpcomingTime(currentChemicals[0].confirmTime);
+
+            const firstTime = currentChemicals[0].confirmTime;
+            const idx = groupedChemicals.findIndex((g: any) => g.time === firstTime);
+            const nextGrp = groupedChemicals[idx + 1];
+            const capSec = (maxDuration ?? 5) * 60;
+            const confirmMs = parseDateTime(firstTime);
+            const capStopMs = confirmMs + capSec * 1000;
+            if (nextGrp) {
+                const stopMs = parseDateTime(nextGrp.time) - 30 * 1000;
+                upcomingVideoStopMsRef.current = Math.min(stopMs, capStopMs);
+            } else {
+                const operateMin = currentChemicals[0]?.operateTime ?? 1;
+                const stopMs = confirmMs + operateMin * 60 * 1000 - 30 * 1000;
+                upcomingVideoStopMsRef.current = Math.min(stopMs, capStopMs);
+            }
+
             setModalVisible(true);
             play();
             setAlertedTimes(prev => new Set(prev).add(currentChemicals[0].confirmTime));
