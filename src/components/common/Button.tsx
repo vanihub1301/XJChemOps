@@ -135,7 +135,7 @@ const Button = React.forwardRef<View, ButtonProps>(
                     >
                         {loading ? (
                             <ActivityIndicator
-                                size="small"
+                                size={24}
                                 color={finalLoadingColor}
                             />
                         ) : null}

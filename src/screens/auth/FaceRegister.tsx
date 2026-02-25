@@ -50,7 +50,7 @@ const FaceRegister = ({ navigation }: AuthNavigationProps<'FaceRegister'>) => {
     const camera = useRef<Camera>(null);
 
     const capturedCount = images.filter(img => img !== '').length;
-    const isComplete = capturedCount === 5;
+    const isComplete = capturedCount === 5 && user.name !== '';
 
     const onScanBoxLayout = useCallback((event: any) => {
         const { height } = event.nativeEvent.layout;
@@ -282,17 +282,17 @@ const FaceRegister = ({ navigation }: AuthNavigationProps<'FaceRegister'>) => {
                             <Text variant={'captionSemibold'} color={'blueViolet'}>TIẾN TRÌNH: {capturedCount}/5 ẢNH</Text>
                             <Text color={'lightGray'} variant={'captionMedium'}>Nhấn X để chụp lại</Text>
                         </ViewBox>
-                        <ViewBox gap={'xl'} className="flex-row justify-center items-center">
+                        <ViewBox gap={'sm'} className="flex-row justify-between items-center w-full px-1">
                             {images.map((uri: string, index: number) => {
                                 const isAddSlot = (images[index - 1] !== '' && images[index] === '');
                                 return (
-                                    <ViewBox key={index} className="items-center justify-center">
+                                    <ViewBox key={index} className="items-center justify-center flex-1 mx-1">
                                         {uri ? (
-                                            <ViewBox className="relative">
-                                                <TouchableOpacity onPress={() => handleImagePress(index)}>
+                                            <ViewBox className="relative w-full aspect-square">
+                                                <TouchableOpacity onPress={() => handleImagePress(index)} className="w-full h-full">
                                                     <ViewBox
                                                         radius="full"
-                                                        className="w-24 h-24 overflow-hidden border-2 border-white"
+                                                        className="w-full h-full overflow-hidden border-2 border-white"
                                                     >
                                                         <Image
                                                             source={{ uri }}
@@ -313,16 +313,16 @@ const FaceRegister = ({ navigation }: AuthNavigationProps<'FaceRegister'>) => {
                                         ) : isAddSlot ? (
                                             <ViewBox
                                                 radius="full"
-                                                className="bg-[#EEF2FF] w-24 h-24 items-center justify-center border-dashed border-2 border-[#4F46E5]"
+                                                className="bg-[#EEF2FF] w-full aspect-square items-center justify-center border-dashed border-2 border-[#4F46E5]"
                                             >
-                                                <MaterialCommunityIcons name="camera-plus" size={50} color="#9B95EF" />
+                                                <MaterialCommunityIcons name="camera-plus" size={30} color="#9B95EF" />
                                             </ViewBox>
                                         ) : (
                                             <ViewBox
                                                 radius="full"
-                                                className="bg-[#F9FAFB] w-24 h-24 items-center justify-center border-dashed border-2 border-[#D1D5DB]"
+                                                className="bg-[#F9FAFB] w-full aspect-square items-center justify-center border-dashed border-2 border-[#D1D5DB]"
                                             >
-                                                <Text color={'blurGray'} variant="largeTitle">
+                                                <Text color={'blurGray'} variant="sectionTitleSemibold">
                                                     {index + 1}
                                                 </Text>
                                             </ViewBox>

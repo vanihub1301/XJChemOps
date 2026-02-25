@@ -38,7 +38,7 @@ const InputSearch = ({
         paddingLeft: 0,
         paddingRight: 0,
         fontSize: 14,
-        textAlignVertical: 'top' as const,
+        textAlignVertical: 'center' as const,
         minHeight: numberOfLines * 30,
     };
 

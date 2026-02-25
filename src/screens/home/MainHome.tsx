@@ -28,7 +28,7 @@ const MainHome = ({ navigation }: MainNavigationProps<'Home'>) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [listOrder, setListOrder] = useState<any[]>([]);
 
-  const { getData } = useAPI();
+  const { getData, postData } = useAPI();
   const { rotatingTank } = useAuthStore();
   const { batchsStore } = useOperationStore();
   const isFocused = useIsFocused();
@@ -46,14 +46,13 @@ const MainHome = ({ navigation }: MainNavigationProps<'Home'>) => {
 
   const handleConfirm = async (_password: string) => {
     try {
-      navigation.navigate('Video', { autoRecord: true });
-      // const res = await postData('portal/inject/checkPass', { password: _password });
-      // if (res.code === 0 && res?.data === true) {
-      //   setModalVisible(false);
-      //   navigation.navigate('Setting');
-      // } else {
-      //   showToast('Mật khẩu không đúng');
-      // }
+      const res = await postData('portal/inject/checkPass', { password: _password });
+      if (res.code === 0 && res?.data === true) {
+        setModalVisible(false);
+        navigation.navigate('Setting');
+      } else {
+        showToast('Mật khẩu không đúng');
+      }
     } catch (error: any) {
       showToast(error.message);
     }

@@ -3,7 +3,7 @@ import { AuthNavigationProps } from '../../types/navigation';
 import ViewContainer from '../../components/common/ViewContainer';
 import { ViewBox } from '../../components/common/ViewBox';
 import { Text } from '../../components/common/Text';
-import { TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { TouchableOpacity, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
 import { Camera, useCameraDevice, useCameraFormat, useFrameProcessor, VisionCameraProxy } from 'react-native-vision-camera';
 import { usePermissions } from '../../hooks/usePermissions';
 import Animated, { cancelAnimation, Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
@@ -28,6 +28,7 @@ const Login = ({ navigation, isReAuthentication = false }: LoginProps) => {
     const [isCameraActive, setIsCameraActive] = useState(true);
     const [scanBoxHeight, setScanBoxHeight] = useState(0);
     const [isDetecting, setIsDetecting] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const { checkCameraPermission } = usePermissions();
     const { setMany } = useSettingStore();
@@ -159,27 +160,36 @@ const Login = ({ navigation, isReAuthentication = false }: LoginProps) => {
         return timeMatch ? `${timeMatch[1]}:${timeMatch[2]}` : '';
     }
     const handlePasswordLogin = useCallback(async () => {
-        if (navigation.canGoBack()) {
-            navigation.goBack();
-        } else {
-            const loginTime = await getTime();
+        try {
+            setLoading(true);
+            if (navigation.canGoBack()) {
+                navigation.goBack();
+            } else {
+                const loginTime = await getTime();
 
-            useAuthStore.getState().setAuth({
-                isSignedIn: true,
-            });
-            useAuthStore.getState().setTimeLogin({
-                timeLogin: loginTime,
-            });
-            setMany({
-                serverIp: "192.168.10.8",
-                port: "8072",
-                inspectionTime: 10,
-                lockScreen: true,
-                enableSound: true,
-                language: "vi",
-            });
-            navigation.replace('Main');
+                useAuthStore.getState().setAuth({
+                    isSignedIn: true,
+                });
+                useAuthStore.getState().setTimeLogin({
+                    timeLogin: loginTime,
+                });
+                setMany({
+                    serverIp: "192.168.10.8",
+                    port: "8072",
+                    inspectionTime: 10,
+                    lockScreen: true,
+                    enableSound: true,
+                    language: "vi",
+                });
+                navigation.replace('Main');
+            }
+        } catch (error: any) {
+            showToast(error.message);
+        } finally {
+            setLoading(false);
         }
+
+
     }, [navigation]);
 
     useEffect(() => {
@@ -281,9 +291,13 @@ const Login = ({ navigation, isReAuthentication = false }: LoginProps) => {
                     {!isReAuthentication && (
                         <ViewBox className="items-center mt-5">
                             <TouchableOpacity onPress={handlePasswordLogin}>
-                                <Text color={'blueViolet'} variant={'sectionTitleSemibold'} >
-                                    Sử dụng mật khẩu
-                                </Text>
+                                {loading ? (
+                                    <ActivityIndicator size={24} color="#5B25EA" />
+                                ) : (
+                                    <Text color={'blueViolet'} variant={'sectionTitleSemibold'} >
+                                        Sử dụng mật khẩu
+                                    </Text>
+                                )}
                             </TouchableOpacity>
                         </ViewBox>
                     )}

@@ -47,8 +47,8 @@ const List = <T extends {}>({
         if (apiLoading) { return null; }
         return (
             <ViewBox className="flex-1 justify-center items-center py-10" gap="md">
-                <ViewBox background="gray" radius="full" className="w-12 h-12 justify-center items-center mb-2">
-                    <MaterialCommunityIcons name="inbox-remove-outline" size={24} color="gray" />
+                <ViewBox background="gray" radius="full" className="w-16 h-16 justify-center items-center mb-2">
+                    <MaterialCommunityIcons name="inbox-remove-outline" size={40} color="gray" />
                 </ViewBox>
                 <Text variant="label" color="lightGray" className="text-center px-8">
                     {emptyText}
