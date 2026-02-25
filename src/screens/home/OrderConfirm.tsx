@@ -13,7 +13,7 @@ import { useAPI } from '../../service/api';
 import { showToast } from '../../service/toast';
 import { useOperationStore } from '../../store/operationStore';
 import { useAuthStore } from '../../store/authStore';
-import { Alert } from 'react-native';
+import { ActivityIndicator, Alert } from 'react-native';
 import { Chemical } from '../../types/drum';
 import { mockData } from './data';
 
@@ -30,13 +30,13 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
         { label: 'Thời gian bắt đầu', value: formatDateCustom(orderData?.startDrum, { format: 'HH:mm' }), icon: <MaterialCommunityIcons name="clock-outline" size={24} color="#6266F1" /> },
     ];
 
-    const { getData, postData } = useAPI();
+    const { getData, postData, loading: apiLoading } = useAPI();
     const { setOrderStore, setBatchsStore, setGroupedChemicals } = useOperationStore();
     const { fullName, rotatingTank } = useAuthStore();
 
     const fetchData = async (orderNo: string) => {
         try {
-            const res = await getData('portal/inject/billInfo', { billno: orderNo });
+            const res = await getData('portal/inject/billInfo', { billno: orderNo }, false);
             if (res.code === 0) {
                 setOrderData(res.data);
             } else {
@@ -148,6 +148,7 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
         return (
             <ViewContainer>
                 <ViewHeader border={true} title="Xác nhận đơn sản xuất" />
+                {apiLoading && <ActivityIndicator size="large" color="#6165EE" className="mt-2" />}
             </ViewContainer>
         );
     }

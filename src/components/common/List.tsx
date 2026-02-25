@@ -1,6 +1,8 @@
 import React, { useCallback } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, View, ListRenderItem, StyleSheet } from 'react-native';
+import { ActivityIndicator, FlatList, RefreshControl, ListRenderItem, StyleSheet } from 'react-native';
 import { Text } from './Text';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { ViewBox } from './ViewBox';
 
 interface ListProps<T> {
     list: readonly T[];
@@ -44,9 +46,14 @@ const List = <T extends {}>({
     const renderEmpty = useCallback(() => {
         if (apiLoading) { return null; }
         return (
-            <View>
-                <Text style={styles.emptyText}>{emptyText}</Text>
-            </View>
+            <ViewBox className="flex-1 justify-center items-center py-10" gap="md">
+                <ViewBox background="gray" radius="full" className="w-12 h-12 justify-center items-center mb-2">
+                    <MaterialCommunityIcons name="inbox-remove-outline" size={24} color="gray" />
+                </ViewBox>
+                <Text variant="label" color="lightGray" className="text-center px-8">
+                    {emptyText}
+                </Text>
+            </ViewBox>
         );
     }, [apiLoading, emptyText]);
 

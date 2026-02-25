@@ -16,6 +16,7 @@ const buttonVariants = cva(
                 fourth: 'border-[#1616E6] bg-[#1616E6]',
                 fifth: 'border-[#6266F1] bg-[#6266F1]',
                 cancel: 'border-none',
+                danger: 'border-red-500 border bg-[#bf342a8f]',
             },
             size: {
                 default: 'py-2.5 px-5',
@@ -67,6 +68,7 @@ const buttonTextVariants = cva(
                 fourth: 'text-white',
                 fifth: 'text-white',
                 cancel: 'text-gray-500',
+                danger: 'text-[#E85656]',
             },
             disabled: {
                 true: 'opacity-90',

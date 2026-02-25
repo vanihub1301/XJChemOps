@@ -355,6 +355,7 @@ const FaceRegister = ({ navigation }: AuthNavigationProps<'FaceRegister'>) => {
                             label="Chụp hình"
                             onPress={handleTakePhoto}
                             disabled={isCapturing || isComplete}
+                            loading={isCapturing}
                             size={'lg'}
                             gap={'lg'}
                             variant={'secondary'}

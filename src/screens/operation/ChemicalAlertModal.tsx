@@ -22,7 +22,7 @@ const ChemicalAlertModal = ({ visible, chemicals, onRecord, onDismiss }: Chemica
         <Modal
             visible={visible}
             transparent
-            animationType="fade"
+            animationType="slide"
             onRequestClose={onDismiss}
         >
             <View className="flex-1 bg-black/50 justify-center items-center px-6">

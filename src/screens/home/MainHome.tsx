@@ -28,7 +28,7 @@ const MainHome = ({ navigation }: MainNavigationProps<'Home'>) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [listOrder, setListOrder] = useState<any[]>([]);
 
-  const { getData, postData } = useAPI();
+  const { getData } = useAPI();
   const { rotatingTank } = useAuthStore();
   const { batchsStore } = useOperationStore();
   const isFocused = useIsFocused();

@@ -404,10 +404,11 @@ const Video = ({ navigation, route }: VideoProps) => {
                             <Button
                                 radius="xl"
                                 onPress={stopRecord}
-                                className="border-red-500 border w-full bg-[#bf342a8f] flex-row items-center justify-center"
+                                className="w-full flex-row items-center justify-center"
                                 size="lg"
                                 iconPosition="left"
                                 disabled={!isRecording}
+                                variant="danger"
                             >
                                 <MaterialCommunityIcons name="stop-circle-outline" size={24} color="red" />
                                 <Text variant="labelStrong" className="text-[#E85656]">
@@ -425,7 +426,8 @@ const Video = ({ navigation, route }: VideoProps) => {
 
 const styles = StyleSheet.create({
     scrollContainer: {
-        maxHeight: 550,
+        // maxHeight: 550,
+        maxHeight: "50%",
     },
     scrollContent: {
         padding: 16,

@@ -120,7 +120,8 @@ const NearBill = ({ navigation }: MainNavigationProps<'NearBill'>) => {
                     refreshing={refreshing}
                     onRefresh={fetchData}
                     loadMore={loadMore}
-
+                    apiLoading={apiLoading}
+                    loadingMore={loadingMore}
                 />
             </ViewBox>
         </ViewContainer>

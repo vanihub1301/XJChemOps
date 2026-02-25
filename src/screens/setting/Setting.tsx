@@ -160,14 +160,18 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
 
     useEffect(() => {
         const loadData = async () => {
-            const settings = await getMany(['serverIp', 'port', 'inspectionTime', 'enableSound', 'lockScreen', 'language']);
-            setServerAddress(settings.serverIp || '');
-            setServerPort(settings.port || '');
-            setInspectionTimeLocal(settings.inspectionTime || '');
-            setEnableSoundLocal(settings.enableSound === 'true');
-            setLockScreenLocal(settings.lockScreen === 'true');
-            setLanguageLocal(settings.language || '');
-            setChangedFields(new Set());
+            try {
+                const settings = await getMany(['serverIp', 'port', 'inspectionTime', 'enableSound', 'lockScreen', 'language']);
+                setServerAddress(settings.serverIp || '');
+                setServerPort(settings.port || '');
+                setInspectionTimeLocal(settings.inspectionTime || '');
+                setEnableSoundLocal(settings.enableSound === 'true');
+                setLockScreenLocal(settings.lockScreen === 'true');
+                setLanguageLocal(settings.language || '');
+                setChangedFields(new Set());
+            } catch (error) {
+                showToast('Lỗi khi tải cài đặt');
+            }
         }
 
         loadData();
@@ -182,7 +186,6 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
         <>
             <ViewContainer background="none" hasScrollableContent={true}>
                 <ViewHeader border={true} title="Cài đặt hệ thống" />
-
                 <ViewBox padding={'lg'} className="flex-1">
                     <ViewBox className="mb-6">
                         <Text variant="label" color="primary" className="mb-3 tracking-wider">
@@ -344,7 +347,7 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
                         loading={loading}
                     />
                 </ViewBox>
-            </ViewContainer>
+            </ViewContainer >
             <BottomSheetSelect
                 ref={bottomSheetRef}
                 onSelection={handleSelection}

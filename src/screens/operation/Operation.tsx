@@ -254,7 +254,7 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
 
     useEffect(() => {
         const intervalId = setInterval(() => {
-            if (!lastServerTimeRef.current || groupedChemicalsRef.current.length === 0) {
+            if (!lastServerTimeRef.current || groupedChemicalsRef.current.length === 0 || isPauseRef.current) {
                 return;
             }
 
@@ -312,7 +312,7 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
     }, [videoStatus, videoPath]);
 
     useEffect(() => {
-        if (initRef.current && groupedChemicals && groupedChemicals.length > 0 && currentChemicals.length > 0 && !currentChemicals[0]?.videoFk) {
+        if (initRef.current && groupedChemicals && groupedChemicals.length > 0 && currentChemicals.length > 0 && !currentChemicals[0]?.videoFk && !isPauseRef.current) {
             setUpcomingChemicals(currentChemicals);
 
             const firstTime = currentChemicals[0].confirmTime;
