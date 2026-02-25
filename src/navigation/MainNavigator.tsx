@@ -18,10 +18,10 @@ import { useOperationStore } from '../store/operationStore';
 
 const MainStack = createStackNavigator<MainRoutes>();
 export const MainNavigator = () => {
-    const { batchsStore } = useOperationStore();
+    const { groupedChemicals } = useOperationStore();
 
     return (
-        <MainStack.Navigator screenOptions={{ headerShown: false }} initialRouteName={batchsStore.length > 0 ? 'Operation' : 'Home'}>
+        <MainStack.Navigator screenOptions={{ headerShown: false }} initialRouteName={groupedChemicals.length > 0 ? 'Operation' : 'Home'}>
             <MainStack.Screen name="Home" component={MainHome} />
             <MainStack.Screen name="Setting" component={Setting} />
             <MainStack.Screen name="OrderConfirm" component={OrderConfirm} />

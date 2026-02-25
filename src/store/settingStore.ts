@@ -66,5 +66,4 @@ export const useSettingStore = create<SettingState>((set) => ({
             )
         );
     },
-
 }));

@@ -81,7 +81,7 @@ export const mockData = {
     config: {
         id: "2021151025734201345",
         drumno: "31#",
-        inspectionTime: 30,
+        inspectionTime: 10,
         enableSound: true,
         lockScreen: false,
         language: "vi",
@@ -91,133 +91,6 @@ export const mockData = {
     appInjectPause: null,
     curentTime: "2026-02-23 15:58:58"
 };
-
-export const mockMachineData = [
-    {
-        id: 0,
-        name: 'Gỡ bồn',
-    },
-    {
-        id: 1,
-        name: 'Bồn quay 1',
-    },
-    {
-        id: 2,
-        name: 'Bồn quay 2',
-    },
-    {
-        id: 3,
-        name: 'Bồn quay 3',
-    },
-    {
-        id: 4,
-        name: 'Bồn quay 4',
-    },
-    {
-        id: 5,
-        name: 'Bồn quay 5',
-    },
-    {
-        id: 6,
-        name: 'Bồn quay 6',
-    },
-    {
-        id: 7,
-        name: 'Bồn quay 7',
-    },
-    {
-        id: 8,
-        name: 'Bồn quay 8',
-    },
-    {
-        id: 9,
-        name: 'Bồn quay 9',
-    },
-    {
-        id: 10,
-        name: 'Bồn quay 10',
-    },
-    {
-        id: 11,
-        name: 'Bồn quay 11',
-    },
-    {
-        id: 12,
-        name: 'Bồn quay 12',
-    },
-    {
-        id: 13,
-        name: 'Bồn quay 13',
-    },
-    {
-        id: 14,
-        name: 'Bồn quay 14',
-    },
-    {
-        id: 15,
-        name: 'Bồn quay 15',
-    },
-    {
-        id: 16,
-        name: 'Bồn quay 16',
-    },
-    {
-        id: 17,
-        name: 'Bồn quay 17',
-    },
-    {
-        id: 18,
-        name: 'Bồn quay 18',
-    },
-    {
-        id: 19,
-        name: 'Bồn quay 19',
-    },
-    {
-        id: 20,
-        name: 'Bồn quay 20',
-    },
-    {
-        id: 21,
-        name: 'Bồn quay 21',
-    },
-    {
-        id: 22,
-        name: 'Bồn quay 22',
-    },
-    {
-        id: 23,
-        name: 'Bồn quay 23',
-    },
-    {
-        id: 24,
-        name: 'Bồn quay 24',
-    },
-    {
-        id: 25,
-        name: 'Bồn quay 25',
-    },
-    {
-        id: 26,
-        name: 'Bồn quay 26',
-    },
-    {
-        id: 27,
-        name: 'Bồn quay 27',
-    },
-    {
-        id: 28,
-        name: 'Bồn quay 28',
-    },
-    {
-        id: 29,
-        name: 'Bồn quay 29',
-    },
-    {
-        id: 30,
-        name: 'Bồn quay 30',
-    },
-];
 
 export const mockVideoPlaybackData = [
     {

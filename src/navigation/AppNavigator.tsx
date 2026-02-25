@@ -20,9 +20,9 @@ interface AppNavigatorProps {
 }
 
 export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
-    const { orderStore, batchsStore, groupedChemicals, reset, setCurrentTime, setIsProcessComplete, setBatchsStore, setOrderStore, setGroupedChemicals, setCurrentChemicals, setIsPause } = useOperationStore();
+    const { orderStore, batchsStore, groupedChemicals, setMany: setManyOperation, reset, setCurrentTime, setIsProcessComplete, setBatchsStore, setOrderStore, setGroupedChemicals, setCurrentChemicals, setIsPause } = useOperationStore();
     const { rotatingTank, isLoading, setLoading } = useAuthStore();
-    const { setMany, getMany, inspectionTime } = useSettingStore();
+    const { setMany: setManySetting, getMany, inspectionTime } = useSettingStore();
     const { getData } = useAPI();
 
     const currentIntervalTimeRef = useRef<number>(30000);
@@ -65,10 +65,14 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
         console.log('LOG : Operation : currentGroup:', currentGroup);
         console.log('LOG : Operation : grouped:', grouped);
 
-        unstable_batchedUpdates(() => {
-            setGroupedChemicals(grouped);
-            setCurrentChemicals(currentGroup?.chemicals || []);
-        });
+        // unstable_batchedUpdates(() => {
+        //     setGroupedChemicals(grouped);
+        //     setCurrentChemicals(currentGroup?.chemicals || []);
+        // });
+        setManyOperation({
+            groupedChemicals: grouped,
+            currentChemicals: currentGroup?.chemicals || [],
+        })
 
     }, [batchsStore, setGroupedChemicals, setCurrentChemicals]);
 
@@ -92,23 +96,34 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
                 const settings = await getMany(['serverIp', 'port', 'inspectionTime']);
                 const res = await getData('portal/inject/getRunning', { drumNo: orderStore?.process?.drumNo || rotatingTank.name }, true, settings.serverIp + ':' + settings.port);
                 console.log('LOG : fetchRunningData : res:', res);
-                config = { ...res.data?.config, currentTime: res.data?.curentTime };
+                config = { ...res.data?.config, currentTime: res.data?.curentTime }
 
                 if (res.code === 0 && res.data?.process?.dtl) {
                     const { dtl, ...processWithoutDtl } = res.data.process;
                     const appInjectPause = res.data?.appInjectPause;
-                    unstable_batchedUpdates(() => {
-                        setOrderStore({
+                    setManyOperation({
+                        isProcessComplete: false,
+                        orderStore: {
                             process: processWithoutDtl,
                             currentTime: res.data?.curentTime,
                             config: config,
                             appInjectPause: appInjectPause,
-                        });
-                        setBatchsStore(dtl);
-                        setIsPause(appInjectPause?.pauseTime && !appInjectPause?.continueTime)
-                    });
-
-                } else if (res.code === 0 && !res.data?.process?.dtl) {
+                        },
+                        batchsStore: dtl,
+                        isPause: appInjectPause?.pauseTime && !appInjectPause?.continueTime,
+                    })
+                    // unstable_batchedUpdates(() => {
+                    //     setOrderStore({
+                    //         process: processWithoutDtl,
+                    //         currentTime: res.data?.curentTime,
+                    //         config: config,
+                    //         appInjectPause: appInjectPause,
+                    //     });
+                    //     setBatchsStore(dtl);
+                    //     setIsPause(appInjectPause?.pauseTime && !appInjectPause?.continueTime)
+                    // });
+                }
+                if (res.code === 0 && !res.data?.process?.dtl && (groupedChemicals.length > 0)) {
                     const currentTime = parseDateTime(res.data?.curentTime);
                     const currentGroupIndex = groupedChemicals.findIndex((group, index) => {
                         const startTime = parseDateTime(group.time);
@@ -136,7 +151,7 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
                 console.log('LOG : fetchRunningData : config:', config);
                 unstable_batchedUpdates(() => {
                     setCurrentTime(config?.currentTime || '');
-                    setMany({
+                    setManySetting({
                         serverIp: config?.serverIp,
                         port: config?.port,
                         inspectionTime: config?.inspectionTime,
@@ -185,7 +200,7 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
                 clearTimeout(timeoutId);
             }
         };
-    }, [rotatingTank.name, getData, setBatchsStore, setOrderStore, reset, setMany, getMany, setIsPause, inspectionTime]);
+    }, [rotatingTank.name, getData, setBatchsStore, setOrderStore, reset, setManySetting, setManyOperation, getMany, setIsPause, inspectionTime]);
 
     if (isLoading) {
         return <SplashScreen />;
