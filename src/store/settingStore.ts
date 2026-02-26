@@ -10,7 +10,10 @@ export interface SettingState {
     language: string;
     idDrum: string;
     drumno: string;
-    alarmUrl: string;
+    sound: string;
+    volume: string;
+    maxTimeRecord: string;
+    repeatCount: string;
     initializeSetting: () => Promise<void>;
     setMany: (data: any) => Promise<void>;
     getMany: (keys: string[]) => Promise<any>;
@@ -25,7 +28,10 @@ const mapKey: { [key: string]: string } = {
     language: 'language',
     idDrum: 'id_drum',
     drumno: 'drumno',
-    alarmUrl: 'alarm_url',
+    sound: 'sound',
+    volume: 'volume',
+    maxTimeRecord: 'max_time_record',
+    repeatCount: 'repeat_count',
 };
 
 export const useSettingStore = create<SettingState>((set) => ({
@@ -37,7 +43,10 @@ export const useSettingStore = create<SettingState>((set) => ({
     language: '',
     idDrum: '',
     drumno: '',
-    alarmUrl: '',
+    sound: '',
+    volume: '',
+    maxTimeRecord: '',
+    repeatCount: '',
 
     initializeSetting: async () => {
         await Promise.all([
@@ -49,7 +58,10 @@ export const useSettingStore = create<SettingState>((set) => ({
             AsyncStorage.setItem('language', 'vi'),
             AsyncStorage.setItem('id_drum', ''),
             AsyncStorage.setItem('drumno', ''),
-            AsyncStorage.setItem('alarm_url', ''),
+            AsyncStorage.setItem('sound', ''),
+            AsyncStorage.setItem('volume', ''),
+            AsyncStorage.setItem('max_time_record', ''),
+            AsyncStorage.setItem('repeat_count', ''),
         ]);
     },
 

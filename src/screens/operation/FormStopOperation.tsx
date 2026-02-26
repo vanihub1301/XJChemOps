@@ -78,8 +78,8 @@ const FormStopOperation = ({ navigation }: MainNavigationProps<'FormStopOperatio
             reason: +selectedReason,
             remarks: otherReason,
             finishTime: currentTime,
-            registor: fullName || 'Nguyễn Văn A',
-        }
+            registor: fullName || 'ADMIN',
+        };
         const res = await postData('portal/inject/finish', payload, true);
 
         if (res?.code === 0) {

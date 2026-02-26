@@ -9,9 +9,10 @@ import { showToast } from '../../../service/toast';
 export const useVideoRecording = (
     camera: React.RefObject<Camera>,
     navigation: any,
+    fentryids?: string[],
 ) => {
     const [isRecording, setIsRecording] = useState(false);
-    const { markSaved, markIdle } = useVideoStore();
+    const { markSaved, markIdle, setVideoUploadPayload } = useVideoStore();
 
     const cancelRecord = useCallback(async () => {
         try {
@@ -28,17 +29,17 @@ export const useVideoRecording = (
 
     const handleDownloadAndCallback = useCallback(async (videoPath: string) => {
         try {
-            const asset = await CameraRoll.save(`file://${videoPath}`, {
+            await CameraRoll.save(`file://${videoPath}`, {
                 type: 'video',
             });
-            await RNFS.unlink(videoPath);
 
-            markSaved(asset);
+            if (fentryids) { setVideoUploadPayload(fentryids); }
+            markSaved(`file://${videoPath}`);
             navigation.goBack();
         } catch (error) {
             showToast('Lỗi khi lưu video');
         }
-    }, [navigation]);
+    }, [navigation, fentryids, setVideoUploadPayload, markSaved]);
 
     const startRecord = useCallback(async () => {
         try {
@@ -48,6 +49,7 @@ export const useVideoRecording = (
                 return;
             }
             await camera.current?.startRecording({
+                fileType: 'mp4',
                 onRecordingFinished: async (video) => {
                     const path = video.path;
 
@@ -55,8 +57,11 @@ export const useVideoRecording = (
                         await handleDownloadAndCallback(path);
                     }
                 },
-                onRecordingError: (_error) => {
+                onRecordingError: (error) => {
+                    console.log('LOG : Video : onRecordingError:', error);
                     setIsRecording(false);
+                    showToast('Video đã dừng do gián đoạn hệ thống');
+                    navigation.goBack();
                 },
             });
             setIsRecording(true);
@@ -65,18 +70,14 @@ export const useVideoRecording = (
         }
     }, [handleDownloadAndCallback]);
 
-    const stopRecord = useCallback(async (recordingTime: number, inspectionTime: string | number) => {
+    const stopRecord = useCallback(async () => {
         try {
-            if (recordingTime < Number(inspectionTime)) {
-                showToast('Video tối thiểu ' + inspectionTime + ' giây');
-                return;
-            }
             await camera.current?.stopRecording();
             setIsRecording(false);
         } catch (error) {
             showToast('Lỗi khi dừng quay video');
         }
-    }, []);
+    }, [camera]);
 
     const forceStopRecord = useCallback(async () => {
         try {
@@ -84,9 +85,11 @@ export const useVideoRecording = (
             setIsRecording(false);
         } catch (error: any) {
             console.log('LOG : Video : error:', error);
-            showToast(error.message);
+            showToast('Lỗi dừng video, hoặc đã dừng từ trước');
+            setIsRecording(false);
+            navigation.goBack();
         }
-    }, []);
+    }, [navigation]);
 
     return {
         isRecording,

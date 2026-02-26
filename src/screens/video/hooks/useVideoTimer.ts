@@ -1,11 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import RNFS from 'react-native-fs';
-import { MIN_FREE_SPACE_STOP } from '../../../constants/ui';
-import { showToast } from '../../../service/toast';
 
 export const useVideoTimer = (
     isRecording: boolean,
-    forceStopRecord: () => void,
+    stopRecord: () => void,
     maxDurationConfig?: number,
     paramVideoDurationSeconds?: number
 ) => {
@@ -14,32 +11,20 @@ export const useVideoTimer = (
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        const id = setInterval(async () => {
-            const fs = await RNFS.getFSInfo();
-            if (fs.freeSpace < MIN_FREE_SPACE_STOP) {
-                forceStopRecord();
-                showToast('Không đủ dung lượng bộ nhớ');
-            }
-        }, 30_000);
-
-        return () => clearInterval(id);
-    }, []);
-
-    useEffect(() => {
-        if (!isRecording) return;
+        if (!isRecording) { return; }
         console.log('LOG : useVideoTimer : paramVideoDurationSeconds:', paramVideoDurationSeconds)
 
-        let durationMs = (maxDurationConfig ?? 5) * 60 * 1000;
+        let durationMs = (maxDurationConfig ?? 300) * 1000;
         if (paramVideoDurationSeconds !== undefined) {
-            durationMs = Math.max(10, paramVideoDurationSeconds) * 1000;
+            durationMs = Math.min(durationMs, Math.max(10, paramVideoDurationSeconds) * 1000);
         }
 
         const timer = setTimeout(() => {
-            forceStopRecord();
+            stopRecord();
         }, durationMs);
 
         return () => clearTimeout(timer);
-    }, [isRecording]);
+    }, [isRecording, stopRecord, paramVideoDurationSeconds]);
 
     useEffect(() => {
         startTimeRef.current = Date.now();

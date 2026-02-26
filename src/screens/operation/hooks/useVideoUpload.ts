@@ -5,10 +5,11 @@ import { useAuthStore } from '../../../store/authStore';
 import { useOperationStore } from '../../../store/operationStore';
 import { showToast } from '../../../service/toast';
 import { uploadFile } from '../../../service/axios';
+import RNFS from 'react-native-fs';
 
 export const useVideoUpload = () => {
     const [videoUploading, setVideoUploading] = useState(false);
-    const { videoStatus, videoPath, markIdle } = useVideoStore();
+    const { videoStatus, videoPath, fentryids, markIdle } = useVideoStore();
     const { getData, putData } = useAPI();
     const { fullName } = useAuthStore();
     const { currentChemicals } = useOperationStore();
@@ -16,11 +17,12 @@ export const useVideoUpload = () => {
     const currentChemicalsRef = useRef(currentChemicals);
     useEffect(() => { currentChemicalsRef.current = currentChemicals; }, [currentChemicals]);
 
-    const handleUploadVideo = useCallback(async (videoPath: string) => {
+    const handleUploadVideo = useCallback(async (path: string) => {
         try {
             setVideoUploading(true);
-            console.log('LOG : Operation : currentChemicals:', currentChemicalsRef.current)
-            const fentryid = currentChemicalsRef.current.map(i => i.id);
+            const payloadFentryids = fentryids?.length > 0
+                ? fentryids
+                : currentChemicalsRef.current.map(i => i.id);
 
             const presignedUrl = await getData('portal/inject/video-url');
             if (!presignedUrl) {
@@ -28,7 +30,7 @@ export const useVideoUpload = () => {
                 return;
             }
 
-            const uploadRes = await uploadFile(videoPath, presignedUrl);
+            const uploadRes = await uploadFile(path, presignedUrl);
 
             if (uploadRes?.status !== 200) {
                 showToast('Video đã được ghi thất bại');
@@ -40,9 +42,9 @@ export const useVideoUpload = () => {
             const videoPathOnServer = presignedUrl.split('/videos/')[1].split('?')[0];
 
             const updateRes = await putData('portal/inject/updateBatch', {
-                employee: fullName || 'NGUYỄN THỊ THOẢNG',
+                employee: fullName || 'ADMIN',
                 videoFk: videoPathOnServer,
-                fentryid: fentryid,
+                fentryid: payloadFentryids,
             });
 
             if (updateRes?.code === 0) {
@@ -55,8 +57,17 @@ export const useVideoUpload = () => {
         } finally {
             markIdle();
             setVideoUploading(false);
+            try {
+                const pathWithoutFile = path.replace('file://', '');
+                const exists = await RNFS.exists(pathWithoutFile);
+                if (exists) {
+                    await RNFS.unlink(pathWithoutFile);
+                }
+            } catch (e) {
+                console.log('LOG : useVideoUpload : cleanup temp file error', e);
+            }
         }
-    }, []);
+    }, [fullName]);
 
     useEffect(() => {
         const handler = async () => {

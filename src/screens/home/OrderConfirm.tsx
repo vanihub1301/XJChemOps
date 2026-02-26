@@ -88,7 +88,7 @@ const OrderConfirm = ({ navigation, route }: MainNavigationProps<'OrderConfirm'>
                 const resInit = await postData(`portal/inject/initProject?fid=${orderData.id}&employee=${encodeURIComponent(fullName)}&drumNo=${encodeURIComponent(rotatingTank?.name)}`);
 
                 if (resInit.code !== 0) {
-                    Alert.alert('Thông báo', resInit.msg, [{ text: 'OK', onPress: () => { }, style: 'cancel' },]);
+                    Alert.alert('Thông báo', resInit.msg, [{ text: 'OK', onPress: () => { }, style: 'cancel' }]);
                     return;
                 }
 

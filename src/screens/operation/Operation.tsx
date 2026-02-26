@@ -90,8 +90,8 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
                 reason: 1,
                 remarks: '',
                 finishTime: currentTime,
-                registor: fullName || 'Nguyễn Văn A',
-            }
+                registor: fullName || 'ADMIN',
+            };
             navigation.reset({
                 index: 0,
                 routes: [
@@ -110,8 +110,8 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
                 reason: 1,
                 remarks: '',
                 finishTime: currentTime,
-                registor: fullName || 'Nguyễn Văn A',
-            }
+                registor: fullName || 'ADMIN',
+            };
             reset();
             navigation.reset({
                 index: 0,
@@ -141,7 +141,6 @@ const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
             }
 
             return () => {
-                KeepAwake.deactivate();
             };
         }, [lockScreen])
     );

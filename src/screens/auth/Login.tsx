@@ -159,7 +159,8 @@ const Login = ({ navigation, isReAuthentication = false }: LoginProps) => {
 
         const timeMatch = data.local_time.match(/T(\d{2}):(\d{2})/);
         return timeMatch ? `${timeMatch[1]}:${timeMatch[2]}` : '';
-    }
+    };
+
     const handlePasswordLogin = useCallback(async () => {
         try {
             setLoading(true);
@@ -175,15 +176,15 @@ const Login = ({ navigation, isReAuthentication = false }: LoginProps) => {
                     timeLogin: loginTime,
                 });
                 if (!fullName) {
-                    setName({ fullName: "ADMIN" });
+                    setName({ fullName: 'ADMIN' });
                 }
                 setMany({
-                    serverIp: "192.168.10.8",
-                    port: "8072",
+                    serverIp: '192.168.10.8',
+                    port: '8072',
                     inspectionTime: 10,
                     lockScreen: true,
                     enableSound: true,
-                    language: "vi",
+                    language: 'vi',
                 });
                 navigation.replace('Main');
             }

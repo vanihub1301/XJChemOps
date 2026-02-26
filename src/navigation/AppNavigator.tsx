@@ -128,6 +128,12 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
                 showToast(error.message);
             } finally {
                 console.log('LOG : fetchRunningData : config:', config);
+                let finalSound = config?.sound;
+                if (finalSound && finalSound.startsWith('/')) {
+                    const baseIp = (config?.serverIp || '').includes('http') ? config?.serverIp : `http://${config?.serverIp}`;
+                    finalSound = `${baseIp}:${config?.port}${finalSound}`;
+                }
+
                 unstable_batchedUpdates(() => {
                     setCurrentTime(config?.currentTime || '');
                     setManySetting({
@@ -139,7 +145,10 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
                         enableSound: config?.enableSound,
                         drumno: config?.drumno,
                         language: config?.language,
-                        alarmUrl: config?.alarmUrl,
+                        sound: finalSound,
+                        volume: config?.volume,
+                        maxTimeRecord: config?.maxTimeRecord,
+                        repeatCount: config?.repeatCount,
                     })
                 });
 

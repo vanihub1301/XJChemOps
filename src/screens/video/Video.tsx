@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useEffect, useMemo } from 'react';
 import ViewContainer from '../../components/common/ViewContainer';
 import { Camera, useCameraDevice, useCameraFormat } from 'react-native-vision-camera';
 import ViewHeader from '../../components/common/ViewHeader';
@@ -31,10 +31,17 @@ interface VideoProps {
 }
 
 const Video = ({ navigation, route }: VideoProps) => {
-    const { batchsStore, maxDuration } = useOperationStore();
-    const { inspectionTime } = useSettingStore();
-    const chemicals: Chemical[] = route?.params?.chemicals ?? [];
+    const { batchsStore } = useOperationStore();
+    const { maxTimeRecord } = useSettingStore();
+    const chemicals = useMemo(() => route?.params?.chemicals ?? [], [route?.params?.chemicals]);
+    const fentryids = useMemo(() => chemicals.map(c => c.id), [chemicals]);
+    const device = useCameraDevice('front');
+    const format = useCameraFormat(device, [{ videoResolution: { width: 1280, height: 720 } }]);
 
+    const camera = useRef<Camera>(null);
+
+    const supportsVideoStabilization = format?.videoStabilizationModes.includes('cinematic-extended');
+    const stabilizationMode = supportsVideoStabilization ? 'cinematic-extended' : undefined;
     const mapIcon = {
         flask: <MaterialCommunityIcons name="flask" size={28} color="#26F073" />,
         water: <MaterialIcons name="water-drop" size={28} color="#26F073" />,
@@ -42,24 +49,12 @@ const Video = ({ navigation, route }: VideoProps) => {
         bag: <MaterialCommunityIcons name="iv-bag" size={28} color="#26F073" />,
     };
 
-    const device = useCameraDevice('front');
-    const format = useCameraFormat(device, [
-        { videoResolution: { width: 1280, height: 720 } },
-        { videoStabilizationMode: 'cinematic-extended' },
-    ]);
-
-    const camera = useRef<Camera>(null);
-
-    const supportsVideoStabilization = format?.videoStabilizationModes.includes('cinematic-extended');
-    const stabilizationMode = supportsVideoStabilization ? 'cinematic-extended' : undefined;
-
     const {
         isRecording,
         startRecord,
         stopRecord: stopRecordHook,
         forceStopRecord,
-        cancelRecord,
-    } = useVideoRecording(camera, navigation);
+    } = useVideoRecording(camera, navigation, fentryids);
 
     const {
         isCameraActive,
@@ -73,35 +68,39 @@ const Video = ({ navigation, route }: VideoProps) => {
     const { recordingTime } = useVideoTimer(
         isRecording,
         forceStopRecord,
-        maxDuration,
+        Number(maxTimeRecord),
         route?.params?.videoDurationSeconds
     );
 
     const stopRecord = useCallback(() => {
-        stopRecordHook(recordingTime, inspectionTime);
-    }, [recordingTime, inspectionTime]);
+        stopRecordHook();
+    }, [stopRecordHook]);
 
     useFocusEffect(
         useCallback(() => {
             KeepAwake.activate();
             setIsCameraActive(true);
 
-            const autoRecord = route?.params?.autoRecord;
-            if (autoRecord && !isRecording && device) {
-                setTimeout(() => {
-                    startRecord();
-                }, 500);
-            }
+            const wakeTimer = setTimeout(() => {
+                KeepAwake.activate();
+            }, 1000);
 
             return () => {
-                KeepAwake.deactivate();
+                clearTimeout(wakeTimer);
                 setIsCameraActive(false);
-                if (isRecording) {
-                    cancelRecord();
-                }
             };
-        }, [route?.params?.autoRecord])
+        }, [])
     );
+
+
+    useEffect(() => {
+        const autoRecord = route?.params?.autoRecord;
+        if (autoRecord && !isRecording && device) {
+            setTimeout(() => {
+                startRecord();
+            }, 500);
+        }
+    }, [route?.params?.autoRecord, device]);
 
     if (device == null) {
         return (

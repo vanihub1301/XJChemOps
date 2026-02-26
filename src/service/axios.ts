@@ -51,21 +51,19 @@ export const uploadToEndpoint = async (
     const normalizedUri = normalizeFileUri(fileUri);
     const fileInfo = getFileInfo(fileUri, fileName, mimeType);
 
-    const formData = new FormData();
-    formData.append('file', {
-        uri: normalizedUri,
-        name: fileInfo.fileName,
-        type: fileInfo.mimeType,
-    } as any);
-
     try {
+        const fileResponse = await fetch(normalizedUri);
+        const blob = await fileResponse.blob();
+
         const response = await fetch(endpoint, {
             method: 'PUT',
-            body: formData,
+            body: blob,
             headers: {
-                Accept: 'multipart/form-data',
+                'Content-Type': fileInfo.mimeType,
+                'Content-Disposition': `attachment; filename="${fileInfo.fileName}"`,
             },
         });
+        console.log('LOG : uploadToEndpoint : response:', response)
 
         if (response.status === 200) {
             return response;
@@ -85,10 +83,6 @@ export const uploadFile = async (fileUri: string, baseUrl: string, fileName?: st
     return uploadToEndpoint(fileUri, baseUrl, fileName, mimeType);
 };
 
-// export const uploadFaceDetection = async (imageUri: string) => {
-//     return uploadToEndpoint(imageUri, 'http://192.168.13.74:8000/check-face');
-// };
-
 export const get = async <T = any>(
     url: string,
     params?: Record<string, any>,
@@ -97,7 +91,7 @@ export const get = async <T = any>(
     const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
     const config = baseUrl ? {
         baseURL: baseUrl + '/api/v1',
-        headers: { 'X-Custom-BaseURL': 'true' }
+        headers: { 'X-Custom-BaseURL': 'true' },
     } : {};
     const response = await api.get<T>(url + queryString, config);
     return response.data;
@@ -110,7 +104,7 @@ export const post = async <T = any>(
 ): Promise<T> => {
     const config = baseUrl ? {
         baseURL: baseUrl + '/api/v1',
-        headers: { 'X-Custom-BaseURL': 'true' }
+        headers: { 'X-Custom-BaseURL': 'true' },
     } : {};
     const response = await api.post<T>(url, data, config);
     return response.data;
@@ -123,7 +117,7 @@ export const put = async <T = any>(
 ): Promise<T> => {
     const config = baseUrl ? {
         baseURL: baseUrl + '/api/v1',
-        headers: { 'X-Custom-BaseURL': 'true' }
+        headers: { 'X-Custom-BaseURL': 'true' },
     } : {};
     const response = await api.put<T>(url, data, config);
     return response.data;
@@ -136,7 +130,7 @@ export const del = async <T = any>(
 ): Promise<T> => {
     const config = baseUrl ? {
         baseURL: baseUrl + '/api/v1',
-        headers: { 'X-Custom-BaseURL': 'true' }
+        headers: { 'X-Custom-BaseURL': 'true' },
     } : {};
     const response = await api.delete<T>(url, { ...config, params: { id } });
     return response.data;

@@ -62,6 +62,9 @@ export interface Config {
     language: string;
     serverIp: string;
     port: number;
-    alarmUrl?: string;
+    sound: string;
+    volume: string;
+    maxTimeRecord: string;
+    repeatCount: string;
     currentTime: string;
 }
