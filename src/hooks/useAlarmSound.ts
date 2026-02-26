@@ -7,17 +7,28 @@ export const useAlarmSound = (enableSound?: boolean, url?: string) => {
     const soundRef = useRef<Sound | null>(null);
 
     useEffect(() => {
-        if (!url) return;
+        let soundUrl = url;
+        let basePath = '';
 
-        soundRef.current = new Sound(url, '', (e) => {
+        if (!soundUrl) {
+            soundUrl = 'alert2.mp3';
+            basePath = Sound.MAIN_BUNDLE;
+        }
+
+        soundRef.current = new Sound(soundUrl, basePath, (e) => {
             if (e) {
                 showToast(e.message || 'Lỗi tải âm thanh báo động');
+            }
+            if (soundRef.current) {
+                soundRef.current.setVolume(1);
             }
         });
 
         return () => {
-            soundRef.current?.release();
-            soundRef.current = null;
+            if (soundRef.current) {
+                soundRef.current.release();
+                soundRef.current = null;
+            }
         };
     }, [url]);
 

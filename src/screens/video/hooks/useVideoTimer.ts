@@ -27,10 +27,12 @@ export const useVideoTimer = (
 
     useEffect(() => {
         if (!isRecording) return;
+        console.log('LOG : useVideoTimer : paramVideoDurationSeconds:', paramVideoDurationSeconds)
 
-        const durationMs = paramVideoDurationSeconds !== undefined
-            ? paramVideoDurationSeconds * 1000
-            : (maxDurationConfig ?? 5) * 60 * 1000;
+        let durationMs = (maxDurationConfig ?? 5) * 60 * 1000;
+        if (paramVideoDurationSeconds !== undefined) {
+            durationMs = Math.max(10, paramVideoDurationSeconds) * 1000;
+        }
 
         const timer = setTimeout(() => {
             forceStopRecord();

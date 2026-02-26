@@ -237,8 +237,8 @@ const Video = ({ navigation, route }: VideoProps) => {
 
 const styles = StyleSheet.create({
     scrollContainer: {
-        // maxHeight: 550,
-        maxHeight: "50%",
+        maxHeight: 550,
+        // maxHeight: "50%",
     },
     scrollContent: {
         padding: 16,
