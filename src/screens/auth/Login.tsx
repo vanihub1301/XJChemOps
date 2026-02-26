@@ -29,6 +29,7 @@ const Login = ({ navigation, isReAuthentication = false }: LoginProps) => {
     const [scanBoxHeight, setScanBoxHeight] = useState(0);
     const [isDetecting, setIsDetecting] = useState(false);
     const [loading, setLoading] = useState(false);
+    const { fullName, setName } = useAuthStore();
 
     const { checkCameraPermission } = usePermissions();
     const { setMany } = useSettingStore();
@@ -173,6 +174,9 @@ const Login = ({ navigation, isReAuthentication = false }: LoginProps) => {
                 useAuthStore.getState().setTimeLogin({
                     timeLogin: loginTime,
                 });
+                if (!fullName) {
+                    setName({ fullName: "ADMIN" });
+                }
                 setMany({
                     serverIp: "192.168.10.8",
                     port: "8072",

@@ -22,7 +22,7 @@ const Header = () => {
 
                     <ViewBox gap={'xs'}>
                         <Text color={'black'} variant={'labelLargeStrong'}>
-                            {fullName || 'Chưa đăng nhập'}
+                            {fullName || 'ADMIN'}
                         </Text>
                         <PillBadge
                             label={`ID: ${209092}`}

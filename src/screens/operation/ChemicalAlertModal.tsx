@@ -7,7 +7,6 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Card from '../../components/common/Card';
-import { useOperationStore } from '../../store/operationStore';
 import { Chemical } from '../../types/drum';
 
 interface ChemicalAlertModalProps {
@@ -87,11 +86,15 @@ const ChemicalAlertModal = ({ visible, chemicals, onRecord, onDismiss }: Chemica
                                             className="w-12 h-12 items-center justify-center"
                                             border={'gray'}
                                         >
-                                            <Ionicons
-                                                name="flask"
-                                                size={24}
-                                                color="#6165EE"
-                                            />
+                                            {chemical.autoFeed ? (
+                                                <MaterialCommunityIcons name="iv-bag" size={24} color="#6165EE" />
+                                            ) : (
+                                                <Ionicons
+                                                    name="flask"
+                                                    size={24}
+                                                    color="#6165EE"
+                                                />
+                                            )}
                                         </ViewBox>
                                         <ViewBox gap={'xs'} className="flex-1">
                                             <Text variant="labelSemibold" color="black">
@@ -100,6 +103,11 @@ const ChemicalAlertModal = ({ visible, chemicals, onRecord, onDismiss }: Chemica
                                             <Text variant="captionSemibold" color="crayola">
                                                 Trọng lượng: {chemical.actualWeight}kg
                                             </Text>
+                                            {chemical.autoFeed && (
+                                                <Text variant="captionSemibold" color="crayola">
+                                                    Đổ tự động
+                                                </Text>
+                                            )}
                                         </ViewBox>
                                     </ViewBox>
                                 </Card>
@@ -107,22 +115,27 @@ const ChemicalAlertModal = ({ visible, chemicals, onRecord, onDismiss }: Chemica
                         </ViewBox>
                     </ScrollView>
 
-                    <Button
-                        variant="primary"
-                        radius="xl"
-                        label="Ghi hình Đổ Hóa Chất"
-                        onPress={onRecord}
-                        className="w-full flex-row items-center justify-center"
-                        size="lg"
-                        iconPosition="left"
-                        style={styles.button}
-                    >
-                        <MaterialCommunityIcons
-                            name="video"
-                            size={20}
-                            color="white"
-                        />
-                    </Button>
+                    {(() => {
+                        const isAllAutoFeed = chemicals.length > 0 && chemicals.every(c => c.autoFeed);
+                        return !isAllAutoFeed && (
+                            <Button
+                                variant="primary"
+                                radius="xl"
+                                label="Ghi hình Đổ Hóa Chất"
+                                onPress={onRecord}
+                                className="w-full flex-row items-center justify-center mb-4"
+                                size="lg"
+                                iconPosition="left"
+                                style={styles.button}
+                            >
+                                <MaterialCommunityIcons
+                                    name="video"
+                                    size={20}
+                                    color="white"
+                                />
+                            </Button>
+                        );
+                    })()}
 
                     <Button
                         variant="cancel"

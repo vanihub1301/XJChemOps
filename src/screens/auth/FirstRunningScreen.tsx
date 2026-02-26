@@ -96,7 +96,7 @@ const FirstRunningScreen = () => {
     }, []);
 
     const renderUsedItem = useCallback(({ item }: { item: IDrum }) => (
-        <Card background={'white'} border={'gray'} key={item.id} className="flex-1 mb-4 flex-row items-center">
+        <Card background={'white'} border={'gray'} key={item.id} className="mb-4 flex-row items-center">
             <ViewBox gap={'md'} className="flex-1 flex-row items-center">
                 <ViewBox background={'lightLavender'} radius={'full'} className="w-12 h-12 items-center justify-center">
                     <Text variant={'labelLargeStrong'} color={'crayola'}>{item.name}</Text>
@@ -160,32 +160,36 @@ const FirstRunningScreen = () => {
                     </ViewBox>
                 </ViewBox>
                 <ViewBox className="flex-1">
-                    <SelectBox
-                        label="CHỌN VỊ TRÍ (1-64)"
-                        selectedChoice={rotatingTank?.name ? 'Bồn xoay ' + rotatingTank?.name : ''}
-                        placeholder="Chọn số bồn..."
-                        handleChoicePress={() => bottomSheetSearchRef.current?.expand()}
-                        size="lg"
-                        radius="xl"
-                    />
-                    <Button
-                        label="XÁC NHẬN VỊ TRÍ"
-                        onPress={handlePressConfirm}
-                        variant="primary"
-                        size={'lg'}
-                        radius={'xl'}
-                        loading={loading}
-                        className="mt-4 flex-row items-center justify-center"
-                    >
-                        <MaterialCommunityIcons name="check-circle" size={16} color="white" />
-                    </Button>
-                    <List
-                        list={listRotatingTank.filter((item: IDrum) => item.isRegister)}
-                        renderItem={renderUsedItem}
-                        renderListHeader={renderListHeader}
-                        refreshing={false}
-                        onRefresh={fetchData}
-                    />
+                    <ViewBox>
+                        <SelectBox
+                            label="CHỌN VỊ TRÍ (1-64)"
+                            selectedChoice={rotatingTank?.name ? 'Bồn xoay ' + rotatingTank?.name : ''}
+                            placeholder="Chọn số bồn..."
+                            handleChoicePress={() => bottomSheetSearchRef.current?.expand()}
+                            size="lg"
+                            radius="xl"
+                        />
+                        <Button
+                            label="XÁC NHẬN VỊ TRÍ"
+                            onPress={handlePressConfirm}
+                            variant="primary"
+                            size={'lg'}
+                            radius={'xl'}
+                            loading={loading}
+                            className="mt-4 flex-row items-center justify-center"
+                        >
+                            <MaterialCommunityIcons name="check-circle" size={16} color="white" />
+                        </Button>
+                    </ViewBox>
+                    <ViewBox className="flex-1 mt-4">
+                        <List
+                            list={listRotatingTank.filter((item: IDrum) => item.isRegister)}
+                            renderItem={renderUsedItem}
+                            renderListHeader={renderListHeader}
+                            refreshing={false}
+                            onRefresh={fetchData}
+                        />
+                    </ViewBox>
                 </ViewBox>
             </ViewBox>
             <BottomSheetSearch

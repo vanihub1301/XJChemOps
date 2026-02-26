@@ -11,7 +11,6 @@ export const useAlarmSound = (enableSound?: boolean, url?: string) => {
 
         soundRef.current = new Sound(url, '', (e) => {
             if (e) {
-                console.log('LOG : Sound load error:', e);
                 showToast(e.message || 'Lỗi tải âm thanh báo động');
             }
         });

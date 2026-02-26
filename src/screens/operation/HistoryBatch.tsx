@@ -76,7 +76,7 @@ const HistoryBatch: React.FC<HistoryBatchProps> = ({ videoUploading }) => {
                                 </Text>
                             </ViewBox>
                             <Text color="primary" variant="captionMedium">
-                                Người vận hành: {fullName}
+                                Người vận hành: {fullName || 'ADMIN'}
                             </Text>
                         </ViewBox>
                     ) : (

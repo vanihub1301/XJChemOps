@@ -1,25 +1,22 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef } from 'react';
 import ViewContainer from '../../components/common/ViewContainer';
 import { Camera, useCameraDevice, useCameraFormat } from 'react-native-vision-camera';
 import ViewHeader from '../../components/common/ViewHeader';
 import { Text } from '../../components/common/Text';
-import { ActivityIndicator, AppState, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { ActivityIndicator, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { ViewBox } from '../../components/common/ViewBox';
 import { Button } from '../../components/common/Button';
 import VideoHeader from './VideoHeader';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useFocusEffect } from '@react-navigation/native';
-import { CameraRoll } from '@react-native-camera-roll/camera-roll';
-import { usePermissions } from '../../hooks/usePermissions';
 import KeepAwake from 'react-native-keep-awake';
-import RNFS from 'react-native-fs';
-import { useVideoStore } from '../../store/videoStore';
 import { useOperationStore } from '../../store/operationStore';
-import { MIN_FREE_SPACE, MIN_FREE_SPACE_STOP } from '../../constants/ui';
-import { showToast } from '../../service/toast';
 import { Chemical } from '../../types/drum';
 import { useSettingStore } from '../../store/settingStore';
+import { useVideoRecording } from './hooks/useVideoRecording';
+import { useCameraSetup } from './hooks/useCameraSetup';
+import { useVideoTimer } from './hooks/useVideoTimer';
 
 interface VideoProps {
     navigation: any;
@@ -34,18 +31,8 @@ interface VideoProps {
 }
 
 const Video = ({ navigation, route }: VideoProps) => {
-    const [isRecording, setIsRecording] = useState(false);
-    const [isCameraActive, setIsCameraActive] = useState(true);
-    const [cameraKey, setCameraKey] = useState(0);
-    const [zoom, setZoom] = useState(1);
-    const [recordingTime, setRecordingTime] = React.useState(0);
-    const startTimeRef = useRef<number>(Date.now());
-    const timerRef = useRef<NodeJS.Timeout | null>(null);
-
     const { batchsStore, maxDuration } = useOperationStore();
-    const { markSaved, markIdle } = useVideoStore();
     const { inspectionTime } = useSettingStore();
-
     const chemicals: Chemical[] = route?.params?.chemicals ?? [];
 
     const mapIcon = {
@@ -66,181 +53,33 @@ const Video = ({ navigation, route }: VideoProps) => {
     const supportsVideoStabilization = format?.videoStabilizationModes.includes('cinematic-extended');
     const stabilizationMode = supportsVideoStabilization ? 'cinematic-extended' : undefined;
 
-    const { checkCameraPermission, goToSettings } = usePermissions();
+    const {
+        isRecording,
+        startRecord,
+        stopRecord: stopRecordHook,
+        forceStopRecord,
+        cancelRecord,
+    } = useVideoRecording(camera, navigation);
 
-    const handleZoomIn = () => {
-        setZoom(prev => Math.min(prev + 0.5, device?.maxZoom ?? 5));
-    };
+    const {
+        isCameraActive,
+        setIsCameraActive,
+        cameraKey,
+        zoom,
+        handleZoomIn,
+        handleZoomOut,
+    } = useCameraSetup(navigation, device, forceStopRecord);
 
-    const handleZoomOut = () => {
-        setZoom(prev => Math.max(prev - 0.5, device?.minZoom ?? 1));
-    };
+    const { recordingTime } = useVideoTimer(
+        isRecording,
+        forceStopRecord,
+        maxDuration,
+        route?.params?.videoDurationSeconds
+    );
 
-    const cancelRecord = useCallback(async () => {
-        try {
-            if (camera.current) {
-                await camera.current.cancelRecording();
-                setIsRecording(false);
-            }
-        } catch (error: any) {
-            showToast(error.message);
-        } finally {
-            markIdle();
-        }
-    }, []);
-
-    const handleDownloadAndCallback = useCallback(async (videoPath: string) => {
-        try {
-            const asset = await CameraRoll.save(`file://${videoPath}`, {
-                type: 'video',
-            });
-            await RNFS.unlink(videoPath);
-
-            markSaved(asset);
-            navigation.goBack();
-        } catch (error) {
-            showToast('Lỗi khi lưu video');
-        }
-    }, [navigation]);
-
-    const startRecord = useCallback(async () => {
-        try {
-            const fsInfo = await RNFS.getFSInfo();
-            if (fsInfo.freeSpace < MIN_FREE_SPACE) {
-                showToast('Không đủ dung lượng bộ nhớ');
-                return;
-            }
-            await camera.current?.startRecording({
-                onRecordingFinished: async (video) => {
-                    const path = video.path;
-
-                    if (path) {
-                        await handleDownloadAndCallback(path);
-                    }
-                },
-                onRecordingError: (_error) => {
-                    setIsRecording(false);
-                },
-            });
-            setIsRecording(true);
-        } catch (error: any) {
-            showToast(error.message);
-        }
-    }, [handleDownloadAndCallback]);
-
-    const stopRecord = useCallback(async () => {
-        try {
-            if (recordingTime < Number(inspectionTime)) {
-                showToast('Video tối thiểu ' + inspectionTime + ' giây');
-                return;
-            }
-            await camera.current?.stopRecording();
-            setIsRecording(false);
-        } catch (error) {
-            showToast('Lỗi khi dừng quay video');
-        }
+    const stopRecord = useCallback(() => {
+        stopRecordHook(recordingTime, inspectionTime);
     }, [recordingTime, inspectionTime]);
-
-    const forceStopRecord = useCallback(async () => {
-        try {
-            await camera.current?.stopRecording();
-            setIsRecording(false);
-        } catch (error: any) {
-            console.log('LOG : Video : error:', error)
-            showToast(error.message);
-        }
-    }, []);
-
-    useEffect(() => {
-        const subscription = AppState.addEventListener('change', (nextAppState) => {
-            if (nextAppState === 'active') {
-                setIsCameraActive(true);
-            } else if (nextAppState === 'background' || nextAppState === 'inactive') {
-                forceStopRecord();
-                setIsCameraActive(false);
-            }
-        });
-
-        return () => {
-            subscription.remove();
-        };
-    }, []);
-
-    useEffect(() => {
-        const id = setInterval(async () => {
-            const fs = await RNFS.getFSInfo();
-            if (fs.freeSpace < MIN_FREE_SPACE_STOP) {
-                forceStopRecord();
-                showToast('Không đủ dung lượng bộ nhớ');
-            }
-        }, 30_000);
-
-        return () => clearInterval(id);
-    }, []);
-
-    useEffect(() => {
-        if (!isRecording) return;
-        const paramSecs = route?.params?.videoDurationSeconds;
-        console.log('LOG : Video : paramSecs:', paramSecs)
-        const durationMs = paramSecs !== undefined
-            ? paramSecs * 1000
-            : (maxDuration ?? 5) * 60 * 1000;
-        const timer = setTimeout(() => {
-            forceStopRecord();
-        }, durationMs);
-        return () => clearTimeout(timer);
-    }, [isRecording]);
-
-    useEffect(() => {
-        const checkPermission = async () => {
-            const hasPermission = await checkCameraPermission();
-
-            if (!hasPermission) {
-                goToSettings(navigation, 'camera');
-            }
-        };
-
-        checkPermission();
-    }, [checkCameraPermission, goToSettings, navigation]);
-
-    useEffect(() => {
-        const subscription = AppState.addEventListener('change', async (nextAppState) => {
-            if (nextAppState === 'active') {
-                const hasPermission = await checkCameraPermission();
-
-                if (!hasPermission) {
-                    navigation.goBack();
-                } else {
-                    setIsCameraActive(false);
-                    setTimeout(() => {
-                        setIsCameraActive(true);
-                        setCameraKey(prev => prev + 1);
-                    }, 100);
-                }
-            } else if (nextAppState === 'background' || nextAppState === 'inactive') {
-                setIsCameraActive(false);
-            }
-        });
-
-        return () => {
-            subscription.remove();
-        };
-    }, [checkCameraPermission, navigation]);
-
-    useEffect(() => {
-        startTimeRef.current = Date.now();
-        timerRef.current = setInterval(() => {
-            const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-            setRecordingTime(elapsed);
-        }, 500);
-
-        return () => {
-            if (timerRef.current) {
-                clearInterval(timerRef.current);
-                timerRef.current = null;
-            }
-        };
-    }, []);
 
     useFocusEffect(
         useCallback(() => {
@@ -298,7 +137,6 @@ const Video = ({ navigation, route }: VideoProps) => {
                         {isRecording && (
                             <VideoHeader />
                         )}
-
                         <ViewBox className="absolute top-12 right-7 flex-row" gap="sm">
                             <ViewBox background="blurBlack" padding="sm" radius="full" className="w-12 h-12 items-center justify-center">
                                 <MaterialCommunityIcons name="cog-outline" size={24} color="white" />
@@ -307,7 +145,6 @@ const Video = ({ navigation, route }: VideoProps) => {
                                 <MaterialCommunityIcons name="layers-outline" size={24} color="white" />
                             </ViewBox>
                         </ViewBox>
-
                         <ViewBox radius={'xxxl'} background={'blurBlack'} className="absolute right-4 top-1/3 -translate-y-1/2 items-center" gap="md">
                             <Pressable onPress={handleZoomIn}>
                                 <ViewBox padding="sm" className="w-14 h-14 items-center justify-center">
@@ -321,7 +158,6 @@ const Video = ({ navigation, route }: VideoProps) => {
                                 </ViewBox>
                             </Pressable>
                         </ViewBox>
-
                         <ViewBox className="absolute bottom-4 left-4 right-4">
                             <ViewBox radius="xxxl" background={'blurBlack'}>
                                 <ViewBox padding="md">
@@ -332,9 +168,7 @@ const Video = ({ navigation, route }: VideoProps) => {
                                         Active scan: {batchsStore.filter((batch: Chemical) => batch.scanning).length} compounds detected
                                     </Text>
                                 </ViewBox>
-
                                 <ViewBox className="h-px bg-[#4e4e4e]" />
-
                                 <ScrollView
                                     style={styles.scrollContainer}
                                     showsVerticalScrollIndicator={false}
@@ -375,31 +209,9 @@ const Video = ({ navigation, route }: VideoProps) => {
                                 </ScrollView>
                             </ViewBox>
                         </ViewBox>
-
-                        {/* <ViewBox className="absolute right-4 bottom-1/3">
-                            <ViewBox background="black" padding="sm" radius="full" className="opacity-80 w-10 h-10 items-center justify-center">
-                                <MaterialCommunityIcons name="target" size={20} color="white" />
-                            </ViewBox>
-                        </ViewBox> */}
                     </ViewBox>
 
                     <ViewBox padding="lg" gap="md">
-                        {/* {!isRecording ? (
-                            <ViewBox gap="md">
-                                <Button
-                                    radius="xl"
-                                    onPress={startRecord}
-                                    className="border-red-500 border w-full bg-[#bf342a8f] flex-row items-center justify-center"
-                                    size="lg"
-                                    iconPosition="left"
-                                >
-                                    <MaterialCommunityIcons name="play-circle-outline" size={24} color="red" />
-                                    <Text variant="labelStrong" className="text-[#E85656]">
-                                        Bắt đầu ghi
-                                    </Text>
-                                </Button>
-                            </ViewBox>
-                        ) : ( */}
                         <ViewBox gap="md">
                             <Button
                                 radius="xl"
@@ -416,7 +228,6 @@ const Video = ({ navigation, route }: VideoProps) => {
                                 </Text>
                             </Button>
                         </ViewBox>
-                        {/* )} */}
                     </ViewBox>
                 </ViewBox>
             </ViewBox >

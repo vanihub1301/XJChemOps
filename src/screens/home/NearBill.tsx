@@ -90,7 +90,7 @@ const NearBill = ({ navigation }: MainNavigationProps<'NearBill'>) => {
             className="bg-white mb-3 rounded-3xl"
         >
             <Card
-                className="flex-1 flex-row items-center justify-between"
+                className="flex-row items-center justify-between"
             >
                 <ViewBox gap={'md'} className="flex-row items-center">
                     <ViewBox background={'gray'} radius={'full'} className="w-12 h-12 justify-center items-center">
@@ -120,8 +120,8 @@ const NearBill = ({ navigation }: MainNavigationProps<'NearBill'>) => {
                     refreshing={refreshing}
                     onRefresh={fetchData}
                     loadMore={loadMore}
-                    apiLoading={apiLoading}
-                    loadingMore={loadingMore}
+                // apiLoading={apiLoading}
+                // loadingMore={loadingMore}
                 />
             </ViewBox>
         </ViewContainer>
