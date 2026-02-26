@@ -46,37 +46,59 @@ export const uploadToEndpoint = async (
     fileUri: string,
     endpoint: string,
     fileName?: string,
-    mimeType?: string
+    mimeType?: string,
+    timeoutMs: number = 10 * 60 * 1000
 ): Promise<any> => {
     const normalizedUri = normalizeFileUri(fileUri);
     const fileInfo = getFileInfo(fileUri, fileName, mimeType);
 
-    try {
-        const fileResponse = await fetch(normalizedUri);
-        const blob = await fileResponse.blob();
+    return new Promise((resolve) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('PUT', endpoint, true);
+        xhr.setRequestHeader('Content-Type', fileInfo.mimeType);
+        xhr.setRequestHeader('Content-Disposition', `attachment; filename="${fileInfo.fileName}"`);
+        xhr.timeout = timeoutMs;
 
-        const response = await fetch(endpoint, {
-            method: 'PUT',
-            body: blob,
-            headers: {
-                'Content-Type': fileInfo.mimeType,
-                'Content-Disposition': `attachment; filename="${fileInfo.fileName}"`,
-            },
-        });
-        console.log('LOG : uploadToEndpoint : response:', response)
-
-        if (response.status === 200) {
-            return response;
-        } else {
-            throw new Error(`Upload failed: ${response.status}`);
-        }
-    } catch (err) {
-        return {
-            code: -1,
-            data: null,
-            msg: err instanceof Error ? err.message : String(err),
+        xhr.onload = () => {
+            console.log('LOG : uploadToEndpoint : status:', xhr.status);
+            if (xhr.status === 200) {
+                resolve({ status: xhr.status, data: xhr.responseText });
+            } else {
+                resolve({
+                    code: -1,
+                    data: null,
+                    msg: `Upload failed: ${xhr.status}`,
+                });
+            }
         };
-    }
+
+        xhr.onerror = () => {
+            console.log('LOG : uploadToEndpoint : network error');
+            resolve({
+                code: -1,
+                data: null,
+                msg: 'Network error during upload',
+            });
+        };
+
+        xhr.ontimeout = () => {
+            console.log('LOG : uploadToEndpoint : timeout after', timeoutMs, 'ms');
+            resolve({
+                code: -1,
+                data: null,
+                msg: `Upload timed out after ${timeoutMs / 1000}s`,
+            });
+        };
+
+        xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+                const percent = Math.round((event.loaded / event.total) * 100);
+                console.log(`LOG : uploadToEndpoint : progress: ${percent}%`);
+            }
+        };
+
+        xhr.send({ uri: normalizedUri, type: fileInfo.mimeType, name: fileInfo.fileName } as any);
+    });
 };
 
 export const uploadFile = async (fileUri: string, baseUrl: string, fileName?: string, mimeType?: string) => {

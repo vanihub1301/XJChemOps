@@ -60,9 +60,9 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
 
     const handleCheckServer = async ({ serverIp = serverAddress, port = serverPort }: { serverIp: string, port: string }) => {
         try {
-            await getData('portal/inject/reference', {}, true, "http://" + serverIp + ":" + port);
+            await getData('portal/inject/reference', {}, true, 'http://' + serverIp + ':' + port);
             await setMany({ serverIp, port });
-            return true
+            return true;
         } catch (error: any) {
             return false;
         }

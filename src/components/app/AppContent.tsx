@@ -6,7 +6,7 @@ import FirstRunningScreen from '../../screens/auth/FirstRunningScreen';
 import { useSettingStore } from '../../store/settingStore';
 
 export const AppContent: React.FC = () => {
-    const { firstRunning, isSignedIn, initialize } = useAuthStore();
+    const { firstRunning, initialize } = useAuthStore();
     const { initializeSetting } = useSettingStore();
     const { requestCameraPermission } = usePermissions();
 
@@ -26,7 +26,7 @@ export const AppContent: React.FC = () => {
 
     return (
         <>
-            <AppNavigator isSignedIn={isSignedIn} />
+            <AppNavigator />
         </>
     );
 };

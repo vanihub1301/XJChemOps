@@ -13,11 +13,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     initialize: async () => {
         set({ isLoading: true });
         try {
-            const [fullName, firstRunning, rotatingTank, isSignedIn] = await AsyncStorage.multiGet([
+            const [fullName, firstRunning, rotatingTank] = await AsyncStorage.multiGet([
                 'full_name',
                 'first_running',
                 'rotating_tank',
-                'is_signed_in',
             ]);
 
             if (!firstRunning[1]) {
@@ -27,7 +26,6 @@ export const useAuthStore = create<AuthState>((set) => ({
             set({
                 fullName: fullName[1] || '',
                 rotatingTank: { name: rotatingTank[1] },
-                // isSignedIn: isSignedIn[1] === 'true'
             });
         } catch (error) {
             await new Promise(resolve => setTimeout(resolve, 2000));

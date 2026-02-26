@@ -38,7 +38,7 @@ const HistoryBatch: React.FC<HistoryBatchProps> = ({ videoUploading }) => {
                 return (
                     <ViewBox gap="md" className="flex-row items-start">
                         <ViewBox className="items-center w-6">
-                            <ActivityIndicator size="small" color="#6165EE" style={{ marginTop: 4 }} />
+                            <ActivityIndicator size="small" color="#6165EE" className="mt-2" />
                             <ViewBox background="lightGray" className="w-0.5 flex-1 mt-1 min-h-20" />
                         </ViewBox>
                         <ViewBox className="flex-1" gap="xs">

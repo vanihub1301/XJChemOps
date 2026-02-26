@@ -3,7 +3,7 @@ import { ViewBox } from '../../components/common/ViewBox';
 import ViewContainer from '../../components/common/ViewContainer';
 import { MainNavigationProps } from '../../types/navigation';
 import ViewHeader from '../../components/common/ViewHeader';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useVideoStore } from '../../store/videoStore';
 import { TouchableOpacity } from 'react-native';
 import BottomSheet from '@gorhom/bottom-sheet';
@@ -25,7 +25,7 @@ import { useVideoUpload } from './hooks/useVideoUpload';
 import { useOperationAction } from './hooks/useOperationAction';
 import { useChemicalTimer } from './hooks/useChemicalTimer';
 
-const Operation = ({ navigation, route }: MainNavigationProps<'Operation'>) => {
+const Operation = ({ navigation }: MainNavigationProps<'Operation'>) => {
     const settingBottomSheetRef = useRef<BottomSheet>(null);
     const isFocused = useIsFocused();
 

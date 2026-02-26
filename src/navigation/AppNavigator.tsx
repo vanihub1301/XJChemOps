@@ -15,11 +15,7 @@ import { unstable_batchedUpdates } from 'react-native';
 
 const AppStack = createStackNavigator<AppRoutes>();
 
-interface AppNavigatorProps {
-    isSignedIn: boolean;
-}
-
-export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
+export const AppNavigator: React.FC = () => {
     const { orderStore, groupedChemicals, setMany: setManyOperation, reset, setCurrentTime, setIsProcessComplete, setBatchsStore, setOrderStore, setIsPause } = useOperationStore();
     const { rotatingTank, isLoading, setLoading } = useAuthStore();
     const { setMany: setManySetting, getMany, inspectionTime } = useSettingStore();
@@ -43,13 +39,13 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
         };
 
         const fetchRunningData = async () => {
-            if (!isActive) return;
+            if (!isActive) { return; }
             let config: Config | undefined;
             try {
                 const settings = await getMany(['serverIp', 'port', 'inspectionTime']);
                 const res = await getData('portal/inject/getRunning', { drumNo: orderStore?.process?.drumNo || rotatingTank.name }, true, settings.serverIp + ':' + settings.port);
                 console.log('LOG : fetchRunningData : res:', res);
-                config = { ...res.data?.config, currentTime: res.data?.curentTime }
+                config = { ...res.data?.config, currentTime: res.data?.curentTime };
 
                 if (res.code === 0 && res.data?.process?.dtl) {
                     const { dtl, ...processWithoutDtl } = res.data.process;
@@ -99,7 +95,7 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
                         isPause: appInjectPause?.pauseTime && !appInjectPause?.continueTime,
                         groupedChemicals: grouped,
                         currentChemicals: currentGroup?.chemicals || [],
-                    })
+                    });
                 }
                 if (res.code === 0 && !res.data?.process?.dtl && (groupedChemicalsRef.current.length > 0)) {
                     const currentTime = parseDateTime(res.data?.curentTime);
@@ -113,7 +109,7 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
                     if ((finishMs >= currentTime) && (currentTime >= lastGroupStartMs)) {
                         setManyOperation({
                             currentChemicals: lastGroup?.chemicals || [],
-                        })
+                        });
                     }
                     if (finishMs <= currentTime) {
                         setIsProcessComplete(true);
@@ -149,7 +145,7 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({ isSignedIn }) => {
                         volume: config?.volume,
                         maxTimeRecord: config?.maxTimeRecord,
                         repeatCount: config?.repeatCount,
-                    })
+                    });
                 });
 
                 const newIntervalMs = (config?.inspectionTime || 30) * 1000;
