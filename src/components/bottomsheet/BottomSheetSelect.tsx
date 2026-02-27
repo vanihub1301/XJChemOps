@@ -3,7 +3,7 @@ import { Dimensions, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetProps, BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { languages, settings, stopReasons, changeTimeReasons, inspectionTime } from '../../constants/ui';
+import { languages, settings, stopReasons, changeTimeReasons, inspectionTime, repeatCountOptions } from '../../constants/ui';
 import { Text } from '../common/Text';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 const { height } = Dimensions.get('window');
@@ -66,6 +66,11 @@ const BottomSheetSelect = forwardRef<BottomSheetMethods, CustomBottomSheetProps>
             title: 'Chọn khoảng thời gian kiểm tra',
             field: '',
         },
+        repeatCount: {
+            data: repeatCountOptions,
+            title: 'Chọn số lần lặp thông báo',
+            field: '',
+        },
 
     }), []);
 
@@ -91,7 +96,7 @@ const BottomSheetSelect = forwardRef<BottomSheetMethods, CustomBottomSheetProps>
     const handleSelection = useCallback(
         (value: any, label: any) => {
             const config = sheetConfigs[sheetType || ''];
-            if (!config || !onSelection) return;
+            if (!config || !onSelection) { return; }
 
             onSelection(value, label);
         },

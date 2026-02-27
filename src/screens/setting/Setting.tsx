@@ -16,6 +16,7 @@ import BottomSheet from '@gorhom/bottom-sheet';
 import { useAPI } from '../../service/api';
 import { useAuthStore } from '../../store/authStore';
 import { MainNavigationProps } from '../../types/navigation';
+import RowInput from '../../components/input/RowInput';
 
 const Setting = ({ }: MainNavigationProps<'Setting'>) => {
     const { setMany, getMany, inspectionTime } = useSettingStore();
@@ -28,6 +29,9 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
     const [enableSoundLocal, setEnableSoundLocal] = useState(false);
     const [lockScreenLocal, setLockScreenLocal] = useState(false);
     const [languageLocal, setLanguageLocal] = useState('');
+    const [volumeLocal, setVolumeLocal] = useState('');
+    const [maxTimeRecordLocal, setMaxTimeRecordLocal] = useState('');
+    const [repeatCountLocal, setRepeatCountLocal] = useState('');
     const [sheetType, setSheetType] = useState<string>('inspectionTime');
     const [changedFields, setChangedFields] = useState<Set<string>>(new Set());
 
@@ -58,6 +62,17 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
         setChangedFields(prev => new Set(prev).add('lockScreen'));
     };
 
+    const handleVolumeChange = (value: string) => {
+        setVolumeLocal(value);
+        setChangedFields(prev => new Set(prev).add('volume'));
+    };
+
+    const handleMaxTimeRecordChange = (value: string) => {
+        setMaxTimeRecordLocal(value);
+        setChangedFields(prev => new Set(prev).add('maxTimeRecord'));
+    };
+
+
     const handleCheckServer = async ({ serverIp = serverAddress, port = serverPort }: { serverIp: string, port: string }) => {
         try {
             await getData('portal/inject/reference', {}, true, 'http://' + serverIp + ':' + port);
@@ -66,6 +81,16 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
         } catch (error: any) {
             return false;
         }
+    };
+
+    const handleCheckInput = (value: string, type: string) => {
+        if (type === 'volume') {
+            if (+value < 1 || +value > 100) {
+                showToast('Âm lượng phải từ 1 đến 100');
+                return false;
+            }
+        }
+        return true;
     };
 
     const handleSettingSave = async () => {
@@ -99,13 +124,24 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
             if (changedFields.has('lockScreen')) {
                 updatedConfig.lockScreen = lockScreenLocal;
             }
+            if (changedFields.has('volume')) {
+                updatedConfig.volume = +volumeLocal;
+            }
+            if (changedFields.has('maxTimeRecord')) {
+                updatedConfig.maxTimeRecord = +maxTimeRecordLocal;
+            }
+            if (changedFields.has('repeatCount')) {
+                updatedConfig.repeatCount = +repeatCountLocal;
+            }
 
             const isServerValid = await handleCheckServer({ serverIp: updatedConfig?.serverIp, port: updatedConfig?.port });
             if (!isServerValid) {
                 showToast('Không tìm thấy máy chủ, vui lòng kiểm tra lại');
                 return;
             }
-
+            if (!handleCheckInput(volumeLocal, 'volume')) {
+                return;
+            }
             const response = await postData('portal/inject/config', updatedConfig, false);
             if (response?.code === 0) {
                 showToast('Cài đặt đã được lưu thành công');
@@ -150,6 +186,9 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
         } else if (sheetType === 'language') {
             setLanguageLocal(value);
             setChangedFields(prev => new Set(prev).add('language'));
+        } else if (sheetType === 'repeatCount') {
+            setRepeatCountLocal(value);
+            setChangedFields(prev => new Set(prev).add('repeatCount'));
         }
         handleClose();
     };
@@ -161,7 +200,7 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
     useEffect(() => {
         const loadData = async () => {
             try {
-                const settings = await getMany(['serverIp', 'port', 'inspectionTime', 'enableSound', 'lockScreen', 'language']);
+                const settings = await getMany(['serverIp', 'port', 'inspectionTime', 'enableSound', 'lockScreen', 'language', 'volume', 'maxTimeRecord', 'repeatCount']);
                 setServerAddress(settings.serverIp || '');
                 setServerPort(settings.port || '');
                 setInspectionTimeLocal(settings.inspectionTime || '');
@@ -169,6 +208,9 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
                 setLockScreenLocal(settings.lockScreen === 'true');
                 setLanguageLocal(settings.language || '');
                 setChangedFields(new Set());
+                setVolumeLocal(settings.volume || '');
+                setMaxTimeRecordLocal(settings.maxTimeRecord || '');
+                setRepeatCountLocal(settings.repeatCount || '');
             } catch (error) {
                 showToast('Lỗi khi tải cài đặt');
             }
@@ -239,6 +281,72 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
                                 radius="xl"
                                 className="flex-row items-center justify-between"
                             >
+                                <ViewBox className="flex-row items-center gap-3 flex-[4]">
+                                    <MaterialCommunityIcons name="soundcloud" size={24} color="#1616E6" />
+                                    <Text variant="labelLarge" color="black">
+                                        {'Âm lượng (1 -> 100)'}
+                                    </Text>
+                                </ViewBox>
+                                <ViewBox className="flex-[1]">
+                                    <RowInput
+                                        placeholder="Nhập âm lượng"
+                                        InputValue={volumeLocal}
+                                        onChangeText={handleVolumeChange}
+                                        keyboardType="numeric"
+                                    />
+                                </ViewBox>
+                            </ViewBox>
+                            <ViewBox className="h-px bg-gray-200" />
+                            <ViewBox
+                                padding="md"
+                                radius="xl"
+                                className="flex-row items-center justify-between"
+                            >
+                                <ViewBox className="flex-row items-center gap-3 flex-[4]">
+                                    <MaterialCommunityIcons name="video" size={24} color="#1616E6" />
+                                    <Text variant="labelLarge" color="black">
+                                        {'Thời gian ghi hình tối đa (giây)'}
+                                    </Text>
+                                </ViewBox>
+                                <ViewBox className="flex-[1]">
+                                    <RowInput
+                                        placeholder="Nhập thời gian"
+                                        InputValue={maxTimeRecordLocal}
+                                        onChangeText={handleMaxTimeRecordChange}
+                                        keyboardType="numeric"
+                                    />
+                                </ViewBox>
+                            </ViewBox>
+                            <ViewBox className="h-px bg-gray-200" />
+                            <ViewBox
+                                padding="md"
+                                radius="xl"
+                                className="flex-row items-center justify-between"
+                            >
+                                <ViewBox className="flex-row items-center gap-3 flex-[5]">
+                                    <MaterialCommunityIcons name="repeat-variant" size={24} color="#1616E6" />
+                                    <Text variant="labelLarge" color="black">
+                                        Số lần lặp thông báo
+                                    </Text>
+                                </ViewBox>
+                                <ViewBox className="flex-[2]">
+                                    <TouchableOpacity
+                                        onPress={() => handleOpenSheet('repeatCount')}
+                                        className="flex-row items-center justify-end gap-2"
+                                    >
+                                        <Text color={'black'} variant="labelRegular">
+                                            {repeatCountLocal ? `${repeatCountLocal} lần` : 'Chọn số lần'}
+                                        </Text>
+                                        <MaterialCommunityIcons name="chevron-right" size={20} color="#6b7280" />
+                                    </TouchableOpacity>
+                                </ViewBox>
+                            </ViewBox>
+                            <ViewBox className="h-px bg-gray-200" />
+                            <ViewBox
+                                padding="md"
+                                radius="xl"
+                                className="flex-row items-center justify-between"
+                            >
                                 <ViewBox className="flex-row items-center gap-3 flex-1">
                                     <MaterialCommunityIcons name="volume-high" size={24} color="#1616E6" />
                                     <Text variant="labelLarge" color="black">
@@ -292,7 +400,7 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
                                     </Text>
                                 </ViewBox>
                                 <TouchableOpacity onPress={() => handleOpenSheet('language')} className="flex-row items-center gap-2">
-                                    <Text variant="labelRegular">
+                                    <Text color={'black'} variant="labelRegular">
                                         {languageLocal === 'vi' ? 'Tiếng Việt' : ''}
                                     </Text>
                                     <MaterialCommunityIcons name="chevron-right" size={20} color="#6b7280" />

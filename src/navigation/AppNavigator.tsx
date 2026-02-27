@@ -16,7 +16,7 @@ import { unstable_batchedUpdates } from 'react-native';
 const AppStack = createStackNavigator<AppRoutes>();
 
 export const AppNavigator: React.FC = () => {
-    const { orderStore, groupedChemicals, setMany: setManyOperation, reset, setCurrentTime, setIsProcessComplete, setBatchsStore, setOrderStore, setIsPause } = useOperationStore();
+    const { orderStore, groupedChemicals, setMany: setManyOperation, reset, setCurrentTime, setIsProcessComplete, setBatchsStore, setOrderStore } = useOperationStore();
     const { rotatingTank, isLoading, setLoading } = useAuthStore();
     const { setMany: setManySetting, getMany, inspectionTime } = useSettingStore();
     const { getData } = useAPI();
@@ -190,7 +190,7 @@ export const AppNavigator: React.FC = () => {
                 clearTimeout(timeoutId);
             }
         };
-    }, [rotatingTank.name, getData, setBatchsStore, setOrderStore, reset, setManySetting, setManyOperation, getMany, setIsPause, inspectionTime]);
+    }, [rotatingTank.name, getData, setBatchsStore, setOrderStore, reset, setManySetting, setManyOperation, getMany, inspectionTime]);
 
     if (isLoading) {
         return <SplashScreen />;

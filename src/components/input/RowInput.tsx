@@ -1,53 +1,56 @@
-import { TextInput, TextInputProps } from 'react-native';
+import { TextInput, TextInputProps, TouchableOpacity, View } from 'react-native';
 import React from 'react';
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
-import { Text } from '../common/Text';
-import { ViewBox } from '../common/ViewBox';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 interface RowInputProps extends TextInputProps {
-    label: string;
     placeholder?: string;
-    required?: boolean;
     disable?: boolean;
     InputValue: string | number;
     onChangeText?: (v: string) => void;
     useBottomSheetInput?: boolean;
+    showClearButton?: boolean;
 }
 
 const RowInput = ({
-    label,
     placeholder,
     InputValue,
     onChangeText,
     disable,
-    required = false,
     useBottomSheetInput = false,
+    showClearButton = false,
     ...rest
 }: RowInputProps) => {
 
     const displayValue = InputValue?.toString() || '';
+    const [focus, setFocus] = React.useState<boolean>(false);
 
+    const hasValue = InputValue !== null && InputValue !== undefined && displayValue.length > 0;
     const InputComponent = useBottomSheetInput ? BottomSheetTextInput : TextInput;
 
     return (
-        <ViewBox className="flex-row items-center py-3 border-b border-gray-200">
-            <Text
-                color={'white'}>
-                {label}{required && <Text color={'red'}>*</Text>}
-            </Text>
-
+        <View className="flex-row items-center justify-end">
             <InputComponent
                 editable={!disable}
                 value={displayValue}
                 placeholder={placeholder}
-                placeholderTextColor="#3D8417"
+                placeholderTextColor={'#9CA3AF'}
                 onChangeText={onChangeText}
-                className="flex-1 text-white text-base font-normal p-0 m-0 text-right"
+                onFocus={() => setFocus(true)}
+                onBlur={() => setFocus(false)}
+                className="text-right px-0 py-0 ma-0"
                 {...rest}
             />
-        </ViewBox>
+            {!disable && showClearButton && hasValue && (
+                <TouchableOpacity
+                    onPress={() => onChangeText && onChangeText('')}
+                    className="ml-2"
+                >
+                    <MaterialIcons name="close" size={18} color="#9CA3AF" />
+                </TouchableOpacity>
+            )}
+        </View>
     );
-
 };
 
 export default React.memo(RowInput);

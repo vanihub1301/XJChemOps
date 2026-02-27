@@ -34,7 +34,7 @@ export const useAlarmSound = (
         let basePath = '';
 
         if (!soundUrl) {
-            soundUrl = 'alert2.mp3';
+            soundUrl = 'sound.mp3';
             basePath = Sound.MAIN_BUNDLE;
         }
 

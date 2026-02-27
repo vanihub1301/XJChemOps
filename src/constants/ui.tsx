@@ -32,6 +32,19 @@ export const inspectionTime = [
     { value: '180', label: '180 giây' },
 ];
 
+export const repeatCountOptions = [
+    { value: '1', label: '1 lần' },
+    { value: '2', label: '2 lần' },
+    { value: '3', label: '3 lần' },
+    { value: '4', label: '4 lần' },
+    { value: '5', label: '5 lần' },
+    { value: '6', label: '6 lần' },
+    { value: '7', label: '7 lần' },
+    { value: '8', label: '8 lần' },
+    { value: '9', label: '9 lần' },
+    { value: '10', label: '10 lần' },
+];
+
 export const MIN_FREE_SPACE = 800 * 1024 * 1024;
 
 export const MIN_FREE_SPACE_STOP = 200 * 1024 * 1024;
