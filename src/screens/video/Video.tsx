@@ -92,7 +92,6 @@ const Video = ({ navigation, route }: VideoProps) => {
         }, [])
     );
 
-
     useEffect(() => {
         const autoRecord = route?.params?.autoRecord;
         if (autoRecord && !isRecording && device) {

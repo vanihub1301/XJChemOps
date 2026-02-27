@@ -1,6 +1,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getFileInfo, normalizeFileUri } from '../utils/file';
+import { useOperationStore } from '../store/operationStore';
 
 let BASE_URL = 'http://192.168.10.8:8072/api/v1/';
 
@@ -93,6 +94,7 @@ export const uploadToEndpoint = async (
         xhr.upload.onprogress = (event) => {
             if (event.lengthComputable) {
                 const percent = Math.round((event.loaded / event.total) * 100);
+                useOperationStore.getState().setUploadProgress(percent);
                 console.log(`LOG : uploadToEndpoint : progress: ${percent}%`);
             }
         };

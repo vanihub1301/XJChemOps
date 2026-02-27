@@ -15,7 +15,7 @@ interface HistoryBatchProps {
 }
 
 const HistoryBatch: React.FC<HistoryBatchProps> = ({ videoUploading }) => {
-    const { batchsStore, orderStore } = useOperationStore();
+    const { batchsStore, orderStore, uploadProgress } = useOperationStore();
     const { fullName } = useAuthStore();
 
     const historyOperation = useMemo(() => [
@@ -42,7 +42,7 @@ const HistoryBatch: React.FC<HistoryBatchProps> = ({ videoUploading }) => {
                             <ViewBox background="lightGray" className="w-0.5 flex-1 mt-1 min-h-20" />
                         </ViewBox>
                         <ViewBox className="flex-1" gap="xs">
-                            <Text color="black" variant="labelStrong">Đang tải video lên...</Text>
+                            <Text color="black" variant="labelStrong">Đang tải video lên...{uploadProgress}%</Text>
                             <Text color="primary" variant="captionMedium">Vui lòng không thoát ứng dụng</Text>
                         </ViewBox>
                     </ViewBox>
