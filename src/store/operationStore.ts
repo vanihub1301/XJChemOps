@@ -9,6 +9,8 @@ interface OperationState {
     currentTime: string;
     isPause: boolean;
     isProcessComplete: boolean;
+    isLastGroupUploaded: boolean;
+    isLastGroupUploadSuccess: boolean;
     uploadProgress: number;
     setUploadProgress: (percent: number) => void;
     setOrderStore: (order: any) => void;
@@ -30,6 +32,8 @@ export const useOperationStore = create<OperationState>((set) => ({
     currentTime: '',
     isPause: false,
     isProcessComplete: false,
+    isLastGroupUploaded: false,
+    isLastGroupUploadSuccess: false,
     uploadProgress: 0,
     setUploadProgress: (percent: number) => set({ uploadProgress: percent }),
     setOrderStore: (order: any) => set({ orderStore: order }),
@@ -53,6 +57,8 @@ export const useOperationStore = create<OperationState>((set) => ({
         currentChemicals: [],
         isPause: false,
         isProcessComplete: false,
+        isLastGroupUploaded: false,
+        isLastGroupUploadSuccess: false,
     }),
 }));
 

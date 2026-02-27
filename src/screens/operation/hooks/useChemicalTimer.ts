@@ -51,13 +51,14 @@ export const useChemicalTimer = (navigation: MainNavigationProps<'Operation'>['n
                     continue;
                 }
 
-                const isRecorded = group.chemicals[0].videoFk;
+                const isRecorded = group?.chemicals?.some(c => c.videoFk);
                 if (isRecorded) {
                     continue;
                 }
 
+                console.log('LOG : useChemicalTimer : currentTime:', currentTime)
                 const confirmTimeMs = parseDateTime(group.time);
-                console.log('LOG : useChemicalTimer : confirmTimeMs:', confirmTimeMs)
+                console.log('LOG : useChemicalTimer : confirmTimeMs:', group.time)
                 const secondsUntilConfirm = Math.floor((confirmTimeMs - estimatedServerNowMs) / 1000);
                 console.log('LOG : useChemicalTimer : secondsUntilConfirm:', secondsUntilConfirm)
 
@@ -75,7 +76,7 @@ export const useChemicalTimer = (navigation: MainNavigationProps<'Operation'>['n
                 }
 
                 const finalStopMs = stopMs;
-                console.log('LOG : useChemicalTimer : finalStopMs:', finalStopMs)
+                console.log('LOG : useChemicalTimer : finalStopMs:', new Date(finalStopMs))
                 const isWithinOperationWindow = estimatedServerNowMs < finalStopMs;
                 console.log('LOG : useChemicalTimer : isWithinOperationWindow:', isWithinOperationWindow)
 
@@ -99,7 +100,7 @@ export const useChemicalTimer = (navigation: MainNavigationProps<'Operation'>['n
     }, []);
 
     useEffect(() => {
-        const isRecorded = currentChemicals && currentChemicals.length > 0 && currentChemicals[0].videoFk;
+        const isRecorded = currentChemicals?.some(c => c.videoFk);
 
         if (initRef.current && groupedChemicals && groupedChemicals.length > 0 && currentChemicals.length > 0 && !isRecorded && !isPauseRef.current) {
             setUpcomingChemicals(currentChemicals);

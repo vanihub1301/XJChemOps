@@ -104,11 +104,13 @@ export const AppNavigator: React.FC = () => {
                     const lastGroup = groups[groups.length - 1];
                     console.log('LOG : fetchRunningData : lastGroup:', lastGroup)
                     const lastGroupStartMs = parseDateTime(lastGroup.time);
-                    const finishMs = lastGroupStartMs + lastGroup.chemicals[0].operateTime * 60_000;
+                    const operateMin = lastGroup.chemicals.find((c: Chemical) => c.operateTime != null)?.operateTime ?? 1;
+                    const finishMs = lastGroupStartMs + operateMin * 60_000;
                     console.log('LOG : fetchRunningData : lastGroupStartMs:', lastGroupStartMs, 'finishMs:', finishMs, 'currentTime:', currentTime);
-                    if ((finishMs >= currentTime) && (currentTime >= lastGroupStartMs)) {
+                    if ((finishMs > currentTime) && (currentTime >= lastGroupStartMs)) {
                         setManyOperation({
                             currentChemicals: lastGroup?.chemicals || [],
+                            isLastGroupUploaded: true,
                         });
                     }
                     if (finishMs <= currentTime) {

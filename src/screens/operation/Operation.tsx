@@ -32,7 +32,7 @@ const Operation = ({ navigation }: MainNavigationProps<'Operation'>) => {
     const { videoStatus } = useVideoStore();
     const { lockScreen } = useSettingStore();
     const { fullName } = useAuthStore();
-    const { currentTime, orderStore, batchsStore, groupedChemicals, isProcessComplete, reset } = useOperationStore();
+    const { currentTime, currentChemicals, orderStore, batchsStore, groupedChemicals, isProcessComplete, isLastGroupUploadSuccess, reset } = useOperationStore();
     const { videoUploading } = useVideoUpload();
     const { handlePausePress } = useOperationAction();
     const { modalVisible, upcomingChemicals, handleModalRecord, handleModalDismiss } = useChemicalTimer(navigation, isFocused);
@@ -112,15 +112,20 @@ const Operation = ({ navigation }: MainNavigationProps<'Operation'>) => {
                 finishTime: currentTime,
                 registor: fullName || 'ADMIN',
             };
+            let recorded = batchsStore?.filter((c: Chemical) => c.videoFk)?.length || 0;
+            if (isLastGroupUploadSuccess) {
+                recorded += currentChemicals?.length || 0;
+            }
+            const scanCount = `${recorded}/${batchsStore?.length || 0}`;
             reset();
             navigation.reset({
                 index: 0,
                 routes: [
                     { name: 'Home' },
-                    { name: 'FinishConfirm', params: { payload, scanCount: `${batchsStore?.filter((c: Chemical) => c.videoFk)?.length + 1 || 0}/${batchsStore?.length || 0}` } }],
+                    { name: 'FinishConfirm', params: { payload, scanCount } }],
             });
         }
-    }, [isProcessComplete, isFocused, navigation, videoStatus]);
+    }, [isProcessComplete, isFocused, navigation, videoStatus, isLastGroupUploadSuccess]);
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('beforeRemove', (e) => {

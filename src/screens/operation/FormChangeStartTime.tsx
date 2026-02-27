@@ -21,19 +21,18 @@ import { useAuthStore } from '../../store/authStore';
 import { Reference } from '../../types/drum';
 
 const FormChangeStartTime = ({ navigation }: MainNavigationProps<'FormChangeStartTime'>) => {
-    const [startTime, setStartTime] = useState<Date>(new Date());
+    const reasonBottomSheetRef = useRef<BottomSheet>(null);
+
+    const { putData, getData, loading } = useAPI();
+    const { orderStore, currentTime } = useOperationStore();
+    const { fullName } = useAuthStore();
+
+    const [startTime, setStartTime] = useState<Date>(new Date(currentTime));
     const [selectedReason, setSelectedReason] = useState<string>('');
     const [selectedReasonLabel, setSelectedReasonLabel] = useState<string>('');
     const [otherReason, setOtherReason] = useState<string>('');
     const [openDatePicker, setOpenDatePicker] = useState(false);
     const [reasons, setReasons] = useState<Reference[]>([]);
-
-    const reasonBottomSheetRef = useRef<BottomSheet>(null);
-
-    const { putData, getData, loading } = useAPI();
-    const { orderStore } = useOperationStore();
-    const { fullName } = useAuthStore();
-
 
     const orderFields = [
         { label: 'Mã đơn', value: orderStore?.process?.orderNo, icon: <MaterialCommunityIcons name="fingerprint" size={24} color="#6266F1" /> },
@@ -232,6 +231,7 @@ const FormChangeStartTime = ({ navigation }: MainNavigationProps<'FormChangeStar
                 locale={'vi'}
                 modal
                 mode="datetime"
+                is24hourSource={'locale'}
                 open={openDatePicker}
                 date={startTime}
                 onConfirm={(selectedDate) => {
