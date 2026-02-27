@@ -122,6 +122,9 @@ export const AppNavigator: React.FC = () => {
                         groupedChemicalsRef.current = [];
                     }
                 }
+                if (res.code === -1) {
+                    showToast(res.msg);
+                }
             } catch (error: any) {
                 showToast(error.message);
             } finally {

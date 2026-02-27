@@ -24,7 +24,12 @@ export const useChemicalTimer = (navigation: MainNavigationProps<'Operation'>['n
     const isFocusRef = useRef(isFocus);
 
     useEffect(() => { alertedTimesRef.current = alertedTimes; }, [alertedTimes]);
-    useEffect(() => { isPauseRef.current = isPause; }, [isPause]);
+    useEffect(() => {
+        isPauseRef.current = isPause;
+        if (isPause) {
+            setAlertedTimes(new Set());
+        }
+    }, [isPause]);
     useEffect(() => { groupedChemicalsRef.current = groupedChemicals; }, [groupedChemicals]);
     useEffect(() => { isFocusRef.current = isFocus; }, [isFocus]);
 

@@ -15,7 +15,7 @@ export const useAlarmSound = (
     const playInternal = useCallback(async () => {
         if (!enableSound || !soundRef.current) { return; }
 
-        await setVolumeToMax();
+        await setVolumeToMax((Number(volume) / 100) || 1);
 
         const parsed = parseInt(repeatCount ?? '', 10);
         const loopCount = isNaN(parsed) ? 0 : Math.max(0, parsed - 1);
@@ -27,7 +27,7 @@ export const useAlarmSound = (
                 }
             });
         });
-    }, [enableSound, repeatCount]);
+    }, [enableSound, repeatCount, volume]);
 
     useEffect(() => {
         let soundUrl = url;
@@ -46,7 +46,7 @@ export const useAlarmSound = (
                 return;
             }
             if (soundRef.current) {
-                soundRef.current.setVolume(Number(volume) || 1);
+                soundRef.current.setVolume((Number(volume) / 100) || 1);
 
                 if (playPending.current) {
                     playPending.current = false;

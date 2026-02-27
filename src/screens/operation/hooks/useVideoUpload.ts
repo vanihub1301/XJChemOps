@@ -48,7 +48,6 @@ export const useVideoUpload = () => {
             });
 
             if (updateRes?.code === 0) {
-
                 if (isLastGroupUploaded) {
                     setManyOperation({
                         isLastGroupUploadSuccess: true,

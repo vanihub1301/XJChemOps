@@ -1,9 +1,9 @@
 import { VolumeManager } from 'react-native-volume-manager';
 import { showToast } from '../service/toast';
 
-export const setVolumeToMax = async (): Promise<void> => {
+export const setVolumeToMax = async (volume: number): Promise<void> => {
     try {
-        await VolumeManager.setVolume(1.0, { type: 'music' });
+        await VolumeManager.setVolume(volume, { type: 'music' });
     } catch (error: any) {
         showToast(error.message);
     }
