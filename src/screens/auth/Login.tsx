@@ -295,7 +295,7 @@ const Login = ({ navigation, isReAuthentication = false }: LoginProps) => {
                     </ViewBox>
                     {!isReAuthentication && (
                         <ViewBox className="items-center mt-5">
-                            <TouchableOpacity onPress={handlePasswordLogin}>
+                            <TouchableOpacity disabled={loading} onPress={handlePasswordLogin}>
                                 {loading ? (
                                     <ActivityIndicator size={24} color="#5B25EA" />
                                 ) : (
@@ -310,7 +310,7 @@ const Login = ({ navigation, isReAuthentication = false }: LoginProps) => {
 
                 {!isReAuthentication && (
                     <ViewBox gap={'xs'} className="pb-8 pt-4">
-                        <TouchableOpacity onPress={handleFaceRegister} activeOpacity={0.7}>
+                        <TouchableOpacity disabled={loading} onPress={handleFaceRegister} activeOpacity={0.7}>
                             <Text variant={'sectionTitleRegular'} className="text-center">
                                 Chưa có tài khoản? <Text color={'blueViolet'} variant={'sectionTitleSemibold'}>Đăng ký ngay</Text>
                             </Text>

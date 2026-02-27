@@ -17,6 +17,7 @@ import { useAPI } from '../../service/api';
 import { useAuthStore } from '../../store/authStore';
 import { MainNavigationProps } from '../../types/navigation';
 import RowInput from '../../components/input/RowInput';
+import { SettingRow, Divider, SectionLabel } from './SettingRow';
 
 const Setting = ({ }: MainNavigationProps<'Setting'>) => {
     const { setMany, getMany, inspectionTime } = useSettingStore();
@@ -71,7 +72,6 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
         setMaxTimeRecordLocal(value);
         setChangedFields(prev => new Set(prev).add('maxTimeRecord'));
     };
-
 
     const handleCheckServer = async ({ serverIp = serverAddress, port = serverPort }: { serverIp: string, port: string }) => {
         try {
@@ -180,10 +180,7 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
     };
 
     const handleSelection = (value: string) => {
-        if (sheetType === 'inspectionTime') {
-            setInspectionTimeLocal(value);
-            setChangedFields(prev => new Set(prev).add('inspectionTime'));
-        } else if (sheetType === 'language') {
+        if (sheetType === 'language') {
             setLanguageLocal(value);
             setChangedFields(prev => new Set(prev).add('language'));
         } else if (sheetType === 'repeatCount') {
@@ -201,20 +198,21 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
         const loadData = async () => {
             try {
                 const settings = await getMany(['serverIp', 'port', 'inspectionTime', 'enableSound', 'lockScreen', 'language', 'volume', 'maxTimeRecord', 'repeatCount']);
+                console.log('LOG : loadData : settings:', settings)
                 setServerAddress(settings.serverIp || '');
                 setServerPort(settings.port || '');
                 setInspectionTimeLocal(settings.inspectionTime || '');
                 setEnableSoundLocal(settings.enableSound === 'true');
                 setLockScreenLocal(settings.lockScreen === 'true');
                 setLanguageLocal(settings.language || '');
-                setChangedFields(new Set());
                 setVolumeLocal(settings.volume || '');
                 setMaxTimeRecordLocal(settings.maxTimeRecord || '');
                 setRepeatCountLocal(settings.repeatCount || '');
+                setChangedFields(new Set());
             } catch (error) {
                 showToast('Lỗi khi tải cài đặt');
             }
-        }
+        };
 
         loadData();
 
@@ -229,239 +227,78 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
             <ViewContainer background="none" hasScrollableContent={true}>
                 <ViewHeader border={true} title="Cài đặt hệ thống" />
                 <ViewBox padding={'lg'} className="flex-1">
+
                     <ViewBox className="mb-6">
-                        <Text variant="label" color="primary" className="mb-3 tracking-wider">
-                            CẤU HÌNH MÁY CHỦ
-                        </Text>
+                        <SectionLabel title="CẤU HÌNH MÁY CHỦ" />
                         <Card style={styles.shadow}>
-                            <Input
-                                label="Địa chỉ máy chủ"
-                                placeholder="Nhập địa chỉ máy chủ"
-                                InputValue={serverAddress}
-                                onChangeText={handleServerAddressChange}
-                                keyboardType="numeric"
-                                showClearButton={false}
-                            />
-
-                            <Input
-                                label="Cổng (Port)"
-                                placeholder="Nhập cổng"
-                                InputValue={serverPort}
-                                onChangeText={handleServerPortChange}
-                                keyboardType="numeric"
-                                showClearButton={false}
-                            />
+                            <Input label="Địa chỉ máy chủ" placeholder="Nhập địa chỉ máy chủ" InputValue={serverAddress} onChangeText={handleServerAddressChange} keyboardType="numeric" showClearButton={false} />
+                            <Input label="Cổng (Port)" placeholder="Nhập cổng" InputValue={serverPort} onChangeText={handleServerPortChange} keyboardType="numeric" showClearButton={false} />
                         </Card>
                     </ViewBox>
 
                     <ViewBox className="mb-6">
-                        <Text variant="label" color="primary" className="mb-3">
-                            KIỂM TRA HỆ THỐNG
-                        </Text>
+                        <SectionLabel title="KIỂM TRA HỆ THỐNG" />
                         <Card style={styles.shadow}>
-                            <Input
-                                label="Thời gian kiểm tra (giây)"
-                                placeholder="Nhập thời gian"
-                                InputValue={inspectionTimeLocal}
-                                onChangeText={handleInspectionTimeChange}
-                                keyboardType="numeric"
-                                showClearButton={false}
-                            />
+                            <Input label="Thời gian kiểm tra (giây)" placeholder="Nhập thời gian" InputValue={inspectionTimeLocal} onChangeText={handleInspectionTimeChange} keyboardType="numeric" showClearButton={false} />
                         </Card>
-
                     </ViewBox>
 
                     <ViewBox className="mb-6">
-                        <Text variant="label" color="primary" className="mb-3">
-                            TUỲ CHỈNH ỨNG DỤNG
-                        </Text>
+                        <SectionLabel title="TUỲ CHỈNH ỨNG DỤNG" />
                         <Card gap="none" padding="none" style={styles.shadow}>
-                            <ViewBox
-                                padding="md"
-                                radius="xl"
-                                className="flex-row items-center justify-between"
-                            >
-                                <ViewBox className="flex-row items-center gap-3 flex-[4]">
-                                    <MaterialCommunityIcons name="soundcloud" size={24} color="#1616E6" />
-                                    <Text variant="labelLarge" color="black">
-                                        {'Âm lượng (1 -> 100)'}
-                                    </Text>
-                                </ViewBox>
-                                <ViewBox className="flex-[1]">
-                                    <RowInput
-                                        placeholder="Nhập âm lượng"
-                                        InputValue={volumeLocal}
-                                        onChangeText={handleVolumeChange}
-                                        keyboardType="numeric"
-                                    />
-                                </ViewBox>
-                            </ViewBox>
-                            <ViewBox className="h-px bg-gray-200" />
-                            <ViewBox
-                                padding="md"
-                                radius="xl"
-                                className="flex-row items-center justify-between"
-                            >
-                                <ViewBox className="flex-row items-center gap-3 flex-[4]">
-                                    <MaterialCommunityIcons name="video" size={24} color="#1616E6" />
-                                    <Text variant="labelLarge" color="black">
-                                        {'Thời gian ghi hình tối đa (giây)'}
-                                    </Text>
-                                </ViewBox>
-                                <ViewBox className="flex-[1]">
-                                    <RowInput
-                                        placeholder="Nhập thời gian"
-                                        InputValue={maxTimeRecordLocal}
-                                        onChangeText={handleMaxTimeRecordChange}
-                                        keyboardType="numeric"
-                                    />
-                                </ViewBox>
-                            </ViewBox>
-                            <ViewBox className="h-px bg-gray-200" />
-                            <ViewBox
-                                padding="md"
-                                radius="xl"
-                                className="flex-row items-center justify-between"
-                            >
-                                <ViewBox className="flex-row items-center gap-3 flex-[5]">
-                                    <MaterialCommunityIcons name="repeat-variant" size={24} color="#1616E6" />
-                                    <Text variant="labelLarge" color="black">
-                                        Số lần lặp thông báo
-                                    </Text>
-                                </ViewBox>
-                                <ViewBox className="flex-[2]">
-                                    <TouchableOpacity
-                                        onPress={() => handleOpenSheet('repeatCount')}
-                                        className="flex-row items-center justify-end gap-2"
-                                    >
-                                        <Text color={'black'} variant="labelRegular">
-                                            {repeatCountLocal ? `${repeatCountLocal} lần` : 'Chọn số lần'}
-                                        </Text>
-                                        <MaterialCommunityIcons name="chevron-right" size={20} color="#6b7280" />
-                                    </TouchableOpacity>
-                                </ViewBox>
-                            </ViewBox>
-                            <ViewBox className="h-px bg-gray-200" />
-                            <ViewBox
-                                padding="md"
-                                radius="xl"
-                                className="flex-row items-center justify-between"
-                            >
-                                <ViewBox className="flex-row items-center gap-3 flex-1">
-                                    <MaterialCommunityIcons name="volume-high" size={24} color="#1616E6" />
-                                    <Text variant="labelLarge" color="black">
-                                        Bật âm thanh khi có thông báo
-                                    </Text>
-                                </ViewBox>
-                                <Switch
-                                    value={enableSoundLocal}
-                                    onValueChange={handleEnableSoundChange}
-                                    trackColor={{ false: '#D1D5DB', true: '#1616E6' }}
-                                    thumbColor="#FFFFFF"
-                                />
-                            </ViewBox>
-                            <ViewBox className="h-px bg-gray-200" />
-                            <ViewBox
-                                padding="md"
-                                radius="xl"
-                                className="flex-row items-center justify-between"
-                            >
-                                <ViewBox className="flex-row items-center gap-3 flex-1">
-                                    <MaterialCommunityIcons name="eye" size={24} color="#1616E6" />
-                                    <Text variant="labelLarge" color="black">
-                                        Chặn không khoá màn hình
-                                    </Text>
-                                </ViewBox>
-                                <Switch
-                                    value={lockScreenLocal}
-                                    onValueChange={handleLockScreenChange}
-                                    trackColor={{ false: '#D1D5DB', true: '#1616E6' }}
-                                    thumbColor="#FFFFFF"
-                                />
-                            </ViewBox>
-                        </Card>
-
-                    </ViewBox>
-
-                    <ViewBox className="mb-6">
-                        <Text variant="label" color="primary" className="mb-3">
-                            THÔNG TIN KHÁC
-                        </Text>
-                        <Card gap="none" padding="none" style={styles.shadow}>
-                            <ViewBox
-                                padding="md"
-                                radius="xl"
-                                className="flex-row items-center justify-between"
-                            >
-                                <ViewBox className="flex-row items-center gap-3 flex-1">
-                                    <Ionicons name="language-sharp" size={24} color="#6b7280" />
-                                    <Text variant="labelLarge" color="black">
-                                        Ngôn ngữ
-                                    </Text>
-                                </ViewBox>
-                                <TouchableOpacity onPress={() => handleOpenSheet('language')} className="flex-row items-center gap-2">
+                            <SettingRow icon={<MaterialCommunityIcons name="soundcloud" size={24} color="#1616E6" />} label="Âm lượng (1 → 100)">
+                                <RowInput placeholder="Nhập âm lượng" InputValue={volumeLocal} onChangeText={handleVolumeChange} keyboardType="numeric" />
+                            </SettingRow>
+                            <Divider />
+                            <SettingRow icon={<MaterialCommunityIcons name="video" size={24} color="#1616E6" />} label="Thời gian ghi hình tối đa (giây)">
+                                <RowInput placeholder="Nhập thời gian" InputValue={maxTimeRecordLocal} onChangeText={handleMaxTimeRecordChange} keyboardType="numeric" />
+                            </SettingRow>
+                            <Divider />
+                            <SettingRow icon={<MaterialCommunityIcons name="repeat-variant" size={24} color="#1616E6" />} label="Số lần lặp thông báo">
+                                <TouchableOpacity onPress={() => handleOpenSheet('repeatCount')} className="flex-row items-center gap-2">
                                     <Text color={'black'} variant="labelRegular">
-                                        {languageLocal === 'vi' ? 'Tiếng Việt' : ''}
+                                        {repeatCountLocal ? `${repeatCountLocal} lần` : 'Chọn số lần'}
                                     </Text>
                                     <MaterialCommunityIcons name="chevron-right" size={20} color="#6b7280" />
                                 </TouchableOpacity>
-                            </ViewBox>
-                            <ViewBox className="h-px bg-gray-200" />
-                            <ViewBox
-                                padding="md"
-                                radius="xl"
-                                className="flex-row items-center justify-between"
-                            >
-                                <ViewBox className="flex-row items-center gap-3 flex-1">
-                                    <MaterialCommunityIcons name="information" size={24} color="#6b7280" />
-                                    <Text variant="labelLarge" color="black">
-                                        Phiên bản ứng dụng
-                                    </Text>
-                                </ViewBox>
-                                <ViewBox className="flex-row items-center gap-2">
-                                    <Text variant="labelRegular" color="primary">
-                                        v1.0.0
-                                    </Text>
-                                </ViewBox>
-                            </ViewBox>
-                            <ViewBox className="h-px bg-gray-200" />
-                            <ViewBox
-                                padding="md"
-                                radius="xl"
-                                className="flex-row items-center justify-between"
-                            >
-                                <ViewBox className="flex-row items-center gap-3 flex-1">
-                                    <MaterialCommunityIcons name="file-document" size={24} color="#6b7280" />
-                                    <Text variant="labelLarge" color="black">
-                                        Điều khoản sử dụng
-                                    </Text>
-                                </ViewBox>
-                                <ViewBox className="flex-row items-center gap-2">
-                                    <MaterialCommunityIcons name="chevron-right" size={20} color="gray" />
-                                </ViewBox>
-                            </ViewBox>
+                            </SettingRow>
+                            <Divider />
+                            <SettingRow icon={<MaterialCommunityIcons name="volume-high" size={24} color="#1616E6" />} label="Bật âm thanh khi có thông báo">
+                                <Switch value={enableSoundLocal} onValueChange={handleEnableSoundChange} trackColor={{ false: '#D1D5DB', true: '#1616E6' }} thumbColor="#FFFFFF" />
+                            </SettingRow>
+                            <Divider />
+                            <SettingRow icon={<MaterialCommunityIcons name="eye" size={24} color="#1616E6" />} label="Chặn không khoá màn hình">
+                                <Switch value={lockScreenLocal} onValueChange={handleLockScreenChange} trackColor={{ false: '#D1D5DB', true: '#1616E6' }} thumbColor="#FFFFFF" />
+                            </SettingRow>
                         </Card>
                     </ViewBox>
+
+                    <ViewBox className="mb-6">
+                        <SectionLabel title="THÔNG TIN KHÁC" />
+                        <Card gap="none" padding="none" style={styles.shadow}>
+                            <SettingRow icon={<Ionicons name="language-sharp" size={24} color="#6b7280" />} label="Ngôn ngữ">
+                                <TouchableOpacity onPress={() => handleOpenSheet('language')} className="flex-row items-center gap-2">
+                                    <Text color={'black'} variant="labelRegular">{languageLocal === 'vi' ? 'Tiếng Việt' : ''}</Text>
+                                    <MaterialCommunityIcons name="chevron-right" size={20} color="#6b7280" />
+                                </TouchableOpacity>
+                            </SettingRow>
+                            <Divider />
+                            <SettingRow icon={<MaterialCommunityIcons name="information" size={24} color="#6b7280" />} label="Phiên bản ứng dụng">
+                                <Text variant="labelRegular" color="primary">v1.0.0</Text>
+                            </SettingRow>
+                            <Divider />
+                            <SettingRow icon={<MaterialCommunityIcons name="file-document" size={24} color="#6b7280" />} label="Điều khoản sử dụng">
+                                <MaterialCommunityIcons name="chevron-right" size={20} color="gray" />
+                            </SettingRow>
+                        </Card>
+                    </ViewBox>
+
                 </ViewBox>
                 <ViewBox className="border-t border-gray-300 px-6 py-8">
-                    <Button
-                        variant="fourth"
-                        radius="xl"
-                        size="lg"
-                        label="LƯU CÀI ĐẶT"
-                        onPress={handleSave}
-                        className="w-full"
-                        disabled={loading}
-                        loading={loading}
-                    />
+                    <Button variant="fourth" radius="xl" size="lg" label="LƯU CÀI ĐẶT" onPress={handleSave} className="w-full" disabled={loading} loading={loading} />
                 </ViewBox>
             </ViewContainer >
-            <BottomSheetSelect
-                ref={bottomSheetRef}
-                onSelection={handleSelection}
-                onClose={handleClose}
-                sheetType={sheetType}
-            >
+            <BottomSheetSelect ref={bottomSheetRef} onSelection={handleSelection} onClose={handleClose} sheetType={sheetType}>
                 <></>
             </BottomSheetSelect>
         </>
@@ -476,3 +313,4 @@ const styles = StyleSheet.create({
 });
 
 export default Setting;
+
