@@ -61,7 +61,6 @@ export const uploadToEndpoint = async (
         xhr.timeout = timeoutMs;
 
         xhr.onload = () => {
-            console.log('LOG : uploadToEndpoint : status:', xhr.status);
             if (xhr.status === 200) {
                 resolve({ status: xhr.status, data: xhr.responseText });
             } else {
@@ -91,10 +90,18 @@ export const uploadToEndpoint = async (
             });
         };
 
+        let lastUpdateTime = 0;
+
         xhr.upload.onprogress = (event) => {
             if (event.lengthComputable) {
                 const percent = Math.round((event.loaded / event.total) * 100);
-                useOperationStore.getState().setUploadProgress(percent);
+                const now = Date.now();
+
+                if (now - lastUpdateTime >= 1000 || percent === 100) {
+                    lastUpdateTime = now;
+                    useOperationStore.getState().setUploadProgress(percent);
+                }
+
                 console.log(`LOG : uploadToEndpoint : progress: ${percent}%`);
             }
         };

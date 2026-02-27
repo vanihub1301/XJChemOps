@@ -22,6 +22,11 @@ export const useChemicalTimer = (navigation: MainNavigationProps<'Operation'>['n
     const groupedChemicalsRef = useRef(groupedChemicals);
     const initRef = useRef(true);
     const isFocusRef = useRef(isFocus);
+    const playRef = useRef(play);
+    const stopRef = useRef(stop);
+
+    useEffect(() => { playRef.current = play; }, [play]);
+    useEffect(() => { stopRef.current = stop; }, [stop]);
 
     useEffect(() => { alertedTimesRef.current = alertedTimes; }, [alertedTimes]);
     useEffect(() => {
@@ -81,16 +86,15 @@ export const useChemicalTimer = (navigation: MainNavigationProps<'Operation'>['n
                 }
 
                 const finalStopMs = stopMs;
-                console.log('LOG : useChemicalTimer : finalStopMs:', new Date(finalStopMs))
+                console.log('LOG : useChemicalTimer : finalStopMs:', new Date(finalStopMs).toString())
                 const isWithinOperationWindow = estimatedServerNowMs < finalStopMs;
-                console.log('LOG : useChemicalTimer : isWithinOperationWindow:', isWithinOperationWindow)
 
                 if (secondsUntilConfirm <= 10 && isWithinOperationWindow) {
                     setUpcomingChemicals(group.chemicals);
                     upcomingVideoStopMsRef.current = finalStopMs;
 
                     setModalVisible(true);
-                    play();
+                    playRef.current();
                     setAlertedTimes(prev => new Set(prev).add(group.time));
                     initRef.current = false;
                 }
@@ -125,7 +129,7 @@ export const useChemicalTimer = (navigation: MainNavigationProps<'Operation'>['n
             upcomingVideoStopMsRef.current = stopMs;
 
             setModalVisible(true);
-            play();
+            playRef.current();
             setAlertedTimes(prev => new Set(prev).add(currentChemicals[0].confirmTime));
             initRef.current = false;
         }
@@ -133,7 +137,7 @@ export const useChemicalTimer = (navigation: MainNavigationProps<'Operation'>['n
 
     const handleModalRecord = () => {
         setModalVisible(false);
-        stop();
+        stopRef.current();
 
         const estimatedServerNowMs = lastServerTimeRef.current
             ? lastServerTimeRef.current.serverMs + (Date.now() - lastServerTimeRef.current.localTick)
@@ -150,7 +154,7 @@ export const useChemicalTimer = (navigation: MainNavigationProps<'Operation'>['n
 
     const handleModalDismiss = () => {
         setModalVisible(false);
-        stop();
+        stopRef.current();
     };
 
     return {

@@ -99,14 +99,15 @@ export const AppNavigator: React.FC = () => {
                 }
                 if (res.code === 0 && !res.data?.process?.dtl && (groupedChemicalsRef.current.length > 0)) {
                     const currentTime = parseDateTime(res.data?.curentTime);
-                    console.log('LOG : fetchRunningData : currentTime:', currentTime)
                     const groups = groupedChemicalsRef.current;
                     const lastGroup = groups[groups.length - 1];
-                    console.log('LOG : fetchRunningData : lastGroup:', lastGroup)
                     const lastGroupStartMs = parseDateTime(lastGroup.time);
                     const operateMin = lastGroup.chemicals.find((c: Chemical) => c.operateTime != null)?.operateTime ?? 1;
                     const finishMs = lastGroupStartMs + operateMin * 60_000;
-                    console.log('LOG : fetchRunningData : lastGroupStartMs:', lastGroupStartMs, 'finishMs:', finishMs, 'currentTime:', currentTime);
+                    console.log('LOG : fetchRunningData : lastGroupStartMs:', new Date(lastGroupStartMs).toString());
+                    console.log('LOG : fetchRunningData : finishMs:', new Date(finishMs).toString());
+                    console.log('LOG : fetchRunningData : currentTime:', new Date(currentTime).toString());
+                    showToast(`Thời gian vận hành còn lại: ${Math.ceil((finishMs - currentTime) / 60000)} phút`);
                     if ((finishMs > currentTime) && (currentTime >= lastGroupStartMs)) {
                         setManyOperation({
                             currentChemicals: lastGroup?.chemicals || [],

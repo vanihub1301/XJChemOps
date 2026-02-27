@@ -123,6 +123,7 @@ export const formatTime = (seconds: number) => {
 };
 
 export const parseDateTime = (dateTime: string) => {
+    console.log('LOG : parseDateTime : dateTime:', dateTime)
     const [date, time] = dateTime.split(' ');
     const [year, month, day] = date.split('-').map(Number);
     const [hour, minute, second] = time.split(':').map(Number);

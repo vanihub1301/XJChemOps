@@ -112,11 +112,16 @@ const Operation = ({ navigation }: MainNavigationProps<'Operation'>) => {
                 finishTime: currentTime,
                 registor: fullName || 'ADMIN',
             };
+            console.log('LOG : Operation : payload:', payload)
             let recorded = batchsStore?.filter((c: Chemical) => c.videoFk)?.length || 0;
+            console.log('LOG : Operation : recorded:', recorded)
+            console.log('LOG : Operation : isLastGroupUploadSuccess:', isLastGroupUploadSuccess)
+            console.log('LOG : Operation : currentChemicals:', currentChemicals)
             if (isLastGroupUploadSuccess) {
                 recorded += currentChemicals?.length || 0;
             }
             const scanCount = `${recorded}/${batchsStore?.length || 0}`;
+            console.log('LOG : Operation : scanCount:', scanCount)
             reset();
             navigation.reset({
                 index: 0,
@@ -125,7 +130,7 @@ const Operation = ({ navigation }: MainNavigationProps<'Operation'>) => {
                     { name: 'FinishConfirm', params: { payload, scanCount } }],
             });
         }
-    }, [isProcessComplete, isFocused, navigation, videoStatus, isLastGroupUploadSuccess]);
+    }, [isProcessComplete, isFocused, navigation, videoStatus, isLastGroupUploadSuccess, currentChemicals, currentTime]);
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('beforeRemove', (e) => {
@@ -143,6 +148,8 @@ const Operation = ({ navigation }: MainNavigationProps<'Operation'>) => {
         useCallback(() => {
             if (lockScreen === true) {
                 KeepAwake.activate();
+            } else {
+                KeepAwake.deactivate();
             }
 
             return () => {

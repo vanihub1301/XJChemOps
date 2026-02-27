@@ -15,8 +15,12 @@ export const useVideoTimer = (
         console.log('LOG : useVideoTimer : paramVideoDurationSeconds:', paramVideoDurationSeconds)
 
         let durationMs = (maxDurationConfig ?? 300) * 1000;
+
         if (paramVideoDurationSeconds !== undefined) {
-            durationMs = Math.min(durationMs, Math.max(10, paramVideoDurationSeconds) * 1000);
+            durationMs = Math.min(
+                durationMs,
+                paramVideoDurationSeconds * 1000
+            );
         }
 
         const timer = setTimeout(() => {

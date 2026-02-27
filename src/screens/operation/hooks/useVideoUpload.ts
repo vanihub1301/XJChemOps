@@ -12,7 +12,7 @@ export const useVideoUpload = () => {
     const { videoStatus, videoPath, fentryids, markIdle } = useVideoStore();
     const { getData, putData } = useAPI();
     const { fullName } = useAuthStore();
-    const { currentChemicals, isLastGroupUploaded, setMany: setManyOperation } = useOperationStore();
+    const { currentChemicals, setMany: setManyOperation } = useOperationStore();
 
     const currentChemicalsRef = useRef(currentChemicals);
     useEffect(() => { currentChemicalsRef.current = currentChemicals; }, [currentChemicals]);
@@ -48,6 +48,9 @@ export const useVideoUpload = () => {
             });
 
             if (updateRes?.code === 0) {
+                const isLastGroupUploaded = useOperationStore.getState().isLastGroupUploaded;
+                console.log('LOG : useVideoUpload : isLastGroupUploaded:', isLastGroupUploaded)
+
                 if (isLastGroupUploaded) {
                     setManyOperation({
                         isLastGroupUploadSuccess: true,

@@ -198,7 +198,6 @@ const Setting = ({ }: MainNavigationProps<'Setting'>) => {
         const loadData = async () => {
             try {
                 const settings = await getMany(['serverIp', 'port', 'inspectionTime', 'enableSound', 'lockScreen', 'language', 'volume', 'maxTimeRecord', 'repeatCount']);
-                console.log('LOG : loadData : settings:', settings)
                 setServerAddress(settings.serverIp || '');
                 setServerPort(settings.port || '');
                 setInspectionTimeLocal(settings.inspectionTime || '');
