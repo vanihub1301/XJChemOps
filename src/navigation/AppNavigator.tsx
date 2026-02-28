@@ -44,7 +44,6 @@ export const AppNavigator: React.FC = () => {
             try {
                 const settings = await getMany(['serverIp', 'port', 'inspectionTime']);
                 const res = await getData('portal/inject/getRunning', { drumNo: orderStore?.process?.drumNo || rotatingTank.name }, true, settings.serverIp + ':' + settings.port);
-                console.log('LOG : fetchRunningData : res:', res);
                 config = { ...res.data?.config, currentTime: res.data?.curentTime };
 
                 if (res.code === 0 && res.data?.process?.dtl) {
@@ -102,7 +101,8 @@ export const AppNavigator: React.FC = () => {
                     const groups = groupedChemicalsRef.current;
                     const lastGroup = groups[groups.length - 1];
                     const lastGroupStartMs = parseDateTime(lastGroup.time);
-                    const operateMin = lastGroup.chemicals.find((c: Chemical) => c.operateTime != null)?.operateTime ?? 1;
+                    const rawOperateMin = lastGroup.chemicals.find((c: Chemical) => c.operateTime != null)?.operateTime ?? 1;
+                    const operateMin = Math.max(1, rawOperateMin);
                     const finishMs = lastGroupStartMs + operateMin * 60_000;
                     console.log('LOG : fetchRunningData : lastGroupStartMs:', new Date(lastGroupStartMs).toString());
                     console.log('LOG : fetchRunningData : finishMs:', new Date(finishMs).toString());
@@ -118,7 +118,6 @@ export const AppNavigator: React.FC = () => {
                         setIsProcessComplete(true);
                         groupedChemicalsRef.current = [];
                     } else if (currentTime < lastGroupStartMs) {
-                        console.log('LOG : fetchRunningData : reset');
                         reset();
                         groupedChemicalsRef.current = [];
                     }

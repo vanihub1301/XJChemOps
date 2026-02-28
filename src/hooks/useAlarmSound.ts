@@ -18,18 +18,32 @@ export const useAlarmSound = (
         if (!enableSound || !soundRef.current) { return; }
 
         await setVolumeToMax((Number(volume) / 100) || 1);
-
         soundRef.current.setNumberOfLoops(0);
-        soundRef.current.stop(() => {
-            soundRef.current?.play((success) => {
-                if (!success) {
-                    showToast('Lỗi phát âm thanh');
-                } else if (loopRemaining.current > 0) {
-                    loopRemaining.current -= 1;
-                    playInternal();
-                }
+
+        const playPromise = () => new Promise<boolean>((resolve) => {
+            if (!soundRef.current) {
+                resolve(false);
+                return;
+            }
+            soundRef.current.stop(() => {
+                soundRef.current?.play((success) => {
+                    resolve(success);
+                });
             });
         });
+
+        let continuePlaying = true;
+        while (continuePlaying) {
+            const success = await playPromise();
+            if (!success) {
+                showToast('Lỗi phát âm thanh');
+                continuePlaying = false;
+            } else if (loopRemaining.current > 0) {
+                loopRemaining.current -= 1;
+            } else {
+                continuePlaying = false;
+            }
+        }
     }, [enableSound, volume]);
 
     useEffect(() => {

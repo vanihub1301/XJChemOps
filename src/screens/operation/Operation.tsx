@@ -37,6 +37,9 @@ const Operation = ({ navigation }: MainNavigationProps<'Operation'>) => {
     const { handlePausePress } = useOperationAction();
     const { modalVisible, upcomingChemicals, handleModalRecord, handleModalDismiss } = useChemicalTimer(navigation, isFocused);
 
+    const latestTimeRef = useRef(currentTime);
+    const batchsStoreRef = useRef(batchsStore);
+    const orderProcessFallback = useRef<any>(null);
 
     const handleSettingPress = () => {
         settingBottomSheetRef.current?.expand();
@@ -56,23 +59,15 @@ const Operation = ({ navigation }: MainNavigationProps<'Operation'>) => {
         // handleModalRecord();
     };
 
-    const handleOptionSelection = async (value: string) => {
-        switch (value) {
-            case 'extra':
-                navigation.navigate('ScanQR', {
-                    nextScreen: 'OrderConfirm',
-                });
-                break;
-            case 'time':
-                navigation.navigate('FormChangeStartTime');
-                break;
-            default:
-                break;
+    const handleOptionSelection = async (option: any) => {
+        if (option.action && typeof option.action === 'function') {
+            await option.action();
         }
         handleSettingClose();
     };
 
-    const orderProcessFallback = useRef<any>(null);
+    useEffect(() => { latestTimeRef.current = currentTime; }, [currentTime]);
+    useEffect(() => { batchsStoreRef.current = batchsStore; }, [batchsStore]);
 
     useEffect(() => {
         if (orderStore?.process) {
@@ -89,17 +84,18 @@ const Operation = ({ navigation }: MainNavigationProps<'Operation'>) => {
                 bomNo: process?.bomNo,
                 reason: 1,
                 remarks: '',
-                finishTime: currentTime,
+                finishTime: latestTimeRef.current,
                 registor: fullName || 'ADMIN',
             };
             navigation.reset({
                 index: 0,
                 routes: [
                     { name: 'Home' },
-                    { name: 'FinishConfirm', params: { payload, scanCount: `${batchsStore?.filter((c: Chemical) => c.videoFk)?.length || 0}/${batchsStore?.length || 0}` } }],
+                    { name: 'FinishConfirm', params: { payload, scanCount: `${batchsStoreRef.current?.filter((c: Chemical) => c.videoFk)?.length || 0}/${batchsStoreRef.current?.length || 0}` } }],
             });
         }
-    }, [groupedChemicals, navigation, isFocused, videoStatus]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [fullName, groupedChemicals, navigation, isFocused, videoStatus]);
 
     useEffect(() => {
         if (isProcessComplete && isFocused && videoStatus === 'idle') {
@@ -109,19 +105,19 @@ const Operation = ({ navigation }: MainNavigationProps<'Operation'>) => {
                 bomNo: orderStore.process.bomNo,
                 reason: 1,
                 remarks: '',
-                finishTime: currentTime,
+                finishTime: latestTimeRef.current,
                 registor: fullName || 'ADMIN',
             };
-            console.log('LOG : Operation : payload:', payload)
-            let recorded = batchsStore?.filter((c: Chemical) => c.videoFk)?.length || 0;
-            console.log('LOG : Operation : recorded:', recorded)
-            console.log('LOG : Operation : isLastGroupUploadSuccess:', isLastGroupUploadSuccess)
-            console.log('LOG : Operation : currentChemicals:', currentChemicals)
+            let recorded = batchsStoreRef.current?.filter((c: Chemical) => c.videoFk)?.length || 0;
             if (isLastGroupUploadSuccess) {
-                recorded += currentChemicals?.length || 0;
+                const isAlreadyRecordedInBatch = currentChemicals?.some(c =>
+                    batchsStoreRef.current?.find(b => b.id === c.id)?.videoFk
+                );
+                if (!isAlreadyRecordedInBatch) {
+                    recorded += currentChemicals?.length || 0;
+                }
             }
-            const scanCount = `${recorded}/${batchsStore?.length || 0}`;
-            console.log('LOG : Operation : scanCount:', scanCount)
+            const scanCount = `${recorded}/${batchsStoreRef.current?.length || 0}`;
             reset();
             navigation.reset({
                 index: 0,
@@ -130,7 +126,8 @@ const Operation = ({ navigation }: MainNavigationProps<'Operation'>) => {
                     { name: 'FinishConfirm', params: { payload, scanCount } }],
             });
         }
-    }, [isProcessComplete, isFocused, navigation, videoStatus, isLastGroupUploadSuccess, currentChemicals, currentTime]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [fullName, isProcessComplete, isFocused, navigation, videoStatus, isLastGroupUploadSuccess, currentChemicals]);
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('beforeRemove', (e) => {
