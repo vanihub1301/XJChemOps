@@ -3,14 +3,13 @@ import { ViewBox } from '../../components/common/ViewBox';
 import ViewContainer from '../../components/common/ViewContainer';
 import { MainNavigationProps } from '../../types/navigation';
 import ViewHeader from '../../components/common/ViewHeader';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useVideoStore } from '../../store/videoStore';
 import { TouchableOpacity } from 'react-native';
 import BottomSheet from '@gorhom/bottom-sheet';
 import BottomSheetSelect from '../../components/bottomsheet/BottomSheetSelect';
 import ActiveBatch from './ActiveBatch';
-import { useFocusEffect, useIsFocused } from '@react-navigation/native';
-import KeepAwake from 'react-native-keep-awake';
+import { useIsFocused } from '@react-navigation/native';
 import { useOperationStore } from '../../store/operationStore';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Card from '../../components/common/Card';
@@ -140,19 +139,6 @@ const Operation = ({ navigation }: MainNavigationProps<'Operation'>) => {
 
         return unsubscribe;
     }, [navigation]);
-
-    useFocusEffect(
-        useCallback(() => {
-            if (lockScreen === true) {
-                KeepAwake.activate();
-            } else {
-                KeepAwake.deactivate();
-            }
-
-            return () => {
-            };
-        }, [lockScreen])
-    );
 
     if (!batchsStore) {
         return <SplashScreen text="Đang tải dữ liệu..." />;

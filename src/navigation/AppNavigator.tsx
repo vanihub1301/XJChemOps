@@ -12,6 +12,7 @@ import { showToast } from '../service/toast';
 import { useOperationStore } from '../store/operationStore';
 import { SplashScreen } from '../components/app/SplashScreen';
 import { unstable_batchedUpdates } from 'react-native';
+import { systemSetting } from '../modules/systemSetting/SystemSetting';
 
 const AppStack = createStackNavigator<AppRoutes>();
 
@@ -128,6 +129,8 @@ export const AppNavigator: React.FC = () => {
             } catch (error: any) {
                 showToast(error.message);
             } finally {
+                const screenTimeout = await systemSetting.getScreenTimeout();
+                console.log('LOG : fetchRunningData : screenTimeout:', screenTimeout);
                 console.log('LOG : fetchRunningData : config:', config);
                 let finalSound = config?.sound;
                 if (finalSound && finalSound.startsWith('/')) {
@@ -135,22 +138,31 @@ export const AppNavigator: React.FC = () => {
                     finalSound = `${baseIp}:${config?.port}${finalSound}`;
                 }
 
-                unstable_batchedUpdates(() => {
+                unstable_batchedUpdates(async () => {
                     setCurrentTime(config?.currentTime || '');
-                    setManySetting({
-                        serverIp: config?.serverIp,
-                        port: config?.port,
-                        inspectionTime: config?.inspectionTime,
-                        idDrum: config?.id,
-                        lockScreen: config?.lockScreen,
-                        enableSound: config?.enableSound,
-                        drumno: config?.drumno,
-                        language: config?.language,
-                        sound: finalSound,
-                        volume: config?.volume,
-                        maxTimeRecord: config?.maxTimeRecord,
-                        repeatCount: config?.repeatCount,
-                    });
+                    if (config?.serverIp && config?.port) {
+                        setManySetting({
+                            serverIp: config?.serverIp,
+                            port: config?.port,
+                            inspectionTime: config?.inspectionTime,
+                            idDrum: config?.id,
+                            lockScreen: config?.lockScreen,
+                            enableSound: config?.enableSound,
+                            drumno: config?.drumno,
+                            language: config?.language,
+                            sound: finalSound,
+                            volume: config?.volume,
+                            maxTimeRecord: config?.maxTimeRecord,
+                            repeatCount: config?.repeatCount,
+                        });
+
+                        if (config?.lockScreen && ((screenTimeout / 60) < 30)) {
+                            await systemSetting.setScreenTimeout('never');
+                        }
+                        if (!config?.lockScreen) {
+                            await systemSetting.setScreenTimeout(60);
+                        }
+                    }
                 });
 
                 const newIntervalMs = (config?.inspectionTime || 30) * 1000;

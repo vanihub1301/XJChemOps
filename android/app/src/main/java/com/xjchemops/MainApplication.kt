@@ -13,6 +13,7 @@ import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
 import com.microsoft.codepush.react.CodePush
 import com.xjchemops.facedetector.VisionCameraFaceDetectorPluginPackage
+import com.xjchemops.systemsetting.SystemSettingPackage
 
 class MainApplication : Application(), ReactApplication {
 
@@ -23,6 +24,7 @@ class MainApplication : Application(), ReactApplication {
               // Packages that cannot be autolinked yet can be added manually here, for example:
               // add(MyReactNativePackage())
               add(VisionCameraFaceDetectorPluginPackage())
+              add(SystemSettingPackage())
             }
 
         override fun getJSMainModuleName(): String = "index"

@@ -8,12 +8,13 @@ import { useSettingStore } from '../../store/settingStore';
 export const AppContent: React.FC = () => {
     const { firstRunning, initialize } = useAuthStore();
     const { initializeSetting } = useSettingStore();
-    const { requestCameraPermission } = usePermissions();
+    const { requestCameraPermission, requestWritePermission } = usePermissions();
 
     useEffect(() => {
         initialize();
         requestCameraPermission();
-    }, [initialize, requestCameraPermission]);
+        requestWritePermission();
+    }, [initialize, requestCameraPermission, requestWritePermission]);
 
     if (firstRunning) {
         initializeSetting();

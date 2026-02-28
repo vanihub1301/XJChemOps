@@ -5,7 +5,6 @@ import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Eas
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useFocusEffect } from '@react-navigation/native';
-import KeepAwake from 'react-native-keep-awake';
 import { AppNavigationProps } from '../../types/navigation';
 import Entypo from 'react-native-vector-icons/Entypo';
 
@@ -81,9 +80,7 @@ const ScanQR = ({ navigation, route }: AppNavigationProps<'ScanQR'>) => {
             setScanned(false);
             setIsCameraActive(true);
 
-            KeepAwake.activate();
             return () => {
-                KeepAwake.deactivate();
                 setIsCameraActive(false);
             };
         }, [])

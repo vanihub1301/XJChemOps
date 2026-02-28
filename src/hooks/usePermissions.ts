@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { Platform, PermissionsAndroid, Linking, Alert } from 'react-native';
 import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import { showToast } from '../service/toast';
+import { systemSetting } from '../modules/systemSetting/SystemSetting';
 
 type PermissionResult = 'granted' | 'denied';
 
@@ -71,6 +72,17 @@ export function usePermissions() {
         );
     }, []);
 
+    const requestWritePermission = useCallback(async (): Promise<boolean> => {
+        if (Platform.OS !== 'android') { return true; }
+
+        const ok = await systemSetting.canWrite();
+        if (ok) { return true; }
+
+        await systemSetting.requestWritePermission();
+
+        return false;
+    }, []);
+
     const goToSettings = useCallback((navigation: any, permission: string) => {
         const mapPermission = {
             camera: 'Cần quyền truy cập Camera',
@@ -106,6 +118,7 @@ export function usePermissions() {
         checkCameraPermission,
         requestCameraPermission,
         ensureCameraPermission,
+        requestWritePermission,
         ensureMediaPermission,
         goToSettings,
     };

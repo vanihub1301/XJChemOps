@@ -10,7 +10,6 @@ import VideoHeader from './VideoHeader';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useFocusEffect } from '@react-navigation/native';
-import KeepAwake from 'react-native-keep-awake';
 import { useOperationStore } from '../../store/operationStore';
 import { Chemical } from '../../types/drum';
 import { useSettingStore } from '../../store/settingStore';
@@ -78,11 +77,9 @@ const Video = ({ navigation, route }: VideoProps) => {
 
     useFocusEffect(
         useCallback(() => {
-            KeepAwake.activate();
             setIsCameraActive(true);
 
             const wakeTimer = setTimeout(() => {
-                KeepAwake.activate();
             }, 1000);
 
             return () => {

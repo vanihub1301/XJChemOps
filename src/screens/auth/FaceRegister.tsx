@@ -12,8 +12,6 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import ViewHeader from '../../components/common/ViewHeader';
 import PillBadge from '../../components/common/PillBadge';
 import { Button } from '../../components/common/Button';
-import { useFocusEffect } from '@react-navigation/native';
-import KeepAwake from 'react-native-keep-awake';
 import Card from '../../components/common/Card';
 import EmployeeSelectModal from './EmployeeSelectModal';
 import ImageViewing from 'react-native-image-viewing';
@@ -202,15 +200,6 @@ const FaceRegister = ({ navigation }: AuthNavigationProps<'FaceRegister'>) => {
     const scanLineStyle = useAnimatedStyle(() => ({
         transform: [{ translateY: scanLinePosition.value }],
     }));
-
-    useFocusEffect(
-        useCallback(() => {
-            KeepAwake.activate();
-            return () => {
-                KeepAwake.deactivate();
-            };
-        }, [])
-    );
 
     return (
         <ViewContainer background="none" hasScrollableContent={true}>

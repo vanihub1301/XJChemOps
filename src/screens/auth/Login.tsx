@@ -14,7 +14,6 @@ import ImageEditor from '@react-native-community/image-editor';
 import RNFS from 'react-native-fs';
 import { showToast } from '../../service/toast';
 import { useFocusEffect } from '@react-navigation/native';
-import KeepAwake from 'react-native-keep-awake';
 import { Worklets } from 'react-native-worklets-core';
 import { useSettingStore } from '../../store/settingStore';
 
@@ -231,10 +230,8 @@ const Login = ({ navigation, isReAuthentication = false }: LoginProps) => {
 
     useFocusEffect(
         useCallback(() => {
-            KeepAwake.activate();
             setIsCameraActive(true);
             return () => {
-                KeepAwake.deactivate();
                 setIsCameraActive(false);
             };
         }, [])
